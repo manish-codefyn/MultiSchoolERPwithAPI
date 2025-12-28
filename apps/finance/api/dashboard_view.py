@@ -33,7 +33,7 @@ class FinanceDashboardAPIView(BaseAPIView):
         # 4. Expenses (This Month)
         monthly_expenses = 0
         try:
-             expenses_month = Expense.objects.filter(tenant=tenant, date__gte=current_month_start)
+             expenses_month = Expense.objects.filter(tenant=tenant, expense_date__gte=current_month_start)
              monthly_expenses = expenses_month.aggregate(Sum('amount'))['amount__sum'] or 0
         except Exception:
              pass
@@ -63,8 +63,8 @@ class FinanceDashboardAPIView(BaseAPIView):
             
             expense_by_month = Expense.objects.filter(
                 tenant=tenant,
-                date__gte=six_months_ago
-            ).annotate(month=TruncMonth('date')).values('month').annotate(total=Sum('amount')).order_by('month')
+                expense_date__gte=six_months_ago
+            ).annotate(month=TruncMonth('expense_date')).values('month').annotate(total=Sum('amount')).order_by('month')
             
             # Convert to dict for easy lookup
             rev_map = {entry['month'].strftime('%Y-%m'): entry['total'] for entry in revenue_by_month if entry['month']}
