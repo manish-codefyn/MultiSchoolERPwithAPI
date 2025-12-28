@@ -1,0 +1,20 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-message-rounded-detail"></i></div>
+        <div class="menu-title">Communications</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'communications:dashboard' %}"><i class="bx bx-right-arrow-alt"></i>Dashboard</a></li>
+        <li> <a href="{% url 'communications:thread_list' %}"><i class="bx bx-right-arrow-alt"></i>Inbox</a></li>
+        <li> <a href="{% url 'communications:communication_create' %}"><i class="bx bx-right-arrow-alt"></i>Compose</a></li>
+        <li> <a href="{% url 'communications:notification_list' %}"><i class="bx bx-right-arrow-alt"></i>Notifications
+            {% if unread_notification_count > 0 %}
+            <span class="badge bg-danger ms-2">{{ unread_notification_count }}</span>
+            {% endif %}
+        </a></li>
+        <li> <a href="{% url 'communications:campaign_list' %}"><i class="bx bx-right-arrow-alt"></i>Campaigns</a></li>
+        <li> <a href="{% url 'communications:template_list' %}"><i class="bx bx-right-arrow-alt"></i>Templates</a></li>
+        <li> <a href="{% url 'communications:channel_list' %}"><i class="bx bx-right-arrow-alt"></i>Channels</a></li>
+        <li> <a href="{% url 'communications:preference_update' %}"><i class="bx bx-right-arrow-alt"></i>Preferences</a></li>
+    </ul>
+</li>

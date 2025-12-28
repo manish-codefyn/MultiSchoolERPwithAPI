@@ -1,0 +1,306 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}Manual Attendance{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#single-mode" role="tab"><i class="bx bx-scan me-1"></i> Single Entry</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#bulk-mode" role="tab"><i class="bx bxs-grid me-1"></i> Bulk Class View</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    
+                    <!-- Single Mode: Roll Number Entry -->
+                    <div class="tab-pane fade show active" id="single-mode" role="tabpanel">
+                        <div class="row justify-content-center mt-3">
+                            <div class="col-md-5">
+                                <div class="card border shadow-none bg-light">
+                                    <div class="card-body p-4 text-center">
+                                        <h5 class="mb-3">Enter Roll Number</h5>
+                                        <form id="manualForm" onsubmit="event.preventDefault(); submitManual();">
+                                            
+                                            <!-- Class Selector (Required for Roll No) -->
+                                            <div class="mb-3 text-start">
+                                                <label class="form-label sm">Class <span class="text-danger">*</span></label>
+                                                <select id="singleClassSelect" class="form-select" required>
+                                                    <option value="">Select Class</option>
+                                                    {% for c in classes %}
+                                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <div class="mb-3 text-start">
+                                                <label class="form-label sm">Section <span class="text-muted">(Optional)</span></label>
+                                                <select id="singleSectionSelect" class="form-select">
+                                                    <option value="">Select Section</option>
+                                                     {% for s in sections %}
+                                                    <option value="{{ s.id }}">{{ s.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+
+                                            <div class="input-group input-group-lg mb-3">
+                                                <input type="text" id="rollInput" class="form-control" placeholder="Roll No (e.g. 21)" required autofocus>
+                                                <button class="btn btn-primary" type="submit">Mark Present</button>
+                                            </div>
+                                            <div class="form-text mt-2">Enter Admission No scanning QR also works if no Class selected.</div>
+                                        </form>
+                                        <div id="status-alert" class="alert mt-3 d-none"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div id="result-container" class="text-center h-100 d-flex align-items-center justify-content-center border rounded bg-white p-3">
+                                    <p class="text-muted"><i class="bx bx-user fs-1 d-block mb-2"></i>Result will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Mode -->
+                    <div class="tab-pane fade" id="bulk-mode" role="tabpanel">
+                        <div class="row g-3 align-items-end mb-4">
+                            <div class="col-md-3">
+                                <label class="form-label">Class</label>
+                                <select id="bulkClassSelect" class="form-select">
+                                    <option value="">Select Class</option>
+                                    {% for c in classes %}
+                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Section</label>
+                                <select id="bulkSectionSelect" class="form-select">
+                                    <option value="">Select Section</option>
+                                    {% for s in sections %}
+                                    <option value="{{ s.id }}">{{ s.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-primary w-100" onclick="loadBulkStudents()">
+                                    <i class="bx bx-refresh me-1"></i> Load
+                                </button>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-secondary active" onclick="setView('grid')"><i class="bx bx-grid-alt"></i></button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setView('list')"><i class="bx bx-list-ul"></i></button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setView('roll')"><i class="bx bx-radio-circle-marked"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bulk Content Area -->
+                        <div id="bulkContainer" class="p-2" style="min-height: 200px;">
+                            <div class="text-center text-muted mt-5">Select Class & Section to load students.</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Single Mode Logic (Roll Number)
+    function submitManual() {
+        const classId = document.getElementById('singleClassSelect').value;
+        const sectionId = document.getElementById('singleSectionSelect').value;
+        const input = document.getElementById('rollInput');
+        const rollNo = input.value.trim();
+        const alertBox = document.getElementById('status-alert');
+
+        if (!rollNo) return;
+        
+        // Basic Validation
+        if (!classId && rollNo.length < 5) {
+             // Heuristic: If roll no is short (e.g. "21"), assume it requires Class. 
+             // If long (e.g. "ADM2023001"), might be admission number.
+             // But user asked for Roll No exclusively.
+        }
+
+        alertBox.classList.add('d-none');
+        alertBox.className = 'alert mt-3 d-none';
+        
+        const payload = { 
+            qr_text: rollNo,
+            class_id: classId,
+            section_id: sectionId
+        };
+
+        fetch("{% url 'attendance:mark_qr_submit' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json().then(d => ({s: r.status, b: d})))
+        .then(res => {
+            if (res.s === 200) {
+                showSuccess(res.b);
+                input.value = ''; input.focus();
+            } else {
+                showError(res.b.error || "Error");
+            }
+        });
+    }
+
+    function showSuccess(data) {
+        document.getElementById('result-container').innerHTML = `
+            <div class="animate__animated animate__fadeIn">
+                <img src="${data.student.photo_url || 'https://via.placeholder.com/100'}" class="rounded-circle mb-2 shadow" width="80" height="80">
+                <h5 class="text-success fw-bold">${data.student.name}</h5>
+                <p class="text-muted small">${data.student.class || ''}</p>
+                <span class="badge bg-success px-3 py-2 rounded-pill">Marked Present</span>
+            </div>`;
+    }
+
+    function showError(msg) {
+        const ab = document.getElementById('status-alert');
+        ab.innerText = msg; ab.classList.remove('d-none'); ab.classList.add('alert-danger');
+    }
+
+    // ============================================
+    // Bulk Mode Logic
+    // ============================================
+    let currentView = 'grid';
+    let students = [];
+
+    function setView(view) {
+        currentView = view;
+        document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        renderBulk();
+    }
+
+    function loadBulkStudents() {
+        const cls = document.getElementById('bulkClassSelect').value;
+        const sec = document.getElementById('bulkSectionSelect').value;
+        if(!cls) return Swal.fire('Error', 'Please select a class', 'warning');
+
+        document.getElementById('bulkContainer').innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-primary"></div></div>';
+
+        fetch(`{% url 'student-list-by-class' %}?class_id=${cls}&section_id=${sec || ''}`)
+        .then(r => r.json())
+        .then(data => {
+            students = data;
+            renderBulk();
+        })
+        .catch(e => {
+            console.error(e);
+            document.getElementById('bulkContainer').innerHTML = '<div class="text-center text-danger">Failed to load students.</div>';
+        });
+    }
+
+    function renderBulk() {
+        const container = document.getElementById('bulkContainer');
+        if (!students.length) {
+            container.innerHTML = '<div class="text-center text-muted">No students found.</div>';
+            return;
+        }
+
+        let html = '';
+
+        if (currentView === 'grid') {
+            html = '<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">';
+            students.forEach(s => {
+                const isPresent = s.status === 'PRESENT';
+                html += `
+                <div class="col">
+                    <div class="card h-100 cursor-pointer ${isPresent ? 'border-success' : 'border-secondary'}" 
+                         style="border-width: 2px;"
+                         onclick="toggleAttendance('${s.id}', '${isPresent ? 'ABSENT' : 'PRESENT'}')">
+                        <div class="card-body text-center">
+                            <img src="${s.photo_url || 'https://via.placeholder.com/80'}" class="rounded-circle mb-2" width="60" height="60">
+                            <h6 class="mb-1 text-truncate">${s.name}</h6>
+                            <small class="text-muted d-block">Roll: ${s.roll_number || '-'}</small>
+                            <span class="badge ${isPresent ? 'bg-success' : 'bg-secondary'} mt-2">
+                                ${isPresent ? 'PRESENT' : 'ABSENT'}
+                            </span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+        } 
+        else if (currentView === 'list') {
+            html = '<div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Roll</th><th>Student</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+            students.forEach(s => {
+                const isPresent = s.status === 'PRESENT';
+                html += `
+                <tr onclick="toggleAttendance('${s.id}', '${isPresent ? 'ABSENT' : 'PRESENT'}')" style="cursor:pointer;">
+                    <td>${s.roll_number}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="${s.photo_url || 'https://via.placeholder.com/40'}" class="rounded-circle me-2" width="30" height="30">
+                            ${s.name}
+                        </div>
+                    </td>
+                    <td><span class="badge ${isPresent ? 'bg-success' : 'bg-secondary'}">${s.status}</span></td>
+                    <td><button class="btn btn-sm btn-outline-primary">Toggle</button></td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+        }
+        else if (currentView === 'roll') {
+            html = '<div class="d-flex flex-wrap gap-2 justify-content-center">';
+            students.forEach(s => {
+                const isPresent = s.status === 'PRESENT';
+                html += `
+                <div onclick="toggleAttendance('${s.id}', '${isPresent ? 'ABSENT' : 'PRESENT'}')" 
+                     class="rounded-circle d-flex align-items-center justify-content-center shadow-sm text-white fw-bold cursor-pointer"
+                     style="width: 60px; height: 60px; cursor: pointer; background: ${isPresent ? '#198754' : '#6c757d'}; transition: transform 0.1s;"
+                     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+                     title="${s.name} (${s.admission_number})">
+                    ${s.roll_number || '#'}
+                </div>`;
+            });
+            html += '</div>';
+        }
+
+        container.innerHTML = html;
+    }
+
+    function toggleAttendance(studentId, newStatus) {
+        // Optimistic UI Update
+        const studentIndex = students.findIndex(s => s.id === studentId);
+        const oldStatus = students[studentIndex].status;
+        students[studentIndex].status = newStatus;
+        renderBulk(); // Re-render immediately
+
+        fetch("{% url 'bulk-attendance-update' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ student_id: studentId, status: newStatus })
+        })
+        .then(r => r.json())
+        .then(d => {
+            // Success
+        })
+        .catch(e => {
+            // Revert on error
+            students[studentIndex].status = oldStatus;
+            renderBulk();
+            Swal.fire('Error', 'Failed to update attendance', 'error');
+        });
+    }
+</script>
+
+<style>
+.cursor-pointer { cursor: pointer; }
+</style>
+{% endblock %}

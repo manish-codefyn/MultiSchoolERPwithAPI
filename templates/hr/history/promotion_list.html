@@ -1,0 +1,78 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Promotions" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Staff Promotions" %}</h1>
+        <a href="{% url 'hr:promotion_create' %}" class="btn btn-primary">
+            <i class="bx bx-plus me-2"></i>{% trans "Promote Staff" %}
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Staff Name" %}</th>
+                            <th>{% trans "Previous Designation" %}</th>
+                            <th>{% trans "New Designation" %}</th>
+                            <th>{% trans "Promotion Date" %}</th>
+                            <th>{% trans "Approved By" %}</th>
+                            <th class="text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for promotion in promotions %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'hr:staff_detail' promotion.staff.pk %}" class="text-decoration-none fw-bold">
+                                    {{ promotion.staff.full_name }}
+                                </a>
+                            </td>
+                            <td>{{ promotion.previous_designation.title }}</td>
+                            <td>
+                                <span class="badge bg-success-subtle text-success">
+                                    {{ promotion.new_designation.title }}
+                                </span>
+                            </td>
+                            <td>{{ promotion.effective_date|date:"M d, Y" }}</td>
+                            <td>{{ promotion.approved_by.get_full_name }}</td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon btn-light" type="button" data-bs-toggle="dropdown">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'hr:promotion_update' promotion.pk %}">
+                                                <i class="bx bx-edit me-2"></i>{% trans "Edit" %}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{% url 'hr:promotion_delete' promotion.pk %}">
+                                                <i class="bx bx-trash me-2"></i>{% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">{% trans "No promotions found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% include 'partials/pagination.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}

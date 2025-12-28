@@ -1,0 +1,72 @@
+<section id="pricing" class="py-5">
+    <div class="container py-lg-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bolder display-5 mb-3">Transparent Pricing</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 600px;">
+                Simple yearly plans that grow with your institution. 
+                <span class="text-primary fw-bold">No hidden fees.</span>
+            </p>
+        </div>
+
+        <div class="row align-items-center justify-content-center g-4">
+            {% for plan in plans %}
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
+                <div class="pricing-card {% if plan.is_popular %}popular-plan{% endif %}">
+                    {% if plan.is_popular %}
+                    <div class="popular-badge">
+                        {{ plan.highlight_text|default:"Most Popular" }}
+                    </div>
+                    {% endif %}
+
+                    <div class="text-center">
+                        <h3 class="plan-name">{{ plan.name }}</h3>
+                        <p class="plan-desc">{{ plan.description }}</p>
+
+                        <div class="plan-price">
+                            {% if plan.price > 0 %}
+                                <span class="currency">{{ plan.currency }}</span>
+                                <span class="amount">{{ plan.price|floatformat:0 }}</span>
+                                <span class="period">per year</span>
+                            {% else %}
+                                <span class="amount" style="font-size: 2.5rem;">Custom</span>
+                                <span class="period">Tailored for you</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <ul class="feature-list">
+                        {% for feature in plan.features.all %}
+                        <li class="feature-item {% if not feature.is_included %}excluded{% endif %}">
+                            <span class="check-icon">
+                                {% if feature.is_included %}
+                                    <i class="bi bi-check-lg"></i>
+                                {% else %}
+                                    <i class="bi bi-dash"></i>
+                                {% endif %}
+                            </span>
+                            {{ feature.text }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="mt-auto">
+                        <a href="{{ plan.button_link }}" class="btn btn-price {% if plan.is_popular %}btn-price-solid{% else %}btn-price-outline{% endif %}">
+                            {{ plan.button_text }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-5">
+                <p>Pricing plans are currently being updated.</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-5 pt-3">
+            <p class="text-muted small">
+                Need a custom feature set? <a href="#" data-bs-toggle="modal" data-bs-target="#demoRequestModal" class="text-primary fw-bold text-decoration-none">Contact Sales</a>
+            </p>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,73 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Training Programs" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    {% include "partials/breadcrumb.html" with page_title=_("Training Programs") current_text=_("List")
+    action_url=request.resolver_match.app_name|add:":trainingprogram_create" action_text=_("Add Program") %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table id="trainingTable" class="table table-hover align-middle mb-0" data-datatable
+                    data-export-columns="0,1,2,3">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Program Title" %}</th>
+                            <th>{% trans "Provider" %}</th>
+                            <th>{% trans "Dates" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for program in training_programs %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'hr:trainingprogram_detail' program.pk %}"
+                                    class="text-decoration-none">{{ program.title }}</a>
+                            </td>
+                            <td>{{ program.provider }}</td>
+                            <td>{{ program.start_date|date:"M d" }} - {{ program.end_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if program.is_active %}
+                                <span class="badge bg-success bg-opacity-10 text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary">{% trans "Inactive"
+                                    %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'hr:trainingprogram_update' program.pk %}"
+                                    class="btn btn-icon btn-sm btn-light">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                                <a href="{% url 'hr:trainingprogram_delete' program.pk %}"
+                                    class="btn btn-icon btn-sm btn-light">
+                                    <i class="bx bx-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+<script>
+    $(document).ready(function () {
+        console.log("Training table init");
+    });
+</script>
+{% endblock %}

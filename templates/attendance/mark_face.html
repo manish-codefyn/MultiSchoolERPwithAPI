@@ -1,0 +1,106 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}Face Attendance{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Face Recognition Attendance</h2>
+    <video id="video" width="720" height="560" autoplay muted></video>
+
+    <div id="status" class="mt-3 alert alert-info">Initializing Camera...</div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Load face-api.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+<script>
+    const video = document.getElementById('video');
+    const statusDiv = document.getElementById('status');
+    let isProcessing = false;
+
+    // Load Models (using a public CDN for models if possible, or skip models and just do image capture)
+    // Loading models from CDN is tricky due to CORS. 
+    // We will simulate "Scanning" by capturing frames and sending to backend.
+    
+    startVideo();
+
+    function startVideo() {
+        navigator.mediaDevices.getUserMedia({ video: {} })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error(err);
+                statusDiv.innerText = "Camera Error: " + err;
+                statusDiv.classList.remove('alert-info');
+                statusDiv.classList.add('alert-danger');
+            });
+    }
+
+    video.addEventListener('play', () => {
+        statusDiv.innerText = "Scanning for faces...";
+        
+        // Scan Loop
+        setInterval(async () => {
+            if (isProcessing) return;
+            
+            // Capture Frame
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg');
+
+            isProcessing = true;
+            statusDiv.innerText = "Verifying...";
+            
+            // Send to Backend
+            try {
+                const res = await fetch("{% url 'mark-face-attendance' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ image: dataUrl, type: 'student' })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok && (data.success || data.message)) {
+                    const studentName = data.student_name || 'Student';
+                    statusDiv.innerText = "Match Found: " + studentName;
+                    statusDiv.classList.replace('alert-info', 'alert-success');
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Attendance Marked',
+                        text: `Welcome, ${studentName}`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    // Pause for a bit
+                    await new Promise(r => setTimeout(r, 3000));
+                    statusDiv.innerText = "Scanning...";
+                    statusDiv.classList.replace('alert-success', 'alert-info');
+                } else {
+                    // No match or error
+                    statusDiv.innerText = data.error || "No match found";
+                    // Don't alert on every frame, just update status
+                    await new Promise(r => setTimeout(r, 1000)); // Retry delay
+                }
+            } catch (e) {
+                console.error(e);
+                statusDiv.innerText = "Server Error";
+            } finally {
+                isProcessing = false;
+            }
+
+        }, 3000); // Check every 3 seconds
+    });
+</script>
+{% endblock %}

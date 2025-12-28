@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  # =====================================
+  # 🧠 Django Web Application
+  # =====================================
+  web:
+    container_name: erp_web_v3
+    build: .
+    # Using entrypoint.sh directly from Dockerfile, but can override or ensure arguments here 
+    # command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 (Handled in entrypoint/Dockerfile mainly)
+    command: gunicorn --config gunicorn_config.py config.wsgi:application
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DEBUG=0
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: always
+    env_file:
+      - .env
+
+  # =====================================
+  # 🗃️ PostgreSQL Database
+  # =====================================
+  db:
+    container_name: erp_db_v3
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    env_file:
+      - .env
+
+# =====================================
+# 💾 Persistent Volumes
+# =====================================
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

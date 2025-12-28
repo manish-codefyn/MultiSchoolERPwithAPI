@@ -1,0 +1,62 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-calendar-check"></i></div>
+        <div class="menu-title">Attendance</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'attendance:dashboard' %}"><i class="bx bx-right-arrow-alt"></i>Dashboard</a></li>
+        
+        <!-- Quick Mark -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Mark Attendance</a>
+            <ul>
+                <li> <a href="{% url 'attendance:mark_selection' %}"><i class="bx bx-right-arrow-alt"></i>Select Mode</a></li>
+                <li> <a href="{% url 'attendance:mark_manual' %}"><i class="bx bx-right-arrow-alt"></i>Manual Entry</a></li>
+                <li> <a href="{% url 'attendance:mark_qr' %}"><i class="bx bx-right-arrow-alt"></i>QR Scan</a></li>
+                <li> <a href="{% url 'attendance:mark_face' %}"><i class="bx bx-right-arrow-alt"></i>Face Recognition</a></li>
+            </ul>
+        </li>
+
+        <!-- Student Attendance -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Students</a>
+            <ul>
+                <li> <a href="{% url 'attendance:student_attendance_list' %}"><i class="bx bx-right-arrow-alt"></i>View Records</a></li>
+                <li> <a href="{% url 'attendance:student_attendance_create' %}"><i class="bx bx-right-arrow-alt"></i>Mark New</a></li>
+                <li> <a href="{% url 'attendance:mark_qr' %}"><i class="bx bx-qr-scan"></i>QR Scan</a></li>
+                <li> <a href="{% url 'attendance:mark_face' %}"><i class="bx bx-face-mask"></i>Face Recognition</a></li>
+            </ul>
+        </li>
+
+        <!-- Staff Attendance -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Staff</a>
+            <ul>
+                <li> <a href="{% url 'attendance:staff_attendance_list' %}"><i class="bx bx-right-arrow-alt"></i>View Records</a></li>
+                <li> <a href="{% url 'attendance:staff_attendance_create' %}"><i class="bx bx-right-arrow-alt"></i>Mark New</a></li>
+                <li> <a href="{% url 'attendance:staff_mark_qr' %}"><i class="bx bx-qr-scan"></i>QR Scan</a></li>
+                <li> <a href="{% url 'attendance:staff_mark_face' %}"><i class="bx bx-face-mask"></i>Face Recognition</a></li>
+            </ul>
+        </li>
+
+        <!-- Hostel Attendance -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Hostel</a>
+            <ul>
+                <li> <a href="{% url 'attendance:hostel_attendance_list' %}"><i class="bx bx-right-arrow-alt"></i>View Records</a></li>
+                <li> <a href="{% url 'attendance:hostel_attendance_create' %}"><i class="bx bx-right-arrow-alt"></i>Mark New</a></li>
+                <li> <a href="{% url 'attendance:hostel_mark_qr' %}"><i class="bx bx-qr-scan"></i>QR Scan</a></li>
+                <li> <a href="{% url 'attendance:hostel_mark_face' %}"><i class="bx bx-face-mask"></i>Face Recognition</a></li>
+            </ul>
+        </li>
+
+        <!-- Transport Attendance -->
+        <li>
+            <a href="javascript:;" class="has-arrow"><i class="bx bx-right-arrow-alt"></i>Transport</a>
+            <ul>
+                <li> <a href="{% url 'attendance:transport_attendance_list' %}"><i class="bx bx-right-arrow-alt"></i>View Records</a></li>
+                <li> <a href="{% url 'attendance:transport_attendance_create' %}"><i class="bx bx-right-arrow-alt"></i>Mark New</a></li>
+            </ul>
+        </li>
+    </ul>
+</li>

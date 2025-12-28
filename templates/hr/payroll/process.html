@@ -1,0 +1,24 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Process Payroll" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Process Payroll" %}</h1>
+        <a href="{% url 'hr:payroll_list' %}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-2"></i>{% trans "Back to List" %}
+        </a>
+    </div>
+
+    <!-- Processing Logic Implementation Placeholder -->
+    <div class="card shadow mb-4">
+        <div class="card-body text-center py-5">
+            <i class="bx bx-cog bx-spin fs-1 text-primary mb-3"></i>
+            <h3>{% trans "Bulk Processing" %}</h3>
+            <p class="text-muted">{% trans "This feature allows processing multiple payroll records at once." %}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

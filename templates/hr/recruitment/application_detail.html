@@ -1,0 +1,163 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{{ job_application.applicant_name }} - {% trans "Job Application" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            {% include 'partials/breadcrumb.html' %}
+        </div>
+        <div class="d-flex gap-2">
+            <a href="#" class="btn btn-outline-primary">
+                <i class="bx bx-edit me-2"></i>{% trans "Edit Application" %}
+            </a>
+            {% if job_application.status == 'APPLIED' %}
+            <a href="#" class="btn btn-primary">
+                <i class="bx bx-check-circle me-2"></i>{% trans "Shortlist" %}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Applicant Info -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="m-0 font-weight-bold text-primary">{% trans "Applicant Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase">{% trans "Email" %}</label>
+                            <p class="h6"><a href="mailto:{{ job_application.email }}">{{ job_application.email }}</a></p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase">{% trans "Phone" %}</label>
+                            <p class="h6">{{ job_application.phone }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase">{% trans "Applied Position" %}</label>
+                            <p class="h6">{{ job_application.recruitment.position_title }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-muted text-uppercase">{% trans "Applied Date" %}</label>
+                            <p class="h6">{{ job_application.applied_date|date:"F d, Y H:i" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="small text-muted text-uppercase">{% trans "Cover Letter" %}</label>
+                        <div class="p-3 bg-light rounded text-muted">
+                            {{ job_application.cover_letter|linebreaks|default:"No cover letter provided." }}
+                        </div>
+                    </div>
+
+                    {% if job_application.resume %}
+                    <div class="mb-0">
+                        <label class="small text-muted text-uppercase">{% trans "Resume / CV" %}</label>
+                        <div class="d-flex align-items-center mt-2">
+                            <a href="{{ job_application.resume.url }}" target="_blank" class="btn btn-outline-dark btn-sm">
+                                <i class="bx bxs-file-pdf me-2 text-danger"></i>{% trans "View Resume" %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- HR Notes & Rating -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="m-0 font-weight-bold text-primary">{% trans "HR Evaluation" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="small text-muted text-uppercase">{% trans "Rating" %}</label>
+                            <div class="h5 text-warning">
+                                {% if job_application.rating %}
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= job_application.rating %}
+                                        <i class="bx bxs-star"></i>
+                                        {% else %}
+                                        <i class="bx bx-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="small text-muted ms-2">({{ job_application.rating }}/5)</span>
+                                {% else %}
+                                    <span class="text-muted small">{% trans "Not rated yet" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                         <div class="col-md-4">
+                             <label class="small text-muted text-uppercase">{% trans "Expected Salary" %}</label>
+                             <p class="h6">{% if job_application.expected_salary %}{{ job_application.expected_salary }}{% else %}-{% endif %}</p>
+                         </div>
+                         <div class="col-md-4">
+                             <label class="small text-muted text-uppercase">{% trans "Notice Period" %}</label>
+                             <p class="h6">{{ job_application.notice_period }} {% trans "Days" %}</p>
+                         </div>
+                    </div>
+                    
+                    <div>
+                        <label class="small text-muted text-uppercase">{% trans "Internal Notes" %}</label>
+                        <div class="p-3 bg-light rounded text-muted">
+                             {{ job_application.notes|linebreaks|default:"No internal notes added." }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Status -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="m-0 font-weight-bold text-primary">{% trans "Status" %}</h5>
+                </div>
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <span class="badge rounded-pill bg-primary fs-6 px-4 py-2">
+                            {{ job_application.get_status_display }}
+                        </span>
+                    </div>
+                    <p class="text-muted small mb-0">{% trans "Current application status" %}</p>
+                </div>
+                <div class="card-footer bg-light p-3">
+                    <h6 class="small fw-bold text-uppercase mb-3">{% trans "Update Status" %}</h6>
+                    <div class="d-grid gap-2">
+                        {% if job_application.status == 'APPLIED' %}
+                        <form method="post" action="{% url 'hr:jobapplication_shortlist' job_application.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-info w-100">{% trans "Move to Screening" %}</button>
+                        </form>
+                        {% endif %}
+                        
+                        {% if job_application.status == 'SHORTLISTED' %}
+                        <form method="post" action="{% url 'hr:jobapplication_interview' job_application.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-success w-100">{% trans "Schedule Interview" %}</button>
+                        </form>
+                        {% endif %}
+                        
+                        {% if job_application.status != 'REJECTED' and job_application.status != 'ACCEPTED' %}
+                        <form method="post" action="{% url 'hr:jobapplication_reject' job_application.pk %}" onsubmit="return confirm('Are you sure you want to reject this application?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">{% trans "Reject Application" %}</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

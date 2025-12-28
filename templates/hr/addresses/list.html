@@ -1,0 +1,89 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Staff Addresses" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Staff Addresses" %}</h1>
+        <a href="{% url 'hr:staffaddress_create' %}" class="btn btn-primary shadow-sm">
+            <i class="bx bx-plus me-2"></i>{% trans "Add Address" %}
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="addressTable" data-datatable data-title="{% trans 'Staff Address List' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Staff Name" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Address" %}</th>
+                            <th>{% trans "City" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for address in addresses %}
+                        <tr>
+                            <td class="ps-4">
+                                <a href="{% url 'hr:staff_detail' address.staff.pk %}" class="text-decoration-none fw-bold text-dark">
+                                    {{ address.staff.full_name }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-info-subtle text-info">
+                                    {{ address.get_address_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {{ address.street }}<br>
+                                <small class="text-muted">{{ address.state|default:"-" }} - {{ address.pincode }}</small>
+                            </td>
+                            <td>{{ address.city }}</td>
+                            <td>
+                                {% if address.is_current %}
+                                <span class="badge bg-success-subtle text-success">{% trans "Current" %}</span>
+                                {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary">{% trans "Previous" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon btn-light" type="button" data-bs-toggle="dropdown">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{% url 'hr:staffaddress_update' address.pk %}">
+                                                <i class="bx bx-edit me-2"></i>{% trans "Edit" %}
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="{% url 'hr:staffaddress_delete' address.pk %}">
+                                                <i class="bx bx-trash me-2"></i>{% trans "Delete" %}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

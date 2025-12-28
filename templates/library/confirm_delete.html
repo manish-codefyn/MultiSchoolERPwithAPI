@@ -1,0 +1,38 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Confirm Delete" %}{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-content">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card border-0 shadow-sm mt-5">
+                    <div class="card-body p-5 text-center">
+                        <div class="avatar bg-danger-subtle text-danger rounded-circle mx-auto mb-4" style="width: 80px; height: 80px; line-height: 76px;">
+                            <i class='bx bx-trash-alt fs-1'></i>
+                        </div>
+                        <h4 class="card-title mb-3">{% trans "Are you sure?" %}</h4>
+                        <p class="text-muted mb-4">
+                            {% trans "Do you really want to delete this record? This process cannot be undone." %}
+                        </p>
+                        
+                        <div class="bg-light p-3 rounded mb-4 text-start">
+                            <strong>{% trans "Record:" %}</strong> {{ object }}
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-grid gap-2 d-sm-flex justify-content-center">
+                                <a href="javascript:history.back()" class="btn btn-light btn-lg px-4">{% trans "Cancel" %}</a>
+                                <button type="submit" class="btn btn-danger btn-lg px-4">{% trans "Delete Record" %}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

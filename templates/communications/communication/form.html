@@ -1,0 +1,194 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Compose Message" %}{% endblock %}
+
+{% block content %}
+    {% url 'communications:communication_list' as list_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Compose Message") parent_text=_("Communications") parent_url=list_url current_text=_("New Message") %}
+
+    <div class="row">
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" novalidate enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-12">{{ form.title|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">{{ form.subject|as_crispy_field }}</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">{{ form.channel|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.template|as_crispy_field }}</div>
+                        </div>
+
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body p-3">
+                                <h6 class="mb-3"><i class="bx bx-user me-1"></i> {% trans "Recipient Targeting" %}</h6>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label d-block">{% trans "Audience Target" %}</label>
+                                    <div class="btn-group w-100" role="group">
+                                        {% for radio in form.audience_type %}
+                                        {{ radio.tag }}
+                                        <label class="btn btn-outline-primary" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                        {% endfor %}
+                                    </div>
+                                    {{ form.audience_type.errors }}
+                                </div>
+
+                                <div id="div_target_class" class="mb-3" style="display: none;">
+                                    {{ form.target_class|as_crispy_field }}
+                                </div>
+
+                                <div id="single-recipient-fields">
+                                    <div class="row">
+                                        <div class="col-md-6">{{ form.recipient_type|as_crispy_field }}</div>
+                                        <div class="col-md-6">{{ form.recipient_id|as_crispy_field }}</div>
+                                    </div>
+                                    <hr class="my-3 opacity-25">
+                                    <div class="row">
+                                        <div class="col-md-4">{{ form.external_recipient_name|as_crispy_field }}</div>
+                                        <div class="col-md-4">{{ form.external_recipient_email|as_crispy_field }}</div>
+                                        <div class="col-md-4">{{ form.external_recipient_phone|as_crispy_field }}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    {{ form.send_notification|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+
+                        {{ form.content|as_crispy_field }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">{{ form.priority|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.scheduled_for|as_crispy_field }}</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div class="file-upload">
+                                <button type="button" class="btn btn-light btn-sm"><i class="bx bx-paperclip me-1"></i> {% trans "Add Attachment" %}</button>
+                            </div>
+                            <div class="actions d-flex gap-2">
+                                <a href="{{ list_url }}" class="btn btn-light">{% trans "Discard" %}</a>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="bx bx-send me-2"></i>{% trans "Send Message" %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">{% trans "Compose Tips" %}</h5>
+                </div>
+                <div class="card-body py-2">
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bx bxs-check-circle text-success mt-1 me-2"></i>
+                            <div>{% trans "Select a channel before starting to see specific options." %}</div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="bx bxs-check-circle text-success mt-1 me-2"></i>
+                            <div>{% trans "Using templates can save time and ensure consistency." %}</div>
+                        </li>
+                        <li class="mb-0 d-flex align-items-start">
+                            <i class="bx bxs-check-circle text-success mt-1 me-2"></i>
+                            <div>{% trans "Schedule messages to reach recipients at the best time." %}</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card bg-primary text-white border-0 shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <i class="bx bx-help-circle mb-3" style="font-size: 2.5rem;"></i>
+                    <h6>{% trans "Need Help?" %}</h6>
+                    <p class="small opacity-75 mb-0">{% trans "Refer to the documentation for advanced message targeting and template variables." %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('id_recipient_type');
+        const recipientSelect = document.getElementById('id_recipient_id');
+        const singleFields = document.getElementById('single-recipient-fields');
+        const classDiv = document.getElementById('div_target_class');
+        const audienceRadios = document.querySelectorAll('input[name="audience_type"]');
+
+        function toggleFields() {
+            let selectedVal = document.querySelector('input[name="audience_type"]:checked').value;
+            
+            if (selectedVal === 'SINGLE') {
+                singleFields.style.display = 'block';
+                classDiv.style.display = 'none';
+            } else if (selectedVal === 'CLASS') {
+                singleFields.style.display = 'none';
+                classDiv.style.display = 'block';
+            } else {
+                singleFields.style.display = 'none';
+                classDiv.style.display = 'none';
+            }
+        }
+
+        // Attach event listeners to radios
+        audienceRadios.forEach(radio => {
+            radio.addEventListener('change', toggleFields);
+        });
+
+        // Run on load
+        toggleFields();
+        
+        // Initial state for recipient select
+        if (!typeSelect.value) {
+            recipientSelect.disabled = true;
+        }
+
+        typeSelect.addEventListener('change', function() {
+            const typeId = this.value;
+            recipientSelect.innerHTML = '<option value="">---------</option>';
+            recipientSelect.disabled = true;
+
+            if (typeId) {
+                // Show loading
+                recipientSelect.innerHTML = '<option value="">Loading...</option>';
+                
+                fetch(`{% url 'communications:recipient_lookup' %}?content_type_id=${typeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        recipientSelect.innerHTML = '<option value="">---------</option>';
+                        
+                        if (data.results && data.results.length > 0) {
+                            data.results.forEach(item => {
+                                const option = document.createElement('option');
+                                option.value = item.id;
+                                option.textContent = item.text;
+                                recipientSelect.appendChild(option);
+                            });
+                            recipientSelect.disabled = false;
+                        } else {
+                            const option = document.createElement('option');
+                            option.textContent = 'No recipients found';
+                            recipientSelect.appendChild(option);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching recipients:', error);
+                        recipientSelect.innerHTML = '<option value="">Error loading recipients</option>';
+                    });
+            }
+        });
+    });
+</script>
+{% endblock %}

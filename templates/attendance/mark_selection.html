@@ -1,0 +1,20 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}Select Marking Mode{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Select Attendance Mode</h2>
+    <div class="d-grid gap-2">
+        <a href="{% url 'attendance:mark_manual' %}" class="btn btn-lg btn-outline-primary">
+            Manual Entry
+        </a>
+        <a href="{% url 'attendance:mark_qr' %}" class="btn btn-lg btn-outline-success">
+            QR Code Scan
+        </a>
+        <a href="{% url 'attendance:mark_face' %}" class="btn btn-lg btn-outline-info">
+            Face Recognition
+        </a>
+    </div>
+</div>
+{% endblock %}

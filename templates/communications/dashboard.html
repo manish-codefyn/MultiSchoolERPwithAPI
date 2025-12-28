@@ -1,0 +1,177 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Communications Dashboard" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">{% trans "Communications" %}</h1>
+            <p class="text-muted mb-0">{% trans "Monitor and manage school wide notifications" %}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'communications:channel_list' %}" class="btn btn-outline-primary shadow-sm">
+                <i class="bx bx-cog me-2"></i>{% trans "Configure Channels" %}
+            </a>
+            <a href="{% url 'communications:communication_create' %}" class="btn btn-primary shadow-sm">
+                <i class="bx bx-plus me-2"></i>{% trans "Compose Message" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{% trans "Total Messages" %}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_communications }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-message-square-dots fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{% trans "Sent Successfully" %}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_sent }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-check-double fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">{% trans "Delivery Failures" %}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_failed }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-error-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-start border-info border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">{% trans "Active Campaigns" %}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_campaigns }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-megaphone fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Communications -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Recent Communications" %}</h6>
+                    <a href="{% url 'communications:communication_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View History"%}</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Subject" %}</th>
+                                    <th>{% trans "Channel" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th class="text-end pe-4">{% trans "Date" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for comm in recent_comms %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-truncate" style="max-width: 250px;">{{ comm.subject|default:comm.title }}</div>
+                                        <div class="small text-muted">{% trans "To" %}: {{ comm.recipient_name }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">{{ comm.channel.name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if comm.status == 'SENT' %}bg-success-subtle text-success
+                                            {% elif comm.status == 'FAILED' %}bg-danger-subtle text-danger
+                                            {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                            {{ comm.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4 small text-muted">
+                                        {{ comm.created_at|date:"M d, H:i" }}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">{% trans "No recent communications" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Channel Performance -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Channel Usage" %}</h6>
+                    <a href="{% url 'communications:channel_list' %}" class="btn btn-sm btn-outline-primary">{% trans "Manage"%}</a>
+                </div>
+                <div class="card-body">
+                    {% if channels %}
+                        {% for channel in channels %}
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small fw-bold">{{ channel.name }}</span>
+                                <span class="small text-muted">{{ channel.comm_count }} {% trans "messages" %}</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar {% if channel.is_healthy %}bg-primary{% else %}bg-danger{% endif %}" role="progressbar" 
+                                     style="width: {% if total_communications %}{% widthratio channel.comm_count total_communications 100 %}{% else %}0{% endif %}%"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bx bx-cog fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">{% trans "No communication channels configured." %}</p>
+                            <a href="{% url 'communications:channel_create' %}" class="btn btn-primary btn-sm">{% trans "Setup Channel" %}</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

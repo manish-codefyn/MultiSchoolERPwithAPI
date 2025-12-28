@@ -1,0 +1,30 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}{% trans "Edit Assignment" %}{% else %}{% trans "Create Assignment" %}{% endif %}{% endblock %}
+
+{% block content %}
+    
+    {% include 'partials/breadcrumb.html' with page_title=_("Assignment Form") current_text=_("Form") %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4">{% if form.instance.pk %}{% trans "Edit Assignment" %}{% else %}{% trans "Create New Assignment" %}{% endif %}</h5>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'assignments:assignment_list' %}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary">{% if form.instance.pk %}{% trans "Update Assignment" %}{% else %}{% trans "Create Assignment" %}{% endif %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

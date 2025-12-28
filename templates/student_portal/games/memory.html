@@ -1,0 +1,153 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block title %}Memory Match{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="mb-0">Memory Match</h4>
+            <span class="badge bg-primary">Moves: <span id="moves">0</span></span>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" onclick="restartGame()">
+            <i class="bx bx-refresh"></i> Restart
+        </button>
+    </div>
+</div>
+
+<div class="game-container d-flex justify-content-center">
+    <div class="memory-grid" id="grid">
+        <!-- Cards injected by JS -->
+    </div>
+</div>
+
+<style>
+    .memory-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        width: 100%;
+        max-width: 400px;
+    }
+    .memory-card {
+        aspect-ratio: 1;
+        background: #fff;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2rem;
+        cursor: pointer;
+        transition: transform 0.3s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transform-style: preserve-3d;
+        position: relative;
+    }
+    .memory-card.flipped {
+        background: #fff;
+        transform: rotateY(180deg);
+    }
+    .memory-card .front, .memory-card .back {
+        backface-visibility: hidden;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .memory-card .back {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: rotateY(0deg);
+    }
+    .memory-card .front {
+        background: white;
+        transform: rotateY(180deg);
+        border: 2px solid #eee;
+    }
+    .memory-card.matched .front {
+        background: #d4edda;
+        border-color: #c3e6cb;
+    }
+</style>
+
+<script>
+    const icons = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+    const grid = document.getElementById('grid');
+    const movesDisplay = document.getElementById('moves');
+    let cards = [...icons, ...icons];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let moves = 0;
+    let canFlip = true;
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function createCard(icon) {
+        const card = document.createElement('div');
+        card.className = 'memory-card';
+        card.innerHTML = `
+            <div class="back"><i class="bx bx-question-mark"></i></div>
+            <div class="front">${icon}</div>
+        `;
+        card.addEventListener('click', () => flipCard(card, icon));
+        return card;
+    }
+
+    function flipCard(card, icon) {
+        if (!canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+        card.classList.add('flipped');
+        flippedCards.push({ card, icon });
+
+        if (flippedCards.length === 2) {
+            moves++;
+            movesDisplay.innerText = moves;
+            canFlip = false;
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const [first, second] = flippedCards;
+        if (first.icon === second.icon) {
+            first.card.classList.add('matched');
+            second.card.classList.add('matched');
+            matchedPairs++;
+            flippedCards = [];
+            canFlip = true;
+            if (matchedPairs === icons.length) {
+                setTimeout(() => alert('You Won! 🎉'), 500);
+            }
+        } else {
+            setTimeout(() => {
+                first.card.classList.remove('flipped');
+                second.card.classList.remove('flipped');
+                flippedCards = [];
+                canFlip = true;
+            }, 1000);
+        }
+    }
+
+    function restartGame() {
+        grid.innerHTML = '';
+        shuffle(cards);
+        cards.forEach(icon => grid.appendChild(createCard(icon)));
+        moves = 0;
+        matchedPairs = 0;
+        movesDisplay.innerText = 0;
+        canFlip = true;
+        flippedCards = [];
+    }
+
+    restartGame();
+</script>
+{% endblock %}

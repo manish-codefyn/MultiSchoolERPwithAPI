@@ -1,0 +1,111 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Annual Payroll Report" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Annual Payroll Report" %} - {{ request.GET.year|default:year }}</h1>
+        <div class="d-flex gap-2">
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    {{ request.GET.year|default:year }}
+                </button>
+                <ul class="dropdown-menu">
+                     <li><a class="dropdown-item" href="?year=2024">2024</a></li>
+                    <li><a class="dropdown-item" href="?year=2023">2023</a></li>
+                    <li><a class="dropdown-item" href="?year=2022">2022</a></li>
+                </ul>
+            </div>
+            <button class="btn btn-primary shadow-sm" onclick="window.print()">
+                <i class="fas fa-print me-2"></i>{% trans "Print Report" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-bold">{% trans "Total Payout" %}</div>
+                    <div class="h3 mb-0 text-gray-800">{{ total_salary }}</div>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-info border-4">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-bold">{% trans "Average Monthly" %}</div>
+                    <div class="h3 mb-0 text-gray-800">{{ avg_monthly_payout|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-4">
+            <div class="card border-0 shadow-sm border-start border-success border-4">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase fw-bold">{% trans "Records Processed" %}</div>
+                    <div class="h3 mb-0 text-gray-800">{{ total_records }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Monthly Breakdown" %}</h6>
+                </div>
+                <div class="card-body p-0">
+                     <div class="table-responsive">
+                         <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Month" %}</th>
+                                    <th>{% trans "Staff Count" %}</th>
+                                    <th class="text-end pe-4">{% trans "Total Salary" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for month_data in monthly_breakdown %}
+                                <tr>
+                                    <td class="ps-4">{{ month_data.month_name }}</td>
+                                    <td>{{ month_data.count }}</td>
+                                    <td class="text-end pe-4 fw-bold">{{ month_data.total_salary }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Department Allocation" %}</h6>
+                </div>
+                <div class="card-body">
+                    {% for dept in department_data %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold">{{ dept.department }}</span>
+                            <span class="text-muted">{{ dept.percentage|floatformat:1 }}%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" role="progressbar" style="width: {{ dept.percentage }}%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1 small text-muted">
+                            <span>{{ dept.count }} Staff</span>
+                            <span>{{ dept.total_salary }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

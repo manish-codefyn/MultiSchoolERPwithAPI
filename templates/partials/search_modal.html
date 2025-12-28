@@ -1,0 +1,24 @@
+<div class="modal" id="SearchModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
+        <div class="modal-content">
+            <div class="modal-header gap-2">
+                <div class="position-relative popup-search w-100">
+                    <form action="{% url 'core:global_search' %}" method="get">
+                        <input class="form-control form-control-lg ps-5 border border-3 border-primary" type="search" name="q" placeholder="Search students, staff..." value="{{ request.GET.q }}">
+                        <span class="position-absolute top-50 search-show ms-3 translate-middle-y start-0 top-50 fs-4"><i class='bx bx-search'></i></span>
+                    </form>
+                </div>
+                <button type="button" class="btn-close d-md-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mt-5">
+                    <p class="text-muted">Type and press Enter to search students and staff.</p>
+                </div>
+            </div>
+		
+    <!-- end search modal -->
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,106 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Payroll Detail" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+             <h1 class="h3 mb-1 text-gray-800">{% trans "Payroll Slip" %}</h1>
+            <p class="text-muted mb-0">{{ payroll.salary_month|date:"F Y" }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:payroll_payslip' payroll.pk %}" class="btn btn-primary shadow-sm" target="_blank">
+                <i class="bx bx-download me-2"></i>{% trans "Download PDF" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mx-auto" style="max-width: 800px;">
+        <div class="card-body p-5">
+            <!-- Header -->
+            <div class="text-center mb-5 border-bottom pb-4">
+                <h2 class="h4 fw-bold text-uppercase mb-1">{{ request.tenant.name }}</h2>
+                <p class="text-muted mb-0">{% trans "Salary Slip for" %} {{ payroll.salary_month|date:"F Y" }}</p>
+            </div>
+
+            <!-- Employee Info -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>{% trans "Employee Name:" %}</strong> {{ payroll.staff.full_name }}</p>
+                    <p class="mb-1"><strong>{% trans "Employee ID:" %}</strong> {{ payroll.staff.employee_id }}</p>
+                    <p class="mb-0"><strong>{% trans "Designation:" %}</strong> {{ payroll.staff.designation.title }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-1"><strong>{% trans "Department:" %}</strong> {{ payroll.staff.department.name }}</p>
+                    <p class="mb-1"><strong>{% trans "Bank Account:" %}</strong> {{ payroll.staff.bank_account_number|default:"-" }}</p>
+                     <p class="mb-0"><strong>{% trans "Status:" %}</strong> <span class="badge bg-success">{{ payroll.status }}</span></p>
+                </div>
+            </div>
+
+            <!-- Salary Details -->
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="w-50">{% trans "Earnings" %}</th>
+                            <th class="text-end">{% trans "Amount" %}</th>
+                            <th class="w-50">{% trans "Deductions" %}</th>
+                            <th class="text-end">{% trans "Amount" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{% trans "Basic Salary" %}</td>
+                            <td class="text-end">{{ payroll.basic_salary }}</td>
+                            <td>{% trans "Provident Fund" %}</td>
+                            <td class="text-end">{{ payroll.pf_deduction }}</td>
+                        </tr>
+                        <tr>
+                            <td>{% trans "HRA" %}</td>
+                            <td class="text-end">{{ payroll.hra_allowance }}</td>
+                            <td>{% trans "Tax" %}</td>
+                            <td class="text-end">{{ payroll.tax_deduction }}</td>
+                        </tr>
+                        <tr>
+                            <td>{% trans "Transport Allowance" %}</td>
+                             <td class="text-end">{{ payroll.transport_allowance }}</td>
+                            <td>{% trans "Other Deductions" %}</td>
+                             <td class="text-end">{{ payroll.other_deductions }}</td>
+                        </tr>
+                         <tr>
+                            <td>{% trans "Other Allowances" %}</td>
+                             <td class="text-end">{{ payroll.other_allowances }}</td>
+                            <td></td>
+                             <td class="text-end"></td>
+                        </tr>
+                         <tr class="fw-bold bg-light">
+                            <td>{% trans "Gross Earnings" %}</td>
+                             <td class="text-end">{{ payroll.gross_salary }}</td>
+                            <td>{% trans "Total Deductions" %}</td>
+                             <td class="text-end">{{ payroll.total_deductions }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Net Pay -->
+             <div class="row justify-content-end mb-5">
+                <div class="col-md-6">
+                    <div class="border p-3 rounded bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{% trans "Net Payable" %}</h5>
+                            <h4 class="mb-0 fw-bold text-primary">{{ payroll.net_salary }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             <div class="text-center text-muted small">
+                <p class="mb-0">{% trans "This is a computer-generated document and does not require a signature." %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

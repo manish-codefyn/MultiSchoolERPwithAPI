@@ -1,0 +1,60 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+{% block title %}{% trans "Rooms" %}{% endblock %}
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+    {% url 'hostel:room_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Rooms") current_text=_("Rooms") action_url=create_url action_text=_("Add Room") extra_action_url=import_url extra_action_text=_("Import") extra_action_icon="bx bx-import" %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="roomTable" data-datatable data-export-columns="[0, 1, 2, 3, 4, 5]" data-title="{% trans 'Room List' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Room No" %}</th>
+                            <th>{% trans "Hostel" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Floor" %}</th>
+                            <th>{% trans "Occupancy" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for room in rooms %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ room.room_number }}</td>
+                            <td>{{ room.hostel.name }}</td>
+                            <td>{{ room.get_room_type_display }}</td>
+                            <td>{{ room.floor }}</td>
+                            <td>
+                                <small>{{ room.current_occupancy }} / {{ room.total_beds }}</small>
+                            </td>
+                            <td>
+                                {% if room.is_available %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Available" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Full/Maintenance" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'hostel:room_update' room.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'hostel:room_delete' room.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

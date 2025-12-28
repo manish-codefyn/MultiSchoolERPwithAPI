@@ -1,0 +1,126 @@
+{% extends 'public/base.html' %}
+
+{% block title %}Home - EduERP by Codefyn{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+{% include "public/partials/hero.html" %}
+<!-- Stats Section -->
+<!-- Modules Section -->
+<!-- Modules Section -->
+<section id="modules" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-5 mb-3">Comprehensive Module Ecosystem</h2>
+            <p class="lead text-muted">Powerful, integrated modules designed for modern educational institutions</p>
+        </div>
+
+        <div class="row g-4">
+            {% for feature in features %}
+            <div class="col-lg-4 col-md-6">
+                <div class="module-card card-stylish text-center h-100">
+                    <div class="module-icon-wrapper bg-{{ feature.color_class }} bg-opacity-10 text-{{ feature.color_class }}">
+                        <i class="bi {{ feature.icon }} module-icon"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">{{ feature.title }}</h5>
+                    <p class="text-muted">{{ feature.description }}</p>
+                </div>
+            </div>
+            {% empty %}
+             <!-- Fallback if database is empty -->
+             <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 text-muted">Loading System Features...</p>
+             </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+{% include "public/partials/pricing.html" %}
+
+<!-- Call to Action Section -->
+<section class="py-5 my-5">
+    <div class="container">
+        <div class="position-relative bg-dark rounded-5 overflow-hidden p-5 text-center shadow-lg">
+            <!-- Background Decorative Blobs -->
+            <div class="position-absolute top-0 start-0 translate-middle rounded-circle opacity-25" style="width: 300px; height: 300px; background: #6366f1; filter: blur(80px);"></div>
+            <div class="position-absolute bottom-0 end-0 translate-middle rounded-circle opacity-25" style="width: 300px; height: 300px; background: #10b981; filter: blur(80px);"></div>
+            
+            <div class="position-relative z-1 text-white">
+                <h2 class="display-5 fw-bold mb-4">Ready to Transform Your Institute?</h2>
+                <p class="lead mb-5 text-white-50 mx-auto" style="max-width: 600px;">
+                    Join over 500+ educational institutions streamlining their operations with our all-in-one ERP platform.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'signup' %}" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm">Get Started Now</a>
+                    <button type="button" class="btn btn-outline-light btn-lg rounded-pill px-5 fw-bold" data-bs-toggle="modal" data-bs-target="#demoRequestModal">
+                        Request Demo
+                    </button>
+                </div>
+                <div class="mt-4 small text-white-50">
+                    <i class="bi bi-check-circle me-1 text-success"></i> No credit card required &nbsp;&bull;&nbsp; 
+                    <i class="bi bi-check-circle me-1 text-success"></i> 14-day free trial
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Include Demo Modal -->
+{% include "public/partials/demo_modal.html" %}
+
+{% endblock %}
+ {% block extra_js %}
+<!-- Smooth Scrolling and Animation -->
+<script>
+    // Smooth scrolling for anchor links
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const anchorLinks = document.querySelectorAll('a[href^="#"]');
+        
+        anchorLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // Observe module cards and tenant cards
+        const cards = document.querySelectorAll('.module-card, .tenant-card');
+        cards.forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    });
+</script>
+{% endblock %}

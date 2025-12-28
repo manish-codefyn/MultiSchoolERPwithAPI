@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block extra_css %}
+<style>
+    /* Mobile App-like Styles */
+    body {
+        background-color: #f8f9fa;
+        padding-bottom: 80px; /* Space for bottom nav */
+    }
+    .student-header {
+        background: white;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        border-radius: 0 0 15px 15px;
+    }
+    .page-content {
+        padding: 1.5rem 1rem;
+    }
+    .wrapper {
+        min-height: 100vh;
+    }
+    /* Hide scrollbars for cleaner look */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #ccc; 
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block body_content %}
+<div class="wrapper">
+    <!-- Simple Mobile Header -->
+    <header class="student-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            {% if tenant.logo %}
+                <img src="{{ tenant.logo.url }}" alt="Logo" width="40" height="40" class="rounded-circle me-2">
+            {% else %}
+                <img src="{% static 'images/logo_icon.png' %}" alt="Logo" width="40" height="40" class="rounded-circle me-2">
+            {% endif %}
+            <h5 class="mb-0 text-primary fw-bold">{{ tenant.name|default:"Student Portal" }}</h5>
+        </div>
+        <div>
+           <div class="dropdown">
+                <a class="d-flex align-items-center nav-link dropdown-toggle gap-3 dropdown-toggle-nocaret" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    {% if request.user.profile_picture %}
+                         <img src="{{ request.user.profile_picture.url }}" class="user-img rounded-circle" alt="user avatar" width="35" height="35">
+                    {% else %}
+                        <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                            <i class="bx bx-user"></i>
+                        </div>
+                    {% endif %}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'student_portal:profile' %}"><i class="bx bx-user"></i><span>Profile</span></a></li>
+                    <li><div class="dropdown-divider mb-0"></div></li>
+                    <li><a class="dropdown-item" href="{% url 'logout' %}"><i class='bx bx-log-out-circle'></i><span>Logout</span></a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="page-content">
+        <!-- Alerts -->
+        {% include "partials/alert.html" %}
+        
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Bottom Navigation -->
+    {% include 'student_portal/partials/bottom_nav.html' %}
+    
+</div>
+
+<!-- Misc Scripts -->
+{% include 'partials/theme_switcher.html' %}
+{% endblock %}

@@ -1,0 +1,15 @@
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-task"></i>
+        </div>
+        <div class="menu-title">Assignments</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'assignments:assignment_list' %}"><i class="bx bx-right-arrow-alt"></i>All Assignments</a>
+        </li>
+        {% if perms.assignments.add_assignment %}
+        <li> <a href="{% url 'assignments:assignment_create' %}"><i class="bx bx-right-arrow-alt"></i>Create New</a>
+        </li>
+        {% endif %}
+    </ul>
+</li>

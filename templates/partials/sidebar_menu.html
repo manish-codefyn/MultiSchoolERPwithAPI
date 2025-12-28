@@ -1,0 +1,48 @@
+<ul class="metismenu" id="menu">
+
+    <li>
+        <a href="{% url 'dashboard_redirect' %}">
+            <div class="parent-icon"><i class="bx bx-home-alt"></i></div>
+            <div class="menu-title">Dashboard</div>
+        </a>
+    </li>
+
+    {% if is_public_tenant %}
+    {% if request.user.is_superuser %}
+    <li>
+      <a href="{% url 'tenants:api_usage_list' %}">
+            <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
+            <div class="menu-title">Monitoring</div>
+        </a>
+    </li>
+    {% include 'tenants/partials/sub_menu.html' %}
+    {% include 'security/partials/sub_menu.html' %}
+
+    {% endif %}
+    {% endif %}
+
+
+    {% if not is_public_tenant %}
+    {% if request.user.is_staff %}
+        {% include 'analytics/partials/sub_menu.html' %}
+    {% endif %}
+    {% if request.user.is_staff %}
+    {% include 'communications/partials/sub_menu.html' %}
+    {% include 'users/partials/sub_menu.html' %}
+    {% include 'admission/partials/sub_menu.html' %}
+    {% include 'students/partials/sub_menu.html' %}
+    {% include 'academics/partials/sub_menu.html' %}
+    {% include 'assignments/partials/sub_menu.html' %}
+    {% include 'attendance/partials/sub_menu.html' %}
+    {% include 'hr/partials/sub_menu.html' %}
+    {% include 'finance/partials/sub_menu.html' %}
+    {% include 'library/partials/sub_menu.html' %}
+    {% include 'hostel/partials/sub_menu.html' %}
+    {% include 'exams/partials/sub_menu.html' %}
+    {% include 'events/partials/sub_menu.html' %}
+    {% include 'transportation/partials/sub_menu.html' %}
+    {% include 'inventory/partials/sub_menu.html' %}
+    {% endif %}
+    {% endif %}
+
+</ul>

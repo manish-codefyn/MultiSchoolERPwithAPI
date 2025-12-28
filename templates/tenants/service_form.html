@@ -1,0 +1,45 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static crispy_forms_tags %}
+
+{% block title %}API Service{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-9 mx-auto">
+        <div class="card border-top border-0 border-4 border-primary">
+            <div class="card-body p-5">
+                <div class="card-title d-flex align-items-center mb-4">
+                    <div><i class="bx bx-server me-1 font-22 text-primary"></i></div>
+                    <h5 class="mb-0 text-primary">{% if form.instance.pk %}Edit{% else %}Add{% endif %} API Service</h5>
+                </div>
+                <hr>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">{{ form.name|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.service_type|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.category|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.icon|as_crispy_field }}</div>
+                        <div class="col-12">{{ form.description|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.base_url|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.documentation_url|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.auth_type|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.default_rate_limit|as_crispy_field }}</div>
+                        <div class="col-md-6 pt-4">
+                            {{ form.requires_auth|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 pt-4">
+                            {{ form.is_active|as_crispy_field }}
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary px-5">Save Service</button>
+                            <a href="{% url 'tenants:service_list' %}" class="btn btn-light px-5">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

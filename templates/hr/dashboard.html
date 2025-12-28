@@ -1,0 +1,199 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "HR Dashboard" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">{% trans "HR Overview" %}</h1>
+            <p class="text-muted mb-0">{% trans "Welcome back," %} {{ request.user.get_full_name }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:staff_import' %}" class="btn btn-outline-primary shadow-sm">
+                <i class="bx bx-file-import me-2"></i>{% trans "Import Staff" %}
+            </a>
+            <a href="{% url 'hr:staff_create' %}" class="btn btn-primary shadow-sm">
+                <i class="bx bx-plus me-2"></i>{% trans "Add Staff" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{% trans "Total Staff" %}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_staff }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{% trans "Present Today" %}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ present_today }}</div>
+                            <div class="text-muted small mt-1">{% trans "Absent:" %} {{ absent_today }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-start border-warning border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">{% trans "On Leave" %}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ on_leave_today }}</div>
+                            <div class="text-muted small mt-1">{% trans "Pending:" %} {{ pending_leaves }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-calendar-minus fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-start border-info border-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">{% trans "Departments" %}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_departments }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bx bx-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Staff -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Recently Joined Staff" %}</h6>
+                    <a href="{% url 'hr:staff_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View All"%}</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Name" %}</th>
+                                    <th>{% trans "Department" %}</th>
+                                    <th>{% trans "Joined" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for staff in recent_staff %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar avatar-sm me-2 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width: 32px; height: 32px;">
+                                                {{ staff.user.first_name|first }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ staff.full_name }}</div>
+                                                <div class="small text-muted">{{ staff.designation.title }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if staff.department %}
+                                        <span class="badge bg-light text-dark">{{ staff.department.name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ staff.joining_date|date:"M d, Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted">{% trans "No recent joinings" %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Overview -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Department Overview" %}</h6>
+                    <a href="{% url 'hr:department_list' %}" class="btn btn-sm btn-outline-primary">{% trans "Manage"%}</a>
+                </div>
+                <div class="card-body">
+                    {% if departments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Department" %}</th>
+                                    <th class="text-center">{% trans "Staff Count" %}</th>
+                                    <th class="text-end">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dept in departments|slice:":6" %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ dept.name }}</div>
+                                        <div class="small text-muted">{{ dept.code }}</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3">{{ dept.staff_members_count }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'hr:department_detail' dept.pk %}"
+                                            class="btn btn-icon btn-sm btn-light">
+                                            <i class="bx bx-chevron-right"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bx bx-building fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">{% trans "No departments found." %}</p>
+                        <a href="{% url 'hr:department_create' %}" class="btn btn-primary btn-sm">{% trans "Create Department" %}</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

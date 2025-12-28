@@ -1,0 +1,134 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h4 class="mb-4">Welcome, {{ current_user.get_full_name }}</h4>
+
+    <div class="row">
+        <!-- Fees Widget -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Pending Fees</h6>
+                            <h2 class="mb-0">₹{{ pending_fees }}</h2>
+                            <small>{{ pending_invoice_count }} Invoices Due</small>
+                        </div>
+                        <div class="text-right">
+                            <i class="bx bx-wallet fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-right">
+                    <a href="{% url 'student_portal:invoice_list' %}" class="text-white">View Details <i class="bx bx-right-arrow-alt"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Widget -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Attendance</h6>
+                            <h2 class="mb-0">95%</h2>
+                            <small>Excellent</small>
+                        </div>
+                        <div class="text-right">
+                            <i class="bx bx-calendar-check fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+                 <div class="card-footer bg-transparent border-0 text-right">
+                    <a href="#" class="text-white">View Report <i class="bx bx-right-arrow-alt"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignments Widget -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Upcoming Tasks</h6>
+                            <h2 class="mb-0">{{ upcoming_assignments.count }}</h2>
+                            <small>Assignments Due</small>
+                        </div>
+                        <div class="text-right">
+                            <i class="bx bx-task fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+                 <div class="card-footer bg-transparent border-0 text-right">
+                    <a href="{% url 'assignments:assignment_list' %}" class="text-white">Go to Assignments <i class="bx bx-right-arrow-alt"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Upcoming Assignments</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_assignments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Subject</th>
+                                        <th>Due Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for assignment in upcoming_assignments %}
+                                    <tr>
+                                        <td>{{ assignment.title }}</td>
+                                        <td><span class="badge bg-label-info">{{ assignment.subject }}</span></td>
+                                        <td>{{ assignment.due_date|date:"D, d M" }}</td>
+                                        <td>
+                                            <a href="{% url 'assignments:assignment_detail' assignment.pk %}" class="btn btn-sm btn-primary">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center my-4">No pending assignments! Good playing.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+             <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Links</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'student_portal:timetable' %}" class="list-group-item list-group-item-action">
+                        <i class="bx bx-time me-2"></i> Class Timetable
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="bx bx-book-content me-2"></i> Exam Results
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="bx bx-download me-2"></i> Download Syllabus
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

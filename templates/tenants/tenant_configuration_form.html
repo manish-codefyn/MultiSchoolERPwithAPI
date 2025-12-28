@@ -1,0 +1,86 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static crispy_forms_tags %}
+
+{% block title %}Tenant Configuration | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-9 mx-auto">
+        <div class="card border-top border-0 border-4 border-primary">
+            <div class="card-body p-5">
+                <div class="card-title d-flex align-items-center mb-4">
+                    <div><i class="bx bx-cog me-1 font-22 text-primary"></i></div>
+                    <h5 class="mb-0 text-primary">Tenant Configuration: {{ tenant.name }}</h5>
+                </div>
+                <hr>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <h6 class="mb-3">Branding</h6>
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            {% if form.instance.logo %}
+                                <div class="mb-2">
+                                    <label class="form-label d-block">Current Logo</label>
+                                    <img src="{{ form.instance.logo.url }}" alt="Logo" style="max-height: 80px;" class="border rounded p-1">
+                                </div>
+                            {% endif %}
+                            {{ form.logo|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Primary Color</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class='bx bxs-color-fill'></i></span>
+                                <input type="color" class="form-control form-control-color" value="{{ form.primary_color.value|default:'#3B82F6' }}" onchange="document.getElementById('id_primary_color').value = this.value">
+                                {{ form.primary_color|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Secondary Color</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class='bx bxs-color-fill'></i></span>
+                                <input type="color" class="form-control form-control-color" value="{{ form.secondary_color.value|default:'#1E40AF' }}" onchange="document.getElementById('id_secondary_color').value = this.value">
+                                {{ form.secondary_color|as_crispy_field }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    
+                    <h6 class="mb-3">Localization & Settings</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">{{ form.academic_year|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.timezone|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.language|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.currency|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.date_format|as_crispy_field }}</div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="mb-3">Security Policies</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">{{ form.session_timeout|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.max_login_attempts|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.password_expiry_days|as_crispy_field }}</div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="mb-3">Module Settings</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">{{ form.enable_library|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.enable_finance|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.enable_inventory|as_crispy_field }}</div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'tenants:tenant_list' %}" class="btn btn-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Save Configuration</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

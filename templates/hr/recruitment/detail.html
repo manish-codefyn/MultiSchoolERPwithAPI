@@ -1,0 +1,109 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{{ recruitment.position_title }} - {% trans "Details" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800">{{ recruitment.position_title }}</h1>
+             <p class="text-muted mb-0">
+                <span class="me-3"><i class="fas fa-building me-1"></i> {{ recruitment.department.name }}</span>
+                <span class="me-3"><i class="fas fa-users me-1"></i> {{ recruitment.no_of_openings }} {% trans "Openings" %}</span>
+                <span class="badge {% if recruitment.status == 'OPEN' %}bg-success{% else %}bg-secondary{% endif %}">{{ recruitment.get_status_display }}</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:recruitment_update' recruitment.pk %}" class="btn btn-outline-primary shadow-sm">
+                <i class="bx bx-edit me-2"></i>{% trans "Edit" %}
+            </a>
+            <a href="{% url 'hr:jobapplication_list' %}?recruitment={{ recruitment.id }}" class="btn btn-primary shadow-sm">
+                <i class="bx bx-file-alt me-2"></i>{% trans "View Applications" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Details -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Job Description" %}</h6>
+                </div>
+                <div class="card-body">
+                    {{ recruitment.job_description|linebreaks }}
+                </div>
+            </div>
+            
+             <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Recent Applications" %}</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Candidate" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Action" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in applications|slice:":5" %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold">{{ app.candidate_name }}</div>
+                                        <div class="small text-muted">{{ app.email }}</div>
+                                    </td>
+                                    <td>{{ app.applied_date|date:"M d" }}</td>
+                                    <td><span class="badge bg-light text-dark border">{{ app.get_status_display }}</span></td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-light">{% trans "View" %}</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center py-3 text-muted">{% trans "No applications yet." %}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Stats -->
+            <div class="card border-0 shadow-sm mb-4">
+                 <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Application Pipeline" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                        <span>{% trans "Total Applications" %}</span>
+                        <span class="fw-bold">{{ total_applications }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{% trans "Shortlisted" %}</span>
+                        <span class="badge bg-info">{{ shortlisted }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{% trans "Inteview" %}</span>
+                        <span class="badge bg-primary">{{ interview }}</span>
+                    </div>
+                     <div class="d-flex justify-content-between mb-2">
+                        <span>{% trans "Offered" %}</span>
+                        <span class="badge bg-warning text-dark">{{ offered }}</span>
+                    </div>
+                     <div class="d-flex justify-content-between">
+                        <span>{% trans "Accepted" %}</span>
+                        <span class="badge bg-success">{{ accepted }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

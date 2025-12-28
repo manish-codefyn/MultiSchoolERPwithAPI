@@ -1,0 +1,135 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}Staff Face Attendance{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h4 class="mb-0"><i class="bx bx-face-mask me-2"></i> Staff Face Recognition Attendance</h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <!-- Camera Feed -->
+                    <div class="col-md-6 text-center">
+                        <video id="video" width="100%" height="auto" autoplay style="border-radius: 10px; border: 3px solid #ddd;"></video>
+                        <div class="mt-3">
+                            <button id="capture-btn" class="btn btn-primary btn-lg">
+                                <i class="bx bx-camera"></i> Capture & Mark Attendance
+                            </button>
+                        </div>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                    </div>
+
+                    <!-- Status & Result -->
+                    <div class="col-md-6">
+                        <div id="status-box" class="alert alert-info">
+                            <i class="bx bx-info-circle"></i> Position your face in the camera and click Capture
+                        </div>
+                        
+                        <div id="result-box" class="mt-3" style="display: none;">
+                            <!-- Results will be shown here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('capture-btn');
+    const statusBox = document.getElementById('status-box');
+    const resultBox = document.getElementById('result-box');
+
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            console.error("Camera error:", err);
+            statusBox.className = 'alert alert-danger';
+            statusBox.innerHTML = '<i class="bx bx-error"></i> Camera access denied. Please enable camera permissions.';
+        });
+
+    captureBtn.addEventListener('click', function() {
+        // Capture image
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        
+        const imageData = canvas.toDataURL('image/jpeg');
+        
+        // Show loading
+        statusBox.className = 'alert alert-warning';
+        statusBox.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Processing face recognition...';
+        captureBtn.disabled = true;
+
+        // Send to backend with type='staff'
+        fetch("{% url 'mark-face-attendance' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                image: imageData,
+                type: 'staff'  // Specify staff type
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                statusBox.className = 'alert alert-danger';
+                statusBox.innerHTML = `<i class="bx bx-error"></i> ${data.error}`;
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Recognition Failed',
+                    text: data.error
+                });
+            } else {
+                statusBox.className = 'alert alert-success';
+                statusBox.innerHTML = `<i class="bx bx-check-circle"></i> ${data.message}`;
+                
+                resultBox.style.display = 'block';
+                resultBox.innerHTML = `
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            ${data.photo_url ? 
+                                `<img src="${data.photo_url}" alt="Staff Photo" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #28a745;">` 
+                                : 
+                                `<i class="bx bx-user-circle text-success" style="font-size: 100px;"></i>`
+                            }
+                            <h5 class="text-success">${data.student_name || 'Staff Member'}</h5>
+                            <p class="mb-0"><strong>Status:</strong> ${data.status}</p>
+                            <p class="text-muted mb-0"><i class="bx bx-time"></i> ${new Date().toLocaleTimeString()}</p>
+                        </div>
+                    </div>
+                `;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: data.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            statusBox.className = 'alert alert-danger';
+            statusBox.innerHTML = '<i class="bx bx-error"></i> Network error. Please try again.';
+        })
+        .finally(() => {
+            captureBtn.disabled = false;
+        });
+    });
+</script>
+{% endblock %}

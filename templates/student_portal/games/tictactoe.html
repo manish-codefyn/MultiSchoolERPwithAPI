@@ -1,0 +1,153 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block title %}Tic Tac Toe{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0">
+    <div class="card-body text-center p-4">
+        <h4 class="mb-3 text-primary">Tic Tac Toe ❌⭕</h4>
+        <p class="text-muted mb-4">Can you beat the computer?</p>
+
+        <div class="d-flex justify-content-center mb-4">
+            <div class="ttt-grid" id="board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+            </div>
+        </div>
+
+        <h5 id="status" class="mb-3 fw-bold">Your Turn (X)</h5>
+        
+        <button class="btn btn-outline-primary rounded-pill px-4" onclick="resetGame()">
+            <i class="bx bx-refresh"></i> Reset Game
+        </button>
+    </div>
+</div>
+
+<style>
+    .ttt-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(3, 80px);
+        gap: 5px;
+        background-color: #dee2e6;
+        border: 5px solid #dee2e6;
+        border-radius: 10px;
+    }
+    .cell {
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        color: #333;
+    }
+    .cell.x { color: #0d6efd; }
+    .cell.o { color: #dc3545; }
+</style>
+
+<script>
+    const board = document.getElementById('board');
+    const cells = document.querySelectorAll('.cell');
+    const status = document.getElementById('status');
+    let gameActive = true;
+    let currentPlayer = 'X';
+    let gameState = ["", "", "", "", "", "", "", "", ""];
+
+    const winningConditions = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+    ];
+
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+
+    function handleCellClick(e) {
+        const clickedCell = e.target;
+        const index = parseInt(clickedCell.getAttribute('data-index'));
+
+        if (gameState[index] !== "" || !gameActive || currentPlayer === 'O') return;
+
+        handlePlayedCell(clickedCell, index);
+        handleResultValidation();
+        
+        if (gameActive) {
+            currentPlayer = 'O';
+            status.innerText = "Thinking...";
+            setTimeout(computerMove, 500);
+        }
+    }
+
+    function handlePlayedCell(cell, index) {
+        gameState[index] = currentPlayer;
+        cell.innerText = currentPlayer;
+        cell.classList.add(currentPlayer.toLowerCase());
+    }
+
+    function handleResultValidation() {
+        let roundWon = false;
+        for (let i = 0; i <= 7; i++) {
+            const winCondition = winningConditions[i];
+            let a = gameState[winCondition[0]];
+            let b = gameState[winCondition[1]];
+            let c = gameState[winCondition[2]];
+            if (a === '' || b === '' || c === '') continue;
+            if (a === b && b === c) {
+                roundWon = true;
+                break;
+            }
+        }
+
+        if (roundWon) {
+            status.innerText = currentPlayer === 'X' ? "You Won! 🎉" : "Computer Won! 🤖";
+            gameActive = false;
+            return;
+        }
+
+        if (!gameState.includes("")) {
+            status.innerText = "It's a Draw! 🤝";
+            gameActive = false;
+            return;
+        }
+    }
+
+    function computerMove() {
+        if (!gameActive) return;
+
+        // Simple Random AI (can be improved to Minimax)
+        let available = gameState.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
+        let move = available[Math.floor(Math.random() * available.length)];
+        
+        if (move !== undefined) {
+            let cell = document.querySelector(`.cell[data-index='${move}']`);
+            gameState[move] = 'O';
+            cell.innerText = 'O';
+            cell.classList.add('o');
+            currentPlayer = 'X';
+            
+            handleResultValidation();
+            if (gameActive) status.innerText = "Your Turn (X)";
+        }
+    }
+
+    function resetGame() {
+        gameActive = true;
+        currentPlayer = 'X';
+        gameState = ["", "", "", "", "", "", "", "", ""];
+        status.innerText = "Your Turn (X)";
+        cells.forEach(cell => {
+            cell.innerText = "";
+            cell.classList.remove('x', 'o');
+        });
+    }
+</script>
+{% endblock %}

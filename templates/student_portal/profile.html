@@ -1,0 +1,160 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+    <!-- Profile Header Card -->
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-body p-0">
+                <div class="bg-primary p-4 text-center text-white">
+                    <div class="mb-3 position-relative d-inline-block">
+                        {% if request.user.profile_picture %}
+                            <img src="{{ request.user.profile_picture.url }}" class="rounded-circle border border-4 border-white" width="100" height="100" alt="{{ student.full_name }}">
+                        {% else %}
+                            <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center mx-auto border border-4 border-white" style="width: 100px; height: 100px;">
+                                <i class="bx bx-user fs-1"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <h5 class="mb-1 fw-bold">{{ student.full_name }}</h5>
+                    <p class="mb-0 opacity-75">{{ student.current_class.name }} - {{ student.section.name }}</p>
+                    <span class="badge bg-white text-primary mt-2 rounded-pill px-3">{{ student.admission_number }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Information -->
+    <div class="col-12 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold mb-0"><i class="bx bx-id-card me-2 text-primary"></i>Personal Information</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 text-muted col-4">Date of Birth</div>
+                    <div class="flex-grow-1 fw-medium">{{ student.date_of_birth|date:"d M, Y" }}</div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 text-muted col-4">Gender</div>
+                    <div class="flex-grow-1 fw-medium">{{ student.get_gender_display }}</div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 text-muted col-4">Blood Group</div>
+                    <div class="flex-grow-1 fw-medium">{{ student.blood_group|default:"-" }}</div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 text-muted col-4">Email</div>
+                    <div class="flex-grow-1 fw-medium text-break">{{ student.personal_email }}</div>
+                </div>
+                <div class="d-flex align-items-center mb-0">
+                    <div class="flex-shrink-0 text-muted col-4">Mobile</div>
+                    <div class="flex-grow-1 fw-medium">{{ student.mobile_primary }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Academic Information -->
+    <div class="col-12 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+             <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold mb-0"><i class="bx bx-book-reader me-2 text-success"></i>Academic Details</h6>
+            </div>
+            <div class="card-body p-4">
+                 <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 text-muted col-4">Roll Number</div>
+                    <div class="flex-grow-1 fw-medium">{{ student.roll_number }}</div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 text-muted col-4">Academic Year</div>
+                    <div class="flex-grow-1 fw-medium">{{ student.academic_year.name }}</div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 text-muted col-4">Enrollment Date</div>
+                    <div class="flex-grow-1 fw-medium">{{ student.enrollment_date|date:"d M, Y" }}</div>
+                </div>
+                 <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 text-muted col-4">Status</div>
+                    <div class="flex-grow-1">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                            {{ student.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                 <div class="d-flex align-items-center mb-0">
+                    <div class="flex-shrink-0 text-muted col-4">Category</div>
+                    <div class="flex-grow-1 fw-medium">{{ student.get_category_display }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guardians -->
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold mb-0"><i class="bx bx-family-heart me-2 text-warning"></i>Guardian Information</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    {% for guardian in guardians %}
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex align-items-center mb-2">
+                                <h6 class="mb-0 fw-bold">{{ guardian.full_name }}</h6>
+                                <span class="badge bg-secondary ms-2">{{ guardian.get_relation_display }}</span>
+                                {% if guardian.is_primary %}
+                                    <span class="badge bg-primary ms-1">Primary</span>
+                                {% endif %}
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <i class="bx bx-phone me-1"></i> {{ guardian.phone_primary }}
+                            </div>
+                            {% if guardian.email %}
+                            <div class="small text-muted">
+                                <i class="bx bx-envelope me-1"></i> {{ guardian.email }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center text-muted">
+                        No guardian information available.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Addresses -->
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow-sm rounded-4">
+           <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold mb-0"><i class="bx bx-map me-2 text-danger"></i>Address</h6>
+            </div>
+            <div class="card-body p-4">
+                {% if student.current_address %}
+                <div class="mb-3">
+                    <div class="text-uppercase text-muted small fw-bold mb-1">Current Address</div>
+                    <p class="mb-0">{{ student.current_address }}</p>
+                </div>
+                {% endif %}
+                
+                {% if student.permanent_address %}
+                <div class="mb-0">
+                    <div class="text-uppercase text-muted small fw-bold mb-1">Permanent Address</div>
+                    <p class="mb-0">{{ student.permanent_address }}</p>
+                </div>
+                {% endif %}
+
+                {% if not student.current_address and not student.permanent_address %}
+                     <p class="text-muted text-center mb-0">No address details recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

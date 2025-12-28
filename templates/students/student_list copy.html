@@ -1,0 +1,176 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Students" %}{% endblock %}
+
+{% block extra_css %}
+<!-- DataTables -->
+<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header border-bottom-0 bg-transparent py-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">{% trans "Student List" %}</h5>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'students:student_create_basic' %}" class="btn btn-primary">
+                            <i class="bx bx-plus me-1"></i> {% trans "Add Student" %}
+                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bx bx-export me-1"></i> {% trans "Export" %}
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'students:student_export' %}?format=csv"><i class="bx bx-file me-2"></i>CSV</a></li>
+                                <li><a class="dropdown-item" href="{% url 'students:student_export' %}?format=excel"><i class="bx bx-spreadsheet me-2"></i>Excel</a></li>
+                            </ul>
+                        </div>
+                        <a href="{% url 'students:bulk_upload' %}" class="btn btn-outline-primary">
+                            <i class="bx bx-upload me-1"></i> {% trans "Bulk Upload" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="card-body border-bottom">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">{% trans "Class" %}</label>
+                        <select name="class_id" class="form-select" onchange="this.form.submit()">
+                            <option value="">{% trans "All Classes" %}</option>
+                            {% for cls in classes %}
+                            <option value="{{ cls.id }}" {% if request.GET.class_id == cls.id|stringformat:"s" %}selected{% endif %}>{{ cls.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">{% trans "Status" %}</label>
+                        <select name="status" class="form-select" onchange="this.form.submit()">
+                            <option value="">{% trans "All Status" %}</option>
+                            {% for status, label in status_choices %}
+                            <option value="{{ status }}" {% if request.GET.status == status %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">{% trans "Search" %}</label>
+                        <input type="text" name="search" class="form-control" placeholder="Name, Admission No, Email..." value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-secondary w-100">{% trans "Filter" %}</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="studentTable" class="table table-striped table-bordered dt-responsive nowrap w-100">
+                        <thead class="table-light">
+                            <tr>
+                                <th>{% trans "Admission No" %}</th>
+                                <th>{% trans "Student Name" %}</th>
+                                <th>{% trans "Class" %}</th>
+                                <th>{% trans "Parent/Guardian" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Action" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>
+                                    <span class="fw-bold text-primary">#{{ student.admission_number }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="chat-user-online">
+                                            {% if student.photo %}
+                                            <img src="{{ student.photo.url }}" width="42" height="42" class="rounded-circle" alt="">
+                                            {% else %}
+                                            <div class="rounded-circle bg-light-primary text-primary d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                                {{ student.first_name|first }}{{ student.last_name|first }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-grow-1 ms-2">
+                                            <h6 class="mb-0">{{ student.full_name }}</h6>
+                                            <p class="mb-0 small text-secondary">{{ student.personal_email }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ student.current_class.name|default:"-" }}</td>
+                                <td>
+                                    {% with guardian=student.guardians.first %}
+                                        {% if guardian %}
+                                            {{ guardian.full_name }}<br>
+                                            <small class="text-muted">{{ guardian.mobile_primary }}</small>
+                                        {% else %}
+                                            <span class="text-muted">{% trans "Not Assigned" %}</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    {% if student.status == 'ACTIVE' %}
+                                    <div class="badge rounded-pill text-success bg-light-success p-2 text-uppercase px-3"><i class='bx bxs-circle me-1'></i>{{ student.get_status_display }}</div>
+                                    {% elif student.status == 'INACTIVE' %}
+                                    <div class="badge rounded-pill text-danger bg-light-danger p-2 text-uppercase px-3"><i class='bx bxs-circle me-1'></i>{{ student.get_status_display }}</div>
+                                    {% else %}
+                                    <div class="badge rounded-pill text-secondary bg-light-secondary p-2 text-uppercase px-3"><i class='bx bxs-circle me-1'></i>{{ student.get_status_display }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex order-actions">
+                                        <a href="{% url 'students:student_detail' pk=student.pk %}" class="text-primary bg-light-primary border-0 me-1" title="{% trans "View Details" %}"><i class='bx bx-show'></i></a>
+                                        <a href="{% url 'students:student_onboarding' pk=student.pk %}" class="text-info bg-light-info border-0 me-1" title="{% trans "Edit/Onboard" %}"><i class='bx bx-edit-alt'></i></a>
+                                        <a href="{% url 'students:student_id_card' pk=student.pk %}" class="text-warning bg-light-warning border-0 me-1" title="{% trans "ID Card" %}"><i class='bx bx-id-card'></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="bx bx-search-alt fs-1"></i>
+                                        <p class="mt-2 text-xl">{% trans "No students found matching your criteria." %}</p>
+                                        <a href="{% url 'students:student_create_basic' %}" class="btn btn-sm btn-primary">{% trans "Register New Student" %}</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.4.1/js/responsive.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var table = $('#studentTable').DataTable({
+            lengthChange: false,
+            buttons: ['copy', 'excel', 'pdf', 'print'],
+            language: {
+                search: "",
+                searchPlaceholder: "{% trans 'Search records...' %}"
+            }
+        });
+        
+        table.buttons().container()
+            .appendTo('#studentTable_wrapper .col-md-6:eq(0)');
+    });
+</script>
+{% endblock %}

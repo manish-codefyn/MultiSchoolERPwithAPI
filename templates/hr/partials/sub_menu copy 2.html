@@ -1,0 +1,213 @@
+{% load i18n %}
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-group"></i></div>
+        <div class="menu-title">{% trans "Human Resources" %}</div>
+    </a>
+
+    <ul>
+        <!-- HR Dashboard (Staff only) -->
+        {% if user.is_authenticated and user.is_staff %}
+        <li>
+            <a href="{% url 'hr:dashboard' %}">
+                <div class="parent-icon"><i class="bx bx-home-alt"></i></div>
+                <div class="menu-title">{% trans "HR Dashboard" %}</div>
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- STAFF MANAGEMENT -->
+        {% if user.is_authenticated and user.role in 'principal,headmaster,hr,system_admin'|make_list or user.is_staff %}
+        <li class="menu-label">{% trans "Staff Management" %}</li>
+
+        <li>
+            <a href="{% url 'hr:staff_list' %}">
+                <div class="parent-icon"><i class="bx bx-user"></i></div>
+                <div class="menu-title">{% trans "All Staff" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:staff_create' %}">
+                <div class="parent-icon"><i class="bx bx-user-plus"></i></div>
+                <div class="menu-title">{% trans "Add Staff" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:department_list' %}">
+                <div class="parent-icon"><i class="bx bx-buildings"></i></div>
+                <div class="menu-title">{% trans "Departments" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:designation_list' %}">
+                <div class="parent-icon"><i class="bx bx-id-card"></i></div>
+                <div class="menu-title">{% trans "Designations" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:qualification_list' %}">
+                <div class="parent-icon"><i class="bx bx-book"></i></div>
+                <div class="menu-title">{% trans "Qualifications" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:staffdocument_list' %}">
+                <div class="parent-icon"><i class="bx bx-file"></i></div>
+                <div class="menu-title">{% trans "Documents" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:staffaddress_list' %}">
+                <div class="parent-icon"><i class="bx bx-map"></i></div>
+                <div class="menu-title">{% trans "Addresses" %}</div>
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- ATTENDANCE -->
+        {% if user.is_authenticated and user.role in 'principal,headmaster,teacher,hr'|make_list or user.is_staff %}
+        <li class="menu-label">{% trans "Attendance" %}</li>
+
+        <li>
+            <a href="{% url 'hr:attendance_mark' %}">
+                <div class="parent-icon"><i class="bx bx-check-circle"></i></div>
+                <div class="menu-title">{% trans "Mark Attendance" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:attendance_list' %}">
+                <div class="parent-icon"><i class="bx bx-time-five"></i></div>
+                <div class="menu-title">{% trans "Attendance Logs" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:attendance_daily' %}">
+                <div class="parent-icon"><i class="bx bx-calendar"></i></div>
+                <div class="menu-title">{% trans "Daily Report" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:attendance_monthly' %}">
+                <div class="parent-icon"><i class="bx bx-calendar-alt"></i></div>
+                <div class="menu-title">{% trans "Monthly Report" %}</div>
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- LEAVE -->
+        {% if user.is_authenticated %}
+        <li class="menu-label">{% trans "Leave Management" %}</li>
+
+        <li>
+            <a href="{% url 'hr:leave_apply' %}">
+                <div class="parent-icon"><i class="bx bx-log-out-circle"></i></div>
+                <div class="menu-title">{% trans "Apply Leave" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:leave_list' %}">
+                <div class="parent-icon"><i class="bx bx-calendar-exclamation"></i></div>
+                <div class="menu-title">{% trans "Leave Applications" %}</div>
+            </a>
+        </li>
+
+        {% if user.is_staff %}
+        <li>
+            <a href="{% url 'hr:leavebalance_list' %}">
+                <div class="parent-icon"><i class="bx bx-wallet"></i></div>
+                <div class="menu-title">{% trans "Leave Balances" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:leavetype_list' %}">
+                <div class="parent-icon"><i class="bx bx-category"></i></div>
+                <div class="menu-title">{% trans "Leave Types" %}</div>
+            </a>
+        </li>
+        {% endif %}
+        {% endif %}
+
+        <!-- PAYROLL -->
+        {% if user.is_authenticated and user.role in 'principal,accountant,hr'|make_list or user.is_staff %}
+        <li class="menu-label">{% trans "Payroll" %}</li>
+
+        <li>
+            <a href="{% url 'hr:payroll_list' %}">
+                <div class="parent-icon"><i class="bx bx-money"></i></div>
+                <div class="menu-title">{% trans "Payroll Processing" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:payroll_generate' %}">
+                <div class="parent-icon"><i class="bx bx-calculator"></i></div>
+                <div class="menu-title">{% trans "Generate Payroll" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:salarystructure_list' %}">
+                <div class="parent-icon"><i class="bx bx-layer"></i></div>
+                <div class="menu-title">{% trans "Salary Structures" %}</div>
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- PERFORMANCE -->
+        {% if user.is_authenticated and user.is_staff %}
+        <li class="menu-label">{% trans "Performance" %}</li>
+
+        <li>
+            <a href="{% url 'hr:performancereview_list' %}">
+                <div class="parent-icon"><i class="bx bx-trending-up"></i></div>
+                <div class="menu-title">{% trans "Reviews" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:performancegoal_list' %}">
+                <div class="parent-icon"><i class="bx bx-target-lock"></i></div>
+                <div class="menu-title">{% trans "Goals" %}</div>
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- ADMIN / SETTINGS -->
+        {% if user.is_superuser or user.role in 'principal,system_admin'|make_list %}
+        <li class="menu-label">{% trans "Administration" %}</li>
+
+        <li>
+            <a href="{% url 'hr:hr_settings' %}">
+                <div class="parent-icon"><i class="bx bx-cog"></i></div>
+                <div class="menu-title">{% trans "HR Settings" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:holiday_list' %}">
+                <div class="parent-icon"><i class="bx bx-calendar-event"></i></div>
+                <div class="menu-title">{% trans "Holidays" %}</div>
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'hr:work_schedule' %}">
+                <div class="parent-icon"><i class="bx bx-time"></i></div>
+                <div class="menu-title">{% trans "Work Schedule" %}</div>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</li>

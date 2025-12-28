@@ -1,0 +1,69 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Designations" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+        {% url 'hr:designation_create' as create_url %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Designations") current_text=_("Designations") action_url=create_url action_text=_("Add Designation") %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="designationTable" data-datatable data-title="{% trans 'Designations List' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Title" %}</th>
+                            <th>{% trans "Category" %}</th>
+                            <th>{% trans "Grade" %}</th>
+                            <th class="text-center">{% trans "Staff Count" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for desig in designations %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'hr:designation_detail' desig.pk %}" class="text-decoration-none">{{ desig.get_title_display }}</a>
+                                <div class="small text-muted">{{ desig.code }}</div>
+                            </td>
+                            <td>{{ desig.category }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ desig.get_grade_display|default:"-" }}</span></td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border">{{ desig.current_holders_count }}</span>
+                            </td>
+                            <td>
+                                {% if desig.is_active %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'hr:designation_update' desig.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <a href="{% url 'hr:designation_delete' desig.pk %}" class="btn btn-icon btn-sm btn-light text-danger" title="{% trans 'Delete' %}">
+                                        <i class="bx bx-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

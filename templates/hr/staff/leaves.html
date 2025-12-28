@@ -1,0 +1,104 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Staff Leaves" %} - {{ staff.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">{{ staff.full_name }}</h1>
+            <p class="text-muted mb-0">{% trans "Leave History & Balances" %}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:staff_detail' staff.pk %}" class="btn btn-outline-secondary">
+                <i class="bx bx-arrow-back me-2"></i>{% trans "Back to Profile" %}
+            </a>
+            <a href="{% url 'hr:leave_apply' %}?staff={{ staff.pk }}" class="btn btn-primary">
+                <i class="bx bx-plus me-2"></i>{% trans "Apply Leave" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Balances Cards -->
+        {% for balance in leave_balances %}
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                        {{ balance.leave_type.name }}
+                    </div>
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ balance.available_days }}</div>
+                            <small class="text-muted">{% trans "Available" %}</small>
+                        </div>
+                        <div class="col-auto text-end">
+                            <div class="small fw-bold">{{ balance.used_days }}/{{ balance.total_entitled }}</div>
+                            <small class="text-muted">{% trans "Used" %}</small>
+                        </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 4px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ balance.usage_percentage }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- History Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Leave History" %}</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Dates" %}</th>
+                            <th>{% trans "Days" %}</th>
+                            <th>{% trans "Applied On" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in leave_applications %}
+                        <tr>
+                            <td>{{ leave.leave_type.name }}</td>
+                            <td>
+                                <div>{{ leave.start_date|date:"M d, Y" }}</div>
+                                <small class="text-muted">{% trans "to" %} {{ leave.end_date|date:"M d, Y" }}</small>
+                            </td>
+                            <td>{{ leave.days_count }}</td>
+                            <td>{{ leave.applied_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if leave.status == 'APPROVED' %}bg-success-subtle text-success
+                                    {% elif leave.status == 'REJECTED' %}bg-danger-subtle text-danger
+                                    {% else %}bg-warning-subtle text-warning{% endif %}">
+                                    {{ leave.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'hr:leave_detail' leave.pk %}" class="btn btn-sm btn-icon btn-light">
+                                    <i class="bx bx-show"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">{% trans "No leave history found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

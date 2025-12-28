@@ -1,0 +1,48 @@
+{% load i18n %}
+
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-book-reader"></i>
+        </div>
+        <div class="menu-title">{% trans "Academics" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'academics:dashboard' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Dashboard" %}</a></li>
+        
+        {% if perms.academics.view_academicyear %}
+        <li> <a href="{% url 'academics:academic_year_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Academic Years" %}</a></li>
+        {% endif %}
+        
+        {% if perms.academics.view_term %}
+        <li> <a href="{% url 'academics:term_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Terms" %}</a></li>
+        {% endif %}
+        
+        {% if perms.academics.view_schoolclass %}
+        <li> <a href="{% url 'academics:class_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Classes" %}</a></li>
+        {% endif %}
+        
+        {% if perms.academics.view_section %}
+        <li> <a href="{% url 'academics:section_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Sections" %}</a></li>
+        {% endif %}
+        
+        {% if perms.academics.view_subject %}
+        <li> <a href="{% url 'academics:subject_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Subjects" %}</a></li>
+        {% endif %}
+
+        {% if perms.academics.view_classsubject %}
+        <li> <a href="{% url 'academics:class_subject_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Class Subjects" %}</a></li>
+        {% endif %}
+
+        {% if perms.academics.view_house %}
+        <li> <a href="{% url 'academics:house_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Houses" %}</a></li>
+        {% endif %}
+        
+        {% if perms.academics.view_timetable %}
+        <li> <a href="{% url 'academics:timetable_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Timetable" %}</a></li>
+        {% endif %}
+
+        {% if perms.academics.view_attendance %}
+        <li> <a href="{% url 'attendance:dashboard' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Attendance" %}</a></li>
+        {% endif %}
+    </ul>
+</li>

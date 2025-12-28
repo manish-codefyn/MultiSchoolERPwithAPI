@@ -1,0 +1,159 @@
+﻿{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Staff Directory" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+<style>
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+    .hover-underline:hover {
+        text-decoration: underline !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">{% trans "Staff Directory" %}</h1>
+            <p class="text-muted mb-0">{% trans "Manage and view all staff members" %}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:staff_import' %}" class="btn btn-outline-primary rounded-pill">
+                <i class="bx bx-import me-2"></i>{% trans "Import Staff" %}
+            </a>
+            <a href="{% url 'hr:staff_create' %}" class="btn btn-primary rounded-pill">
+                <i class="bx bx-plus me-2"></i>{% trans "Add New Staff" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Staff Table -->
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="staffTable" class="table table-hover align-middle mb-0" data-datatable data-export-columns="0,1,2,3,4,5">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Staff ID" %}</th>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Department" %}</th>
+                            <th>{% trans "Designation" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Contact" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for staff in staff_members %}
+                        <tr>
+                            <td class="ps-4 fw-medium text-primary">{{ staff.employee_id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if staff.user.profile_content_object.profile_picture %}
+                                    <img src="{{ staff.user.profile_content_object.profile_picture.url }}" alt="" class="rounded-circle me-3 object-fit-cover" width="38" height="38">
+                                    {% else %}
+                                    <div class="avatar-placeholder rounded-circle me-3 d-flex align-items-center justify-content-center bg-light text-primary fw-bold" style="width: 38px; height: 38px;">
+                                        {{ staff.initials }}
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <a href="{% if staff.employment_status == 'ONBOARDING' %}{% url 'hr:staff_onboarding' staff.pk %}{% else %}{% url 'hr:staff_detail' staff.pk %}{% endif %}" class="fw-bold text-dark text-decoration-none hover-underline d-block mb-0">
+                                            {{ staff.full_name }}
+                                        </a>
+                                        <small class="text-muted">{{ staff.user.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light-primary text-primary rounded-pill px-3">
+                                    {{ staff.department.name|default:_("N/A") }}
+                                </span>
+                            </td>
+                            <td>{{ staff.designation.title|default:_("N/A") }}</td>
+                            <td>
+                                <span class="badge rounded-pill text-{% if staff.employment_status == 'ACTIVE' %}success{% elif staff.employment_status == 'ONBOARDING' %}info{% else %}danger{% endif %} bg-{% if staff.employment_status == 'ACTIVE' %}success{% elif staff.employment_status == 'ONBOARDING' %}info{% else %}danger{% endif %} bg-opacity-10 px-3">
+                                    <i class="bx bxs-circle me-1 small"></i>{{ staff.get_employment_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="mailto:{{ staff.user.email }}" class="text-primary" data-bs-toggle="tooltip" title="{{ staff.user.email }}">
+                                        <i class="bx bx-envelope"></i>
+                                    </a>
+                                    {% if staff.personal_phone %}
+                                    <a href="tel:{{ staff.personal_phone }}" class="text-success" data-bs-toggle="tooltip" title="{{ staff.personal_phone }}">
+                                        <i class="bx bx-phone"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="dropdown">
+                                    <button class="btn btn-icon btn-sm btn-light" type="button" data-bs-toggle="dropdown">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm">
+                                        <li><a class="dropdown-item" href="{% if staff.employment_status == 'ONBOARDING' %}{% url 'hr:staff_onboarding' staff.pk %}{% else %}{% url 'hr:staff_detail' staff.pk %}{% endif %}"><i class="bx bx-user me-2"></i>{% trans "View Details" %}</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'hr:staff_update' staff.pk %}"><i class="bx bx-edit me-2"></i>{% trans "Edit Profile" %}</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'hr:staff_id_card' staff.pk %}"><i class="bx bx-id-card me-2"></i>{% trans "ID Card" %}</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="{% url 'hr:staff_delete' staff.pk %}"><i class="bx bx-trash me-2"></i>{% trans "Delete" %}</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="mb-4">
+                                    <i class="bx bx-user-x fs-1 text-muted opacity-50"></i>
+                                </div>
+                                <h4 class="text-muted">{% trans "No staff members found" %}</h4>
+                                <a href="{% url 'hr:staff_create' %}" class="btn btn-primary rounded-pill mt-3">
+                                    <i class="bx bx-plus me-2"></i>{% trans "Add New Staff" %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-light-primary {
+        background-color: rgba(99, 102, 241, 0.1);
+    }
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+<script>
+    $(document).ready(function() {
+        // DataTable is automatically initialized by [data-datatable] attribute
+        // but we can add custom config here if needed.
+    });
+</script>
+{% endblock %}
+

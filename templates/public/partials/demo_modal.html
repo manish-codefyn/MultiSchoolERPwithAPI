@@ -1,0 +1,146 @@
+<!-- Request Demo Modal -->
+<div class="modal fade" id="demoRequestModal" tabindex="-1" aria-labelledby="demoRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg overflow-hidden rounded-4">
+            <div class="row g-0">
+                <!-- Left Side: Visual -->
+                <div class="col-lg-5 d-none d-lg-flex bg-gradient-primary text-white p-5 flex-column justify-content-between">
+                    <div>
+                        <h3 class="fw-bold mb-3">See it in action</h3>
+                        <p class="opacity-75">Get a personalized tour of our comprehensive ERP platform tailored for your institution.</p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-check-circle-fill text-warning me-3"></i>
+                            <small>Full Feature Walkthrough</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-check-circle-fill text-warning me-3"></i>
+                            <small>Q&A with Product Experts</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill text-warning me-3"></i>
+                            <small>Custom Implementation Plan</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 text-center">
+                         <!-- Decorative element -->
+                         <div class="bg-white bg-opacity-10 rounded-3 p-3">
+                            <small class="d-block mb-1 opacity-75">Trusted by</small>
+                            <span class="fw-bold h5">500+ Institutes</span>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Form -->
+                <div class="col-lg-7 p-5 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="modal-title fw-bold" id="demoRequestModalLabel">Schedule a Demo</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <form id="demoRequestForm" onsubmit="handleDemoSubmit(event)">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted fw-bold">Full Name</label>
+                                <input type="text" name="name" class="form-control bg-light border-0 py-2" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted fw-bold">Email Address</label>
+                                <input type="email" name="email" class="form-control bg-light border-0 py-2" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted fw-bold">Phone Number</label>
+                                <input type="tel" name="phone" class="form-control bg-light border-0 py-2">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted fw-bold">Role/Designation</label>
+                                <select name="role" class="form-select bg-light border-0 py-2">
+                                    <option value="" selected>Select Role...</option>
+                                    <option value="Administrator">Administrator</option>
+                                    <option value="Principal">Principal/Director</option>
+                                    <option value="Teacher">Teacher/Faculty</option>
+                                    <option value="IT Staff">IT/Technical Staff</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small text-muted fw-bold">Institution Name</label>
+                                <input type="text" name="institution_name" class="form-control bg-light border-0 py-2" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small text-muted fw-bold">Message (Optional)</label>
+                                <textarea name="message" class="form-control bg-light border-0 py-2" rows="3" placeholder="Tell us about your specific needs..."></textarea>
+                            </div>
+                            
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm">
+                                    Submit Request
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Success Message (Hidden by default) -->
+                    <div id="demoSuccessMessage" class="text-center py-5 d-none">
+                        <div class="mb-3">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                        </div>
+                        <h4 class="fw-bold">Request Received!</h4>
+                        <p class="text-muted">Thank you for your interest. Our team will contact you shortly to schedule your personalized demo.</p>
+                        <button type="button" class="btn btn-outline-primary rounded-pill mt-3 px-4" data-bs-dismiss="modal">Close</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function handleDemoSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = form.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    
+    // Loading state
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+
+    // Get form data
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    // API Call
+    fetch('/api/public/demo-request/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            // Success state
+            form.classList.add('d-none');
+            document.getElementById('demoSuccessMessage').classList.remove('d-none');
+            form.reset();
+        } else {
+            alert('Something went wrong. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Connection error. Please check your internet.');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+</script>

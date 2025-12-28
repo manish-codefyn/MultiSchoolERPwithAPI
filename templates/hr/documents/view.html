@@ -1,0 +1,65 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "View Document" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ document.title }}</h1>
+        <a href="{% url 'hr:staffdocument_list' %}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back me-2"></i>{% trans "Back" %}
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Document Details" %}</h6>
+            <div class="dropdown no-arrow">
+                 {% if document.file %}
+                 <a href="{{ document.file.url }}" class="btn btn-sm btn-primary" download target="_blank">
+                     <i class="bx bx-download me-1"></i>{% trans "Download" %}
+                 </a>
+                 {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p><strong>{% trans "Staff:" %}</strong> {{ document.staff.full_name }}</p>
+                    <p><strong>{% trans "Type:" %}</strong> {{ document.get_document_type_display }}</p>
+                    <p><strong>{% trans "Uploaded:" %}</strong> {{ document.uploaded_at|date:"M d, Y H:i" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>{% trans "Status:" %}</strong> 
+                        {% if document.is_verified %}
+                        <span class="badge bg-success">{% trans "Verified" %}</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">{% trans "Pending Verification" %}</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>{% trans "Description:" %}</strong> {{ document.description|default:"-" }}</p>
+                </div>
+            </div>
+
+            <div class="border rounded bg-light text-center p-3" style="min-height: 400px;">
+                {% if document.file %}
+                    {% if document.file.url|lower|slice:"-4:" == ".pdf" %}
+                        <iframe src="{{ document.file.url }}" width="100%" height="600px" style="border: none;"></iframe>
+                    {% elif document.file.url|lower|slice:"-4:" in ".jpg,.jpeg,.png,.gif" %}
+                        <img src="{{ document.file.url }}" class="img-fluid" alt="{{ document.title }}">
+                    {% else %}
+                        <div class="py-5">
+                            <i class="bx bx-file fa-5x text-muted mb-3"></i>
+                            <p class="mb-3">{% trans "Preview not available for this file type." %}</p>
+                            <a href="{{ document.file.url }}" class="btn btn-primary">{% trans "Download File" %}</a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-danger">{% trans "File not found." %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

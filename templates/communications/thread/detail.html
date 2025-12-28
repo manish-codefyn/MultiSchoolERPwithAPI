@@ -1,0 +1,125 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{{ thread.title }}{% endblock %}
+
+{% block content %}
+<div class="row h-100">
+    <div class="col-12 h-100 d-flex flex-column">
+        <div class="card flex-grow-1 d-flex flex-column" style="height: calc(100vh - 180px);">
+            <div class="card-header d-flex justify-content-between align-items-center flex-shrink-0">
+                <div class="d-flex align-items-center">
+                    <a href="{% url 'communications:thread_list' %}" class="btn btn-sm btn-ghost-secondary me-2">
+                        <i class="bx bx-arrow-back"></i>
+                    </a>
+                    <h5 class="mb-0">{{ thread.title }}</h5>
+                </div>
+                <div>
+                     <button class="btn btn-sm btn-ghost-primary" type="button" data-bs-toggle="collapse" data-bs-target="#participantsCollapse">
+                        <i class="bx bx-group"></i> {{ thread.participants.count }}
+                     </button>
+                </div>
+            </div>
+            
+            <div class="collapse border-bottom bg-light" id="participantsCollapse">
+                <div class="p-3">
+                    <small class="text-muted text-uppercase fw-bold">{% trans "Participants" %}</small>
+                    <div class="d-flex flex-wrap mt-2 gap-2">
+                        {% for participant in thread.participants.all %}
+                        <span class="badge bg-white text-dark border">{{ participant.get_full_name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body overflow-auto flex-grow-1 p-3" id="chat-messages">
+                {% for message in thread.messages.all %} <!-- Note: Assuming 'messages' related name exists/fixed -->
+                    <div class="d-flex mb-3 {% if message.sender == request.user %}justify-content-end{% endif %}">
+                        {% if message.sender != request.user %}
+                        <div class="avatar-xs me-2">
+                            <span class="avatar-title rounded-circle bg-soft-info text-info text-uppercase">
+                                {{ message.sender.first_name|first }}
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="bg-{% if message.sender == request.user %}primary text-white{% else %}light text-dark{% endif %} rounded p-3 shadow-sm" style="max-width: 75%;">
+                            <div class="fw-bold mb-1 small {% if message.sender == request.user %}text-white-50{% else %}text-muted{% endif %}">
+                                {% if message.sender == request.user %}You{% else %}{{ message.sender.get_full_name }}{% endif %}
+                            </div>
+                            <p class="mb-1">{{ message.body|linebreaksbr }}</p>
+                            <div class="text-end small {% if message.sender == request.user %}text-white-50{% else %}text-muted{% endif %}" style="font-size: 0.7rem;">
+                                {{ message.created_at|date:"M d, H:i" }}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-5">
+                       <!-- This should not happen if thread is created with initial message -->
+                       <p class="text-muted">No messages yet.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="card-footer bg-white border-top flex-shrink-0">
+                <form action="{% url 'communications:thread_reply' thread.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        {{ form.body }}
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bx bx-send"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Scroll to bottom of chat
+    const chatContainer = document.getElementById('chat-messages');
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    // Listen for real-time messages
+    document.addEventListener('chat_message_received', function(e) {
+        const data = e.detail;
+        
+        // Check if message belongs to this thread
+        // We need the current thread ID from context or URL
+        const currentThreadId = "{{ thread.id }}";
+        
+        if (String(data.thread_id) === String(currentThreadId)) {
+            // Append message
+            const isMe = data.sender_id == "{{ request.user.id }}";
+            
+            // Construct HTML (Simplified version matching template)
+            let html = `
+                <div class="d-flex mb-3 ${isMe ? 'justify-content-end' : ''}">
+                    ${!isMe ? `
+                    <div class="avatar-xs me-2">
+                        <span class="avatar-title rounded-circle bg-soft-info text-info text-uppercase">
+                            ${data.sender_name.charAt(0)}
+                        </span>
+                    </div>` : ''}
+                    
+                    <div class="bg-${isMe ? 'primary text-white' : 'light text-dark'} rounded p-3 shadow-sm" style="max-width: 75%;">
+                        <div class="fw-bold mb-1 small ${isMe ? 'text-white-50' : 'text-muted'}">
+                            ${isMe ? 'You' : data.sender_name}
+                        </div>
+                        <p class="mb-1">${data.message}</p>
+                        <div class="text-end small ${isMe ? 'text-white-50' : 'text-muted'}" style="font-size: 0.7rem;">
+                            Just now
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.insertAdjacentHTML('beforeend', html);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    });
+</script>
+{% endblock %}

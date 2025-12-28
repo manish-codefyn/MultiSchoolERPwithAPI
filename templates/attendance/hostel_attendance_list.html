@@ -1,0 +1,47 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}Hostel Attendance List{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <h2>Hostel Attendance</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{% url 'attendance:hostel_attendance_create' %}" class="btn btn-primary">Mark New</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Student</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attendance in attendances %}
+                    <tr>
+                        <td>{{ attendance.date }}</td>
+                        <td>{{ attendance.student.full_name }}</td>
+                        <td>{{ attendance.get_status_display }}</td>
+                        <td>
+                            <a href="{% url 'attendance:hostel_attendance_update' attendance.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                         <td colspan="4" class="text-center">No records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

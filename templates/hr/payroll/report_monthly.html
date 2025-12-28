@@ -1,0 +1,82 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+{% load humanize core_tags %}
+
+{% block title %}{% trans "Monthly Payroll Report" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Monthly Payroll Report" %}</h1>
+        <button onclick="window.print()" class="btn btn-outline-secondary d-print-none">
+            <i class="bx bx-printer me-2"></i>{% trans "Print" %}
+        </button>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body">
+            <!-- Filter -->
+            <form method="get" class="row g-3 d-print-none mb-4">
+                <div class="col-md-3">
+                    <label class="form-label">{% trans "Month" %}</label>
+                    <input type="month" name="month" class="form-control" value="{{ selected_month }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">{% trans "View Report" %}</button>
+                </div>
+            </form>
+
+            <h4 class="text-center mb-4">{% trans "Payroll Summary for" %} {{ selected_month|date:"F Y" }}</h4>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>{% trans "Employee" %}</th>
+                            <th class="text-end">{% trans "Basic" %}</th>
+                            <th class="text-end">{% trans "Allowances" %}</th>
+                            <th class="text-end">{% trans "Gross" %}</th>
+                            <th class="text-end">{% trans "Deductions" %}</th>
+                            <th class="text-end">{% trans "Net Salary" %}</th>
+                            <th class="text-center">{% trans "Status" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in payroll_data %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ item.staff.full_name }}</div>
+                                <small class="text-muted">{{ item.staff.employee_id }}</small>
+                            </td>
+                            <td class="text-end">{{ item.basic_salary|intcomma }}</td>
+                            <td class="text-end">{{ item.total_earnings|sub:item.basic_salary|intcomma }}</td>
+                            <td class="text-end">{{ item.total_earnings|intcomma }}</td>
+                            <td class="text-end text-danger">{{ item.total_deductions|intcomma }}</td>
+                            <td class="text-end fw-bold">{{ item.net_salary|intcomma }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border">{{ item.status }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">{% trans "No data available for this month." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td>{% trans "Total" %}</td>
+                            <td class="text-end">{{ total_basic|intcomma }}</td>
+                            <td class="text-end">{{ total_allowance|intcomma }}</td>
+                            <td class="text-end">{{ total_gross|intcomma }}</td>
+                            <td class="text-end">{{ total_deduction|intcomma }}</td>
+                            <td class="text-end">{{ total_net|intcomma }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

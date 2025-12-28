@@ -1,0 +1,55 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Employment History" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Employment History" %}</h1>
+        <a href="{% url 'hr:employmenthistory_create' %}" class="btn btn-primary shadow-sm">
+            <i class="bx bx-plus me-2"></i>{% trans "Add History" %}
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table id="historyTable" class="table table-hover align-middle mb-0" data-datatable data-export-columns="0,1,2,3">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Employee" %}</th>
+                            <th>{% trans "Action" %}</th>
+                            <th>{% trans "Effective Date" %}</th>
+                            <th>{% trans "Description" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for history in employment_history %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ history.staff.full_name }}</td>
+                            <td>{{ history.action }}</td>
+                            <td>{{ history.effective_date }}</td>
+                            <td>{{ history.description }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+<script>
+    $(document).ready(function() {
+        console.log("History table init");
+    });
+</script>
+{% endblock %}

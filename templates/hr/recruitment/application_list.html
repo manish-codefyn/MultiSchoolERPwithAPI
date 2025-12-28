@@ -1,0 +1,106 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Job Applications" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Job Applications" %}</h1>
+        <a href="{% url 'hr:jobapplication_create' %}" class="btn btn-outline-primary shadow-sm">
+            <i class="bx bx-plus me-2"></i>{% trans "Add Application" %}
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body bg-light rounded-3">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label small text-muted">{% trans "Recruitment Position" %}</label>
+                    <select name="recruitment" class="form-select">
+                        <option value="">{% trans "All Positions" %}</option>
+                         {% for rec in recruitments %}
+                        <option value="{{ rec.id }}" {% if request.GET.recruitment == rec.id|stringformat:"s" %}selected{% endif %}>{{ rec.position_title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                 <div class="col-md-3">
+                    <label class="form-label small text-muted">{% trans "Status" %}</label>
+                    <select name="status" class="form-select">
+                        <option value="">{% trans "All Statuses" %}</option>
+                         {% for code, label in status_choices %}
+                        <option value="{{ code }}" {% if request.GET.status == code %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                 <div class="col-md-3">
+                    <label class="form-label small text-muted">{% trans "Search" %}</label>
+                    <input type="text" name="search" class="form-control" placeholder="Candidate Name..." value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">{% trans "Filter" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="applicationTable" data-datatable data-export-columns="[0,1,2,3,4]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Candidate" %}</th>
+                            <th>{% trans "Position Applied" %}</th>
+                            <th>{% trans "Applied Date" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Resume" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in job_applications %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold">{{ app.candidate_name }}</div>
+                                <div class="small text-muted">{{ app.email }}</div>
+                            </td>
+                            <td>{{ app.recruitment.position_title }}</td>
+                            <td>{{ app.applied_date|date:"M d, Y" }}</td>
+                             <td>
+                                <span class="badge bg-light text-dark border">{{ app.get_status_display }}</span>
+                            </td>
+                            <td>
+                                {% if app.resume %}
+                                <a href="{{ app.resume.url }}" target="_blank" class="btn btn-sm btn-light"><i class="bx bxs-file-pdf text-danger"></i></a>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'hr:jobapplication_detail' app.pk %}" class="btn btn-icon btn-sm btn-light">
+                                    <i class="bx bx-show"></i>
+                                </a>
+                                <a href="{% url 'hr:jobapplication_update' app.pk %}" class="btn btn-icon btn-sm btn-light">
+                                    <i class="bx bx-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block body_content %}
+<!--wrapper-->
+<div class="wrapper">
+<!-- Sidebar -->
+{% include 'partials/sidebar.html' %}
+<!--end sidebar wrapper -->
+
+<!--start header -->
+{% include 'partials/header.html' %}
+
+<!--end header -->
+
+<!--start page wrapper -->
+<div class="page-wrapper">
+    <div class="page-content">
+        <!-- Messages -->
+
+        {% include "partials/alert.html" %}
+        
+        {% for broadcast in system_broadcasts %}
+        <div class="alert border-0 border-start border-4 border-warning alert-dismissible fade show py-2 bg-light-warning">
+            <div class="d-flex align-items-center">
+                <div class="font-35 text-warning"><i class='bx s-bell'></i>
+                </div>
+                <div class="ms-3">
+                    <h6 class="mb-0 text-warning">{{ broadcast.title }}</h6>
+                    <div>{{ broadcast.message }}</div>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+
+        {% block content %}
+        <!-- Main content will be inserted here -->
+        {% endblock %}
+    </div>
+</div>
+<!--end page wrapper -->
+
+<!-- search modal -->
+{% include 'partials/search_modal.html' %}
+<!-- end search modal -->
+
+<!--start switcher-->
+{% include 'partials/theme_switcher.html' %}
+<!--end switcher-->
+{% endblock %}

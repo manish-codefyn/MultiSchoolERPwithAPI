@@ -1,0 +1,40 @@
+<nav class="navbar fixed-bottom navbar-light bg-white border-top shadow-lg student-bottom-nav">
+  <div class="container-fluid d-flex justify-content-around">
+    <a class="nav-link text-center {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'student_portal:dashboard' %}">
+      <i class='bx bx-home-alt fs-2'></i>
+      <span class="d-block small">Home</span>
+    </a>
+    
+    <a class="nav-link text-center {% if request.resolver_match.url_name == 'timetable' %}active{% endif %}" href="{% url 'student_portal:timetable' %}">
+      <i class='bx bx-calendar fs-2'></i>
+      <span class="d-block small">Classes</span>
+    </a>
+
+    <a class="nav-link text-center {% if request.resolver_match.url_name == 'invoice_list' %}active{% endif %}" href="{% url 'student_portal:invoice_list' %}">
+      <i class='bx bx-wallet fs-2'></i>
+      <span class="d-block small">Fees</span>
+    </a>
+
+    <a class="nav-link text-center {% if request.resolver_match.url_name == 'games' %}active{% endif %}" href="{% url 'student_portal:games' %}">
+      <i class='bx bx-joystick fs-2'></i>
+      <span class="d-block small">Games</span>
+    </a>
+  </div>
+</nav>
+
+<style>
+    .student-bottom-nav .nav-link {
+        color: #6c757d;
+        transition: color 0.3s;
+    }
+    .student-bottom-nav .nav-link.active {
+        color: #007bff; /* Primary Color */
+    }
+    .student-bottom-nav .nav-link:hover {
+        color: #0d6efd;
+    }
+    /* Add padding to body to prevent content being hidden behind nav */
+    body {
+        padding-bottom: 70px;
+    }
+</style>

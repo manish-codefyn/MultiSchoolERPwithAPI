@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+
+{% load static %}
+{% block extra_css %}
+<!-- Main Styles -->
+<!-- <link href="{% static 'css/styles.min.css' %}" rel="stylesheet"> -->
+{% endblock %}
+{% block body_content %}
+<div class="wrapper">
+    <!--start header -->
+   
+      {% include "partials/alert.html" %}
+    <!--end header -->
+            {% block content %}
+            <!-- Page-specific content goes here -->
+            {% endblock %}
+
+
+</div>
+
+{% endblock %}

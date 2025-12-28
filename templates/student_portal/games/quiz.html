@@ -1,0 +1,115 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block title %}Math Quiz{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0">
+    <div class="card-body text-center p-4">
+        <h4 class="mb-3 text-primary">Math Wiz 🧮</h4>
+        
+        <div id="start-screen">
+            <p class="text-muted">Test your mental math skills!</p>
+            <button class="btn btn-primary btn-lg w-100 rounded-pill" onclick="startGame()">Start Quiz</button>
+        </div>
+
+        <div id="game-screen" style="display: none;">
+            <div class="d-flex justify-content-between mb-4">
+                <span class="badge bg-label-danger fs-6"><i class="bx bx-time"></i> <span id="timer">30</span>s</span>
+                <span class="badge bg-label-success fs-6">Score: <span id="score">0</span></span>
+            </div>
+
+            <h1 class="display-4 fw-bold mb-4" id="question">2 + 2 = ?</h1>
+
+            <div class="row g-3" id="options">
+                <!-- Options injected by JS -->
+            </div>
+        </div>
+
+        <div id="end-screen" style="display: none;">
+            <h2 class="mb-3">Time's Up! ⏰</h2>
+            <h4 class="mb-4">Final Score: <span id="final-score" class="text-primary fw-bold">0</span></h4>
+            <button class="btn btn-primary btn-lg rounded-pill" onclick="startGame()">Play Again</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let score = 0;
+    let timeLeft = 30;
+    let timerInterval;
+    let correctAnswer;
+
+    function startGame() {
+        score = 0;
+        timeLeft = 30;
+        document.getElementById('score').innerText = score;
+        document.getElementById('timer').innerText = timeLeft;
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('end-screen').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'block';
+        
+        generateQuestion();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft;
+            if (timeLeft <= 0) endGame();
+        }, 1000);
+    }
+
+    function generateQuestion() {
+        const ops = ['+', '-', '*'];
+        const op = ops[Math.floor(Math.random() * ops.length)];
+        let a = Math.floor(Math.random() * 20) + 1;
+        let b = Math.floor(Math.random() * 20) + 1;
+
+        // Simplify logical difficulty
+        if (op === '*') { a = Math.floor(Math.random() * 10) + 1; b = Math.floor(Math.random() * 10) + 1; }
+        if (op === '-') { if (a < b) [a, b] = [b, a]; } // No negatives for simplicity
+
+        const q = `${a} ${op} ${b}`;
+        correctAnswer = eval(q);
+
+        document.getElementById('question').innerText = `${q} = ?`;
+        
+        // Generate options
+        let options = [correctAnswer];
+        while (options.length < 4) {
+            let wrong = correctAnswer + Math.floor(Math.random() * 10) - 5;
+            if (wrong !== correctAnswer && !options.includes(wrong) && wrong >= 0) options.push(wrong);
+        }
+        options.sort(() => Math.random() - 0.5);
+
+        const optionsHtml = options.map(opt => `
+            <div class="col-6">
+                <button class="btn btn-outline-primary w-100 py-3 fs-5 fw-bold" onclick="checkAnswer(${opt})">${opt}</button>
+            </div>
+        `).join('');
+        document.getElementById('options').innerHTML = optionsHtml;
+    }
+
+    function checkAnswer(ans) {
+        if (ans === correctAnswer) {
+            score += 10;
+            // Bonus time for correct answer
+            timeLeft += 2; 
+            document.getElementById('timer').classList.add('text-success');
+            setTimeout(() => document.getElementById('timer').classList.remove('text-success'), 300);
+        } else {
+            timeLeft -= 5; // Penalty
+            document.getElementById('game-screen').classList.add('animate__animated', 'animate__shakeX');
+            setTimeout(() => document.getElementById('game-screen').classList.remove('animate__animated', 'animate__shakeX'), 500);
+        }
+        document.getElementById('score').innerText = score;
+        generateQuestion();
+    }
+
+    function endGame() {
+        clearInterval(timerInterval);
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('end-screen').style.display = 'block';
+        document.getElementById('final-score').innerText = score;
+    }
+</script>
+{% endblock %}

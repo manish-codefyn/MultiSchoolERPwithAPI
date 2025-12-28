@@ -1,0 +1,55 @@
+{% extends 'layouts/dashboard.html' %}
+
+{% block title %}Student Attendance List{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <h2>Student Attendance</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{% url 'attendance:student_attendance_create' %}" class="btn btn-primary">Mark New</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attendance in attendances %}
+                    <tr>
+                        <td>{{ attendance.date }}</td>
+                        <td>{{ attendance.student.full_name }}</td>
+                        <td>{{ attendance.class_name.name }} - {{ attendance.section.name }}</td>
+                        <td>
+                            <span class="badge {% if attendance.status == 'PRESENT' %}bg-success{% elif attendance.status == 'ABSENT' %}bg-danger{% else %}bg-warning{% endif %}">
+                                {{ attendance.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'attendance:student_attendance_detail' attendance.pk %}" class="btn btn-sm btn-info">View</a>
+                            <a href="{% url 'attendance:student_attendance_update' attendance.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{% url 'attendance:student_attendance_delete' attendance.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No attendance records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

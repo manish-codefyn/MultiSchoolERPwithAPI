@@ -1,0 +1,169 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static crispy_forms_tags %}
+
+{% block title %}Tenant Wizard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-9 mx-auto">
+        <div class="card border-top border-0 border-4 border-primary">
+            <div class="card-body p-5">
+                <div class="card-title d-flex align-items-center mb-4">
+                    <div><i class="bx bxs-user-plus me-1 font-22 text-primary"></i></div>
+                    <h5 class="mb-0 text-primary">Tenant Onboarding Wizard</h5>
+                </div>
+                
+                <!-- Stepper Header -->
+                <div class="position-relative m-4">
+                    <div class="progress" style="height: 2px;">
+                        <div class="progress-bar" role="progressbar" style="width: 0%;" id="progressBar"></div>
+                    </div>
+                    <div class="position-absolute top-0 start-0 translate-middle btn btn-sm btn-primary rounded-pill" style="width: 2rem; height:2rem;" id="step1-indicator">1</div>
+                    <div class="position-absolute top-0 start-50 translate-middle btn btn-sm btn-secondary rounded-pill" style="width: 2rem; height:2rem;" id="step2-indicator">2</div>
+                    <div class="position-absolute top-0 start-100 translate-middle btn btn-sm btn-secondary rounded-pill" style="width: 2rem; height:2rem;" id="step3-indicator">3</div>
+                </div>
+                
+                <hr class="my-4">
+
+                <form method="post" id="tenantWizardForm">
+                    {% csrf_token %}
+                    
+                    <!-- Step 1: Organization Details -->
+                    <div id="step-1" class="wizard-step">
+                        <h6 class="mb-3 text-uppercase">Step 1: Organization Details</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">{{ form.name|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.display_name|as_crispy_field }}</div>
+                            <div class="col-md-6">
+                                {% if form.schema_name %}
+                                    {{ form.schema_name|as_crispy_field }}
+                                {% else %}
+                                    <label class="form-label">Schema Name</label>
+                                    <input type="text" class="form-control" value="{{ form.instance.schema_name }}" disabled readonly>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">{{ form.contact_email|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.contact_phone|as_crispy_field }}</div>
+                        </div>
+                        <div class="mt-4 text-end">
+                            <button type="button" class="btn btn-primary px-4" onclick="nextStep(2)">Next <i class='bx bx-right-arrow-alt'></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Configuration & Limits -->
+                    <div id="step-2" class="wizard-step d-none">
+                        <h6 class="mb-3 text-uppercase">Step 2: Configuration & Limits</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">{{ form.plan|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.max_users|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.max_storage_mb|as_crispy_field }}</div>
+                            <div class="col-md-6 pt-4">{{ form.is_active|as_crispy_field }}</div>
+                        </div>
+                        <div class="mt-4 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary px-4" onclick="prevStep(1)"><i class='bx bx-left-arrow-alt'></i> Previous</button>
+                            <button type="button" class="btn btn-primary px-4" onclick="nextStep(3)">Next <i class='bx bx-right-arrow-alt'></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Status & Review -->
+                    <div id="step-3" class="wizard-step d-none">
+                        <h6 class="mb-3 text-uppercase">Step 3: Lifecycle Status</h6>
+                        
+                        <div class="alert border-0 border-start border-5 border-info alert-dismissible fade show py-2">
+                            <div class="d-flex align-items-center">
+                                <div class="font-35 text-info"><i class='bx bx-info-circle'></i></div>
+                                <div class="ms-3">
+                                    <h6 class="mb-0 text-info">Process Status</h6>
+                                    <div>Update the current onboarding stage of the tenant.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">{{ form.status|as_crispy_field }}</div>
+                            <div class="col-md-6">{{ form.onboarding_status|as_crispy_field }}</div>
+                        </div>
+                        
+                        <div class="mt-4 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary px-4" onclick="prevStep(2)"><i class='bx bx-left-arrow-alt'></i> Previous</button>
+                            <div>
+                                <a href="{% url 'tenants:tenant_list' %}" class="btn btn-light px-4 me-2">Cancel</a>
+                                <button type="submit" class="btn btn-success px-4">Save Tenant</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+    function nextStep(step) {
+        // Validation for the current step
+        const currentStepNum = step - 1;
+        const currentStepEl = document.getElementById('step-' + currentStepNum);
+        
+        // Get all inputs in the current step
+        const inputs = currentStepEl.querySelectorAll('input, select, textarea');
+        let isValid = true;
+        
+        for (const input of inputs) {
+            if (!input.checkValidity()) {
+                input.reportValidity();
+                isValid = false;
+                break; // Stop at the first invalid field
+            }
+        }
+        
+        if (!isValid) {
+            return;
+        }
+        
+        // Hide all steps
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
+        // Show current step
+        document.getElementById('step-' + step).classList.remove('d-none');
+        
+        updateIndicators(step);
+    }
+
+    function prevStep(step) {
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
+        document.getElementById('step-' + step).classList.remove('d-none');
+        
+        updateIndicators(step);
+    }
+
+    function updateIndicators(step) {
+        // Reset indicators
+        for(let i=1; i<=3; i++) {
+            let el = document.getElementById('step' + i + '-indicator');
+            if (el) {
+                el.classList.remove('btn-primary');
+                el.classList.add('btn-secondary');
+            }
+        }
+
+        // Highlight up to current step
+        for(let i=1; i<=step; i++) {
+            let el = document.getElementById('step' + i + '-indicator');
+            if (el) {
+                el.classList.remove('btn-secondary');
+                el.classList.add('btn-primary');
+            }
+        }
+        
+        // Update progress bar
+        let progress = (step - 1) * 50;
+        let progressBar = document.getElementById('progressBar');
+        if (progressBar) {
+            progressBar.style.width = progress + '%';
+        }
+    }
+</script>
+{% endblock %}
+

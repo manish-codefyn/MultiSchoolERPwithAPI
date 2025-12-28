@@ -1,0 +1,186 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{{ object.title }} | {% trans "Training Program" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    {% include "partials/breadcrumb.html" with page_title=_("Training Program Directory") parent_text=_("Training
+    Programs") parent_url=request.resolver_match.app_name|add:":trainingprogram_list" current_text=object.title %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">{{ object.title }}</h1>
+            <p class="text-muted mb-0">{% trans "Training Program Details" %}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:trainingprogram_update' object.pk %}" class="btn btn-primary">
+                <i class="bx bx-edit me-1"></i> {% trans "Edit Program" %}
+            </a>
+            <a href="{% url 'hr:trainingprogram_delete' object.pk %}" class="btn btn-danger">
+                <i class="bx bx-trash me-1"></i> {% trans "Delete" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Info -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent py-3">
+                    <h5 class="mb-0 text-primary">{% trans "Program Overview" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="text-muted small text-uppercase fw-bold">{% trans "Training Type" %}</label>
+                            <p class="h6 mb-0">{{ object.get_training_type_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small text-uppercase fw-bold">{% trans "Status" %}</label>
+                            <div>
+                                {% if object.is_active %}
+                                <span class="badge bg-success bg-opacity-10 text-success fs-6">{% trans "Active"
+                                    %}</span>
+                                {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary fs-6">{% trans "Inactive"
+                                    %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small text-uppercase fw-bold">{% trans "Start Date" %}</label>
+                            <p class="h6 mb-0">{{ object.start_date }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small text-uppercase fw-bold">{% trans "End Date" %}</label>
+                            <p class="h6 mb-0">{{ object.end_date }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small text-uppercase fw-bold">{% trans "Provider" %}</label>
+                            <p class="h6 mb-0">{{ object.provider }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small text-uppercase fw-bold">{% trans "Location" %}</label>
+                            <p class="h6 mb-0">{{ object.location }}</p>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-muted small text-uppercase fw-bold">{% trans "Description" %}</label>
+                            <div class="p-3 bg-light rounded mt-2">
+                                {{ object.description|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Participants List -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary">{% trans "Participants" %}</h5>
+                    <span class="badge bg-secondary">{{ object.enrolled_count }} / {{
+                        object.maximum_participants|default:"∞" }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "Staff Member" %}</th>
+                                    <th>{% trans "Department" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Certificate" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for participation in participants %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            {% if participation.staff.profile_image %}
+                                            <img src="{{ participation.staff.profile_image.url }}"
+                                                class="rounded-circle me-2" width="32" height="32" alt="">
+                                            {% else %}
+                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2"
+                                                style="width: 32px; height: 32px;">
+                                                {{ participation.staff.initials }}
+                                            </div>
+                                            {% endif %}
+                                            <a href="{% url 'hr:staff_detail' participation.staff.pk %}"
+                                                class="text-decoration-none fw-bold">
+                                                {{ participation.staff.full_name }}
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td>{{ participation.staff.department.name }}</td>
+                                    <td>
+                                        <span
+                                            class="badge {% if participation.status == 'COMPLETED' %}bg-success{% elif participation.status == 'REGISTERED' %}bg-info{% else %}bg-secondary{% endif %}">
+                                            {{ participation.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if participation.certificate_issued %}
+                                        <span class="text-success" title="Issued"><i
+                                                class="bx bx-check-circle fs-5"></i></span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        {% trans "No participants registered yet." %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent py-3">
+                    <h5 class="mb-0 text-primary">{% trans "Logistics" %}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">{% trans "Duration" %}</span>
+                            <span class="fw-bold">{{ object.duration_hours }} {% trans "Hours" %}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">{% trans "Max Participants" %}</span>
+                            <span class="fw-bold">{{ object.maximum_participants|default:"Unlimited" }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">{% trans "Remaining Seats" %}</span>
+                            <span class="fw-bold text-success">{{ object.remaining_seats|default:"-" }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">{% trans "Cost" %}</span>
+                            <span class="fw-bold">{{ object.cost }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">{% trans "Mandatory" %}</span>
+                            <span>
+                                {% if object.is_mandatory %}
+                                <span class="badge bg-danger">{% trans "Yes" %}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{% trans "No" %}</span>
+                                {% endif %}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

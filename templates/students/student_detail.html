@@ -1,0 +1,303 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ student.full_name }} - {% trans "Student Details" %}{% endblock %}
+
+{% block content %}
+<!--breadcrumb-->
+<div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+    <div class="breadcrumb-title pe-3">{% trans "Students" %}</div>
+    <div class="ps-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 p-0">
+                <li class="breadcrumb-item"><a href="{% url 'students:student_list' %}"><i class="bx bx-home-alt"></i></a></li>
+                <li class="breadcrumb-item active" aria-current="page">{% trans "Student Profile" %}</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="ms-auto">
+        <div class="btn-group">
+            <a href="{% url 'students:student_onboarding' pk=student.pk %}" class="btn btn-primary">{% trans "Edit Profile" %}</a>
+            <button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">	<span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
+                <a class="dropdown-item" href="{% url 'students:student_id_card' pk=student.pk %}" target="_blank">{% trans "Generate ID Card" %}</a>
+                <a class="dropdown-item" href="{% url 'students:student_report' pk=student.pk %}" target="_blank">{% trans "Print Report" %}</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{% url 'students:student_promote' pk=student.pk %}">{% trans "Promote Student" %}</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!--end breadcrumb-->
+
+<div class="container-fluid">
+    <div class="main-body">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex flex-column align-items-center text-center">
+                            {% if student.photo %}
+                            <img src="{{ student.photo.url }}" alt="Admin" class="rounded-circle p-1 bg-primary" width="110">
+                            {% else %}
+                            <div class="rounded-circle bg-light-primary text-primary d-flex align-items-center justify-content-center" style="width: 110px; height: 110px; font-size: 3rem;">
+                                {{ student.first_name|first }}{{ student.last_name|first }}
+                            </div>
+                            {% endif %}
+                            <div class="mt-3">
+                                <h4>{{ student.full_name }}</h4>
+                                <p class="text-secondary mb-1">
+                                    {{ student.current_class.name }} - {{ student.section.name }}
+                                </p>
+                                <p class="text-muted font-size-sm">{% trans "Admission No" %}: {{ student.admission_number }}</p>
+                                <span class="badge bg-{{ student.status|yesno:'success,danger' }}">{{ student.get_status_display }}</span>
+                            </div>
+                        </div>
+                        <hr class="my-4" />
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0"><i class="bx bx-envelope me-2"></i>{% trans "Email" %}</h6>
+                                <span class="text-secondary">{{ student.personal_email }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0"><i class="bx bx-phone me-2"></i>{% trans "Mobile" %}</h6>
+                                <span class="text-secondary">{{ student.mobile_primary }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0"><i class="bx bx-calendar me-2"></i>{% trans "DOB" %}</h6>
+                                <span class="text-secondary">{{ student.date_of_birth }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                <h6 class="mb-0"><i class="bx bx-female-sign me-2"></i>{% trans "Gender" %}</h6>
+                                <span class="text-secondary">{{ student.get_gender_display }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Transport Info Card -->
+                {% if student.transport_allocation %}
+                <div class="card mt-3">
+                    <div class="card-body">
+                         <h5 class="d-flex align-items-center mb-3">{% trans "Transport Status" %}</h5>
+                         <p><strong>{% trans "Route" %}:</strong> {{ student.transport_allocation.route.name }}</p>
+                         <p><strong>{% trans "User" %}:</strong> {{ student.transport_allocation.stop.name }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <ul class="nav nav-tabs nav-primary mb-0" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#primary-profile" role="tab" aria-selected="true">
+                                    <div class="d-flex align-items-center">
+                                        <div class="tab-icon"><i class='bx bx-user-pin font-18 me-1'></i></div>
+                                        <div class="tab-title">{% trans "Profile" %}</div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" data-bs-toggle="tab" href="#primary-guardian" role="tab" aria-selected="false">
+                                    <div class="d-flex align-items-center">
+                                        <div class="tab-icon"><i class='bx bx-group font-18 me-1'></i></div>
+                                        <div class="tab-title">{% trans "Guardians" %}</div>
+                                    </div>
+                                </a>
+                            </li>
+                             <li class="nav-item" role="presentation">
+                                <a class="nav-link" data-bs-toggle="tab" href="#primary-academic" role="tab" aria-selected="false">
+                                    <div class="d-flex align-items-center">
+                                        <div class="tab-icon"><i class='bx bx-book-bookmark font-18 me-1'></i></div>
+                                        <div class="tab-title">{% trans "Academic" %}</div>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" data-bs-toggle="tab" href="#primary-docs" role="tab" aria-selected="false">
+                                    <div class="d-flex align-items-center">
+                                        <div class="tab-icon"><i class='bx bx-file font-18 me-1'></i></div>
+                                        <div class="tab-title">{% trans "Documents" %}</div>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content pt-3">
+                            <!-- Profile Tab -->
+                            <div class="tab-pane fade show active" id="primary-profile" role="tabpanel">
+                                <h6 class="mb-3 text-uppercase">{% trans "Addresses" %}</h6>
+                                {% for address in addresses %}
+                                <div class="card shadow-none border mb-2">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ address.get_address_type_display }}</h6>
+                                        <p class="card-text">
+                                            {{ address.address_line_1 }}<br>
+                                            {% if address.address_line_2 %}{{ address.address_line_2 }}<br>{% endif %}
+                                            {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
+                                            {{ address.country.name }}
+                                        </p>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted">{% trans "No addresses recorded." %}</p>
+                                {% endfor %}
+
+                                <hr>
+                                <h6 class="mb-3 text-uppercase">{% trans "Medical Info" %}</h6>
+                                {% if student.medical_info %}
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="mb-3">
+                                            <label class="mb-1 text-muted">{% trans "Blood Group" %}</label>
+                                            <div>{{ student.medical_info.blood_group }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="mb-3">
+                                            <label class="mb-1 text-muted">{% trans "Allergies" %}</label>
+                                            <div>{{ student.medical_info.allergies|default:"None" }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="mb-3">
+                                            <label class="mb-1 text-muted">{% trans "Medications" %}</label>
+                                            <div>{{ student.medical_info.medications|default:"None" }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <p class="text-muted">{% trans "No medical information recorded." %}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Guardian Tab -->
+                            <div class="tab-pane fade" id="primary-guardian" role="tabpanel">
+                                <div class="row">
+                                    {% for guardian in guardians %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card shadow-none border">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ guardian.full_name }}</h5>
+                                                <h6 class="card-subtitle mb-2 text-muted">{{ guardian.get_relationship_display }}</h6>
+                                                <p class="card-text">
+                                                    <i class="bx bx-phone me-1"></i> {{ guardian.mobile_primary }}<br>
+                                                    <i class="bx bx-envelope me-1"></i> {{ guardian.email }}<br>
+                                                    <i class="bx bx-briefcase me-1"></i> {{ guardian.occupation|default:"-" }}
+                                                </p>
+                                                {% if guardian.is_emergency_contact %}
+                                                <span class="badge bg-danger">{% trans "Emergency Contact" %}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-12">
+                                        <p class="text-muted">{% trans "No guardians added." %}</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Academic Tab -->
+                            <div class="tab-pane fade" id="primary-academic" role="tabpanel">
+                                <h6 class="mb-3">{% trans "Academic History" %}</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>{% trans "Institution" %}</th>
+                                                <th>{% trans "Class" %}</th>
+                                                <th>{% trans "Year" %}</th>
+                                                <th>{% trans "Percentage" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for record in academic_history %}
+                                            <tr>
+                                                <td>{{ record.institution_name }}</td>
+                                                <td>{{ record.class_name }}</td>
+                                                <td>{{ record.academic_year }}</td>
+                                                <td>{{ record.percentage }}%</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted">{% trans "No history records found." %}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <hr>
+                                <h6 class="mb-3">{% trans "Recent Performance" %}</h6>
+                                {% if academic_performance %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>{% trans "Exam" %}</th>
+                                                <th>{% trans "Date" %}</th>
+                                                <th>{% trans "Score" %}</th>
+                                                <th>{% trans "Grade" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for result in academic_performance %}
+                                            <tr>
+                                                <td>{{ result.exam.name }}</td>
+                                                <td>{{ result.exam.start_date }}</td>
+                                                <td>{{ result.score }}/{{ result.total_marks }}</td>
+                                                <td>{{ result.grade }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <p class="text-muted">{% trans "No recent exam results." %}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Documents Tab -->
+                            <div class="tab-pane fade" id="primary-docs" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>{% trans "Document Type" %}</th>
+                                                <th>{% trans "File Name" %}</th>
+                                                <th>{% trans "Date" %}</th>
+                                                <th>{% trans "Action" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for doc in documents %}
+                                            <tr>
+                                                <td>{{ doc.get_doc_type_display }}</td>
+                                                <td>{{ doc.file_name }}</td>
+                                                <td>{{ doc.created_at|date:"M d, Y" }}</td>
+                                                <td>
+                                                    <a href="{% url 'students:document_download' document_id=doc.id %}" class="btn btn-sm btn-info" target="_blank"><i class="bx bx-download"></i></a>
+                                                </td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted">{% trans "No documents uploaded." %}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,327 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ staff.full_name }} - Resume</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Open+Sans:wght@400;600;700&display=swap');
+
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #2980b9;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #ecf0f1;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+
+        .page-container {
+            max-width: 210mm;
+            min-height: 297mm;
+            margin: 40px auto;
+            background: white;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 30px;
+            margin-bottom: 30px;
+        }
+
+        .header-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent);
+            margin-right: 30px;
+        }
+
+        .header-initials {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 700;
+            margin-right: 30px;
+        }
+
+        .header-info h1 {
+            font-family: 'Merriweather', serif;
+            font-size: 32px;
+            margin: 0 0 5px 0;
+            color: var(--primary);
+        }
+
+        .header-info h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 15px 0;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            font-size: 14px;
+            color: var(--secondary);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .contact-item svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            fill: var(--text-light);
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-family: 'Merriweather', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .item {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            margin-bottom: 15px;
+        }
+
+        .item-date {
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .item-content h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 0 2px 0;
+            color: var(--primary);
+        }
+
+        .item-content h4 {
+            font-size: 14px;
+            font-style: italic;
+            color: var(--secondary);
+            margin: 0 0 5px 0;
+        }
+
+        .item-content p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        /* Skills Grid */
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skill-tag {
+            background: #eef2f5;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            .page-container {
+                width: 100%;
+                max-width: none;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+            @page {
+                margin: 15mm;
+                size: A4;
+            }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+    <div class="page-container">
+        <!-- Header -->
+        <div class="header">
+            {% if staff.profile_image %}
+                <img src="{{ staff.profile_image.url }}" alt="{{ staff.full_name }}" class="header-photo">
+            {% else %}
+                <div class="header-initials">{{ staff.initials }}</div>
+            {% endif %}
+            
+            <div class="header-info">
+                <h1>{{ staff.full_name }}</h1>
+                <h2>{{ staff.designation.title|default:"Staff Member" }}</h2>
+                
+                <div class="contact-grid">
+                    <div class="contact-item">
+                        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        {{ staff.user.email }}
+                    </div>
+                    <div class="contact-item">
+                        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 2.33.57 3.57.57 3.57.57.37.56.24.85-.05 2.22-2.23z"/></svg>
+                        {{ staff.personal_phone|default:staff.work_phone|default:"-" }}
+                    </div>
+                    {% if staff.addresses.first %}
+                    <div class="contact-item" style="grid-column: span 2;">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        {{ staff.addresses.first.city }}, {{ staff.addresses.first.state }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Experience -->
+        {% if experience %}
+        <div class="section">
+            <h3 class="section-title">{% trans "Experience" %}</h3>
+            {% for exp in experience %}
+            <div class="item">
+                <div class="item-date">
+                    {{ exp.start_date|date:"M Y" }} - {% if exp.end_date %}{{ exp.end_date|date:"M Y" }}{% else %}Present{% endif %}
+                </div>
+                <div class="item-content">
+                    <h3>{{ exp.job_title }}</h3>
+                    <h4>{{ exp.company_name }}</h4>
+                    <p>{{ exp.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+            <div class="item">
+                <div class="item-date">
+                    {{ staff.joining_date|date:"M Y" }} - Present
+                </div>
+                <div class="item-content">
+                    <h3>{{ staff.designation.title }}</h3>
+                    <h4>{{ staff.tenant.name|default:"Institute Name" }}</h4>
+                    <p>{{ staff.department.name }} Department</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Education -->
+        {% if qualifications %}
+        <div class="section">
+            <h3 class="section-title">{% trans "Education" %}</h3>
+            {% for qual in qualifications %}
+            <div class="item">
+                <div class="item-date">{{ qual.year.year }}</div>
+                <div class="item-content">
+                    <h3>{{ qual.degree }}</h3>
+                    <h4>{{ qual.institution }}</h4>
+                    <p>{{ qual.specialization }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Details Grid (Personal + Statutory) -->
+        <div class="section">
+            <h3 class="section-title">{% trans "Personal Details" %}</h3>
+            <div class="contact-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div>
+                    <strong>{% trans "Date of Birth" %}</strong><br>
+                    {{ staff.date_of_birth|date:"d M, Y" }}
+                </div>
+                <div>
+                    <strong>{% trans "Nationality" %}</strong><br>
+                    {{ staff.nationality }}
+                </div>
+                <div>
+                    <strong>{% trans "Employee ID" %}</strong><br>
+                    {{ staff.employee_id }}
+                </div>
+                <div>
+                    <strong>{% trans "Gender" %}</strong><br>
+                    {{ staff.get_gender_display }}
+                </div>
+                {% if staff.blood_group %}
+                <div>
+                    <strong>{% trans "Blood Group" %}</strong><br>
+                    {{ staff.blood_group }}
+                </div>
+                {% endif %}
+                 {% if staff.marital_status %}
+                <div>
+                    <strong>{% trans "Marital Status" %}</strong><br>
+                    {{ staff.get_marital_status_display }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div>Generated by {{ staff.tenant.name }} HR System</div>
+            <div>{% now "F j, Y, g:i a" %}</div>
+        </div>
+    </div>
+</body>
+</html>

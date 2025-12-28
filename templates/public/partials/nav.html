@@ -1,0 +1,105 @@
+{% load static %}
+
+
+<nav class="navbar navbar-expand-lg fixed-top navbar-glass">
+    <div class="container">
+        <!-- 1. BRAND LOGO -->
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+        <img src="{% static 'public/img/logo.png' %}" alt="EduERP" class="logo-img" onerror="this.onerror=null; this.src='https://via.placeholder.com/40?text=E'">
+        </a>
+
+        <!-- 2. MOBILE TOGGLER (Visible < 992px) -->
+        <button class="navbar-toggler border-0 shadow-none d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+            <i class="bi bi-list fs-1 text-primary"></i>
+        </button>
+
+        <!-- 3. DESKTOP MENU (Visible >= 992px) -->
+        <div class="collapse navbar-collapse d-none d-lg-block">
+            <!-- Centered Links -->
+            <ul class="navbar-nav mx-auto align-items-center">
+                <li class="nav-item"><a class="nav-link active" href="{% url 'home' %}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#modules">Features</a></li>
+                <li class="nav-item"><a class="nav-link" href="#pricing">Pricing</a></li>
+                <li class="nav-item"><a class="nav-link" href="https://codefyn.com/contact/">Contact</a></li>
+            </ul>
+
+            <!-- Right Side: Auth -->
+            <div class="d-flex align-items-center gap-3">
+                {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <button class="btn border-0 d-flex align-items-center gap-2 bg-transparent dropdown-toggle p-0" type="button" data-bs-toggle="dropdown">
+                        <div class="user-avatar shadow-sm">{{ user.email|first|upper }}</div>
+                        <span class="fw-bold text-dark">{{ user.email|truncatechars:15 }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end mt-3 border-0 shadow-lg p-2 rounded-4">
+                        <li><div class="px-3 py-2 border-bottom mb-2"><small class="text-muted d-block">Signed in as</small><span class="fw-bold text-dark">{{ user.email }}</span></div></li>
+                        <li><a class="dropdown-item rounded-2" href="{% url 'tenants:dashboard' %}"><i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard</a></li>
+                        <li>
+                            <form method="post" action="{% url 'logout' %}" class="w-100 mt-2">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger rounded-2"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                {% else %}
+                <a href="{% url 'login' %}" class="btn btn-auth-login">Sign In</a>
+                <a href="{% url 'signup' %}" class="btn btn-auth-signup">Get Started</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- 4. MOBILE SIDEBAR (OFFCANVAS) -->
+<div class="offcanvas offcanvas-end border-0" tabindex="-1" id="mobileSidebar">
+    <div class="offcanvas-header p-4 pb-2 justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <span class="brand-text fs-3">Menu</span>
+        </div>
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas"></button>
+    </div>
+    
+    <div class="offcanvas-body p-4 pt-2 d-flex flex-column">
+        <ul class="nav flex-column gap-2 mb-auto">
+             <li class="nav-item"><a class="mobile-nav-link active" href="{% url 'home' %}"><i class="bi bi-house-door"></i>Home</a></li>
+             <li class="nav-item"><a class="mobile-nav-link" href="#modules"><i class="bi bi-grid-3x3-gap"></i>Features</a></li>
+             <li class="nav-item"><a class="mobile-nav-link" href="#pricing"><i class="bi bi-tag"></i>Pricing</a></li>
+             <li class="nav-item"><a class="mobile-nav-link" href="https://codefyn.com/contact/"><i class="bi bi-envelope"></i>Contact</a></li>
+        </ul>
+
+        <div class="mt-4 pt-4 border-top">
+            {% if user.is_authenticated %}
+            <div class="d-flex align-items-center gap-3 mb-4 bg-light p-3 rounded-4">
+                <div class="user-avatar" style="width: 45px; height: 45px; font-size: 1.2rem;">{{ user.email|first|upper }}</div>
+                <div style="line-height: 1.2;">
+                    <span class="fw-bold text-dark d-block">{{ user.email|truncatechars:20 }}</span>
+                    <small class="text-success fw-bold" style="font-size: 0.8rem;">● Active User</small>
+                </div>
+            </div>
+            <div class="d-grid gap-2">
+                <a href="{% url 'tenants:dashboard' %}" class="btn btn-primary btn-lg rounded-pill"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+                <form method="post" action="{% url 'logout' %}" class="w-100">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-lg rounded-pill w-100">Sign Out</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="d-grid gap-3">
+                <a href="{% url 'signup' %}" class="btn btn-auth-signup btn-lg text-center justify-content-center">Get Started Free</a>
+                <a href="{% url 'login' %}" class="btn btn-auth-login btn-lg text-center justify-content-center">Sign In</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-close sidebar on link click
+    document.querySelectorAll('#mobileSidebar .mobile-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const sidebar = bootstrap.Offcanvas.getInstance(document.getElementById('mobileSidebar'));
+            if (sidebar) sidebar.hide();
+        });
+    });
+</script>

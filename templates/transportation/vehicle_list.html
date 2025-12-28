@@ -1,0 +1,71 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Vehicles" %}{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/datatable_styles.html' %}
+{% endblock %}
+
+{% block content %}
+
+    
+    {% url 'transportation:vehicle_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Vehicles") current_text=_("Vehicles") action_url=create_url action_text=_("Add Vehicle") %}
+    
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="vehicleTable" data-datatable data-export-columns="[0, 1, 2, 3, 4, 5]">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Vehicle No" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Registration" %}</th>
+                            <th>{% trans "Capacity" %}</th>
+                            <th>{% trans "Driver" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vehicle in vehicles %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                {{ vehicle.vehicle_number }}
+                                <br><small class="text-muted">{{ vehicle.make }} {{ vehicle.model }}</small>
+                            </td>
+                            <td>{{ vehicle.get_vehicle_type_display }}</td>
+                            <td>
+                                {{ vehicle.registration_number }}
+                                <br><small class="{% if not vehicle.is_registration_valid %}text-danger{% else %}text-muted{% endif %}">Exp: {{ vehicle.registration_expiry }}</small>
+                            </td>
+                            <td>{{ vehicle.seating_capacity }}</td>
+                            <td>{{ vehicle.driver.get_full_name|default:"-" }}</td>
+                            <td>
+                                {% if vehicle.under_maintenance %}
+                                    <span class="badge bg-danger-subtle text-danger">{% trans "Maintenance" %}</span>
+                                {% elif vehicle.is_active %}
+                                    <span class="badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'transportation:vehicle_update' vehicle.pk %}" class="btn btn-icon btn-sm btn-light"><i class="bx bx-edit"></i></a>
+                                    <a href="{% url 'transportation:vehicle_delete' vehicle.pk %}" class="btn btn-icon btn-sm btn-light text-danger"><i class="bx bx-trash-alt"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include 'includes/datatable_scripts.html' %}
+{% endblock %}

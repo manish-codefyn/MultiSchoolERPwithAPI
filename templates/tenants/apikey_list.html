@@ -1,0 +1,69 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block title %}Tenant API Keys{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h5 class="mb-0">Tenant API Keys</h5>
+            <a href="{% url 'tenants:apikey_create' %}" class="btn btn-primary btn-sm"><i class="bx bx-plus"></i> Issue New Key</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="keyTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Tenant</th>
+                        <th>Service</th>
+                        <th>Name</th>
+                        <th>Key Prefix</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key in api_keys %}
+                    <tr>
+                        <td>{{ key.tenant.name }}</td>
+                        <td>{{ key.service.name }}</td>
+                        <td>{{ key.name }}</td>
+                        <td><code>{{ key.masked_key }}</code></td>
+                        <td>
+                            {% if key.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                            {% if key.is_test_mode %}
+                            <span class="badge bg-warning text-dark">Test</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ key.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="d-flex order-actions">
+                                <a href="{% url 'tenants:apikey_update' key.pk %}" class="ms-3" title="Edit"><i class="bx bxs-edit"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        var table = $('#keyTable').DataTable({
+            lengthChange: false,
+            buttons: [ 'copy', 'excel', 'pdf', 'print']
+        });
+        table.buttons().container().appendTo( '#keyTable_wrapper .col-md-6:eq(0)' );
+    });
+</script>
+{% endblock %}

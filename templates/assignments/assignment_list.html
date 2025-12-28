@@ -1,0 +1,86 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Assignments" %}{% endblock %}
+
+{% block extra_css %}
+{% include "includes/datatable_styles.html" %}
+{% endblock %}
+
+{% block content %}
+
+    {% url 'assignments:assignment_create' as create_url %}
+    {% if user.role == 'teacher' or user.role == 'admin' %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Assignments") current_text=_("Assignments") action_url=create_url action_text=_("Create Assignment") %}
+    {% else %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Assignments") current_text=_("Assignments") %}
+    {% endif %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="assignmentsTable" data-datatable data-title="{% trans 'Assignments List' %}">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">{% trans "Title" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Class/Subject" %}</th>
+                            <th>{% trans "Due Date" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th class="text-end pe-4">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assignment in assignments %}
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="{% url 'assignments:assignment_detail' assignment.pk %}" class="text-decoration-none">{{ assignment.title }}</a>
+                            </td>
+                            <td><span class="badge bg-info-subtle text-info">{{ assignment.get_assignment_type_display }}</span></td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{{ assignment.class_name }} - {{ assignment.subject }}</span>
+                                    {% if assignment.section %}
+                                        <small class="text-muted">Section: {{ assignment.section }}</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {{ assignment.due_date|date:"d M Y" }}
+                                {% if assignment.is_overdue %}
+                                    <span class="badge bg-danger-subtle text-danger ms-1">Overdue</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if assignment.status == 'PUBLISHED' %}bg-success-subtle text-success{% elif assignment.status == 'DRAFT' %}bg-warning-subtle text-warning{% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                    {{ assignment.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="{% url 'assignments:assignment_detail' assignment.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'View' %}">
+                                        <i class="bx bx-show"></i>
+                                    </a>
+                                    {% if user.role == 'teacher' or user.role == 'admin' %}
+                                    <a href="{% url 'assignments:assignment_update' assignment.pk %}" class="btn btn-icon btn-sm btn-light" title="{% trans 'Edit' %}">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <a href="{% url 'assignments:assignment_delete' assignment.pk %}" class="btn btn-icon btn-sm btn-light text-danger" title="{% trans 'Delete' %}">
+                                        <i class="bx bx-trash-alt"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% include "includes/datatable_scripts.html" %}
+{% endblock %}

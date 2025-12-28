@@ -1,0 +1,76 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Exams" %}{% endblock %}
+
+{% block content %}
+   
+    {% url 'exams:exam_create' as create_url %}
+    {% include 'partials/breadcrumb.html' with page_title=_("Exams") current_text=_("Exams") action_url=create_url action_text=_("Add Exam") %}
+
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="examsTable" class="table table-striped table-bordered" style="width:100%" data-datatable="true" data-title="{% trans 'Exams' %}" data-export-columns="[0,1,2,3,4,5]">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Class" %}</th>
+                            <th>{% trans "Dates" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for exam in exams %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="ms-2">
+                                        <h6 class="mb-0 font-size-14">{{ exam.name }}</h6>
+                                        <small class="text-muted">{{ exam.code }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ exam.exam_type.name }}</td>
+                            <td>{{ exam.class_name.name }}</td>
+                            <td>
+                                {{ exam.start_date }} - {{ exam.end_date }}<br>
+                                <small class="text-muted">({{ exam.duration_days }} days)</small>
+                            </td>
+                            <td>
+                                {% if exam.status == 'DRAFT' %}
+                                    <span class="badge bg-secondary">{{ exam.get_status_display }}</span>
+                                {% elif exam.status == 'SCHEDULED' %}
+                                    <span class="badge bg-info">{{ exam.get_status_display }}</span>
+                                {% elif exam.status == 'ONGOING' %}
+                                    <span class="badge bg-success">{{ exam.get_status_display }}</span>
+                                {% elif exam.status == 'COMPLETED' %}
+                                    <span class="badge bg-primary">{{ exam.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ exam.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex order-actions">
+                                    <a href="{% url 'exams:exam_update' exam.pk %}" class="text-primary bg-light-primary border-0"><i class='bx bxs-edit'></i></a>
+                                    <a href="{% url 'exams:exam_delete' exam.pk %}" class="ms-3 text-danger bg-light-danger border-0"><i class='bx bxs-trash'></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {% include 'includes/datatable_scripts.html' %}
+{% endblock %}
+
+{% block extra_css %}
+    {% include 'includes/datatable_styles.html' %}
+{% endblock %}

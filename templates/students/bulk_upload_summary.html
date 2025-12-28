@@ -1,0 +1,95 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Upload Summary" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-transparent border-bottom">
+                <h5 class="mb-0">{% trans "Bulk Upload Results" %}</h5>
+            </div>
+            <div class="card-body">
+                
+                {% if summary.error %}
+                <div class="alert alert-danger">
+                    <div class="d-flex align-items-center">
+                        <div class="font-35 text-danger"><i class='bx bxs-error-circle'></i></div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-danger">{% trans "Upload Failed" %}</h6>
+                            <div>{{ summary.error }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if summary.success %}
+                <div class="alert alert-success">
+                    <div class="d-flex align-items-center">
+                        <div class="font-35 text-success"><i class='bx bxs-check-circle'></i></div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 text-success">{% trans "Upload Successful" %}</h6>
+                            <div>{{ summary.success }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="row g-3 text-center mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded">
+                            <h3 class="text-success">{{ summary.created_count|default:0 }}</h3>
+                            <p class="mb-0 text-muted">{% trans "Created" %}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded">
+                            <h3 class="text-warning">{{ summary.updated_count|default:0 }}</h3>
+                            <p class="mb-0 text-muted">{% trans "Updated" %}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded">
+                            <h3 class="text-secondary">{{ summary.skipped_count|default:0 }}</h3>
+                            <p class="mb-0 text-muted">{% trans "Skipped" %}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if summary.warnings %}
+                <div class="card bg-light border-0 mb-3">
+                    <div class="card-body">
+                        <h6 class="text-warning"><i class='bx bx-error'></i> {% trans "Warnings" %} ({{ summary.warnings|length }})</h6>
+                        <ul class="mb-0 text-warning small">
+                            {% for warning in summary.warnings %}
+                            <li>{{ warning }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if summary.errors %}
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <h6 class="text-danger"><i class='bx bx-x-circle'></i> {% trans "Processing Errors" %} ({{ summary.errors|length }})</h6>
+                        <ul class="mb-0 text-danger small">
+                            {% for error in summary.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="mt-4 text-center">
+                    <a href="{% url 'students:student_list' %}" class="btn btn-primary">{% trans "Go to Student List" %}</a>
+                    <a href="{% url 'students:bulk_upload' %}" class="btn btn-outline-secondary">{% trans "Upload Another File" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block title %}Games & Learning{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <h4 class="mb-0">Brain Gym</h4>
+        <p class="text-muted">Sharpen your mind with these activities</p>
+    </div>
+</div>
+
+<div class="row">
+    <h5 class="mb-3">Mind Games</h5>
+    {% for game in mind_games %}
+    <div class="col-6 col-md-4 mb-3">
+        <a href="{{ game.url }}" class="card text-center h-100 shadow-sm border-0 game-card">
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="badge rounded-pill bg-label-{{ game.color }} p-3">
+                        <i class="bx bx-{{ game.icon }} fs-1"></i>
+                    </span>
+                </div>
+                <h6 class="card-title mb-0">{{ game.name }}</h6>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row mt-3">
+    <h5 class="mb-3">Knowledge Games</h5>
+    {% for game in knowledge_games %}
+    <div class="col-6 col-md-4 mb-3">
+        <a href="{{ game.url }}" class="card text-center h-100 shadow-sm border-0 game-card">
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="badge rounded-pill bg-label-{{ game.color }} p-3">
+                        <i class="bx bx-{{ game.icon }} fs-1"></i>
+                    </span>
+                </div>
+                <h6 class="card-title mb-0">{{ game.name }}</h6>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .game-card {
+        transition: transform 0.2s;
+    }
+    .game-card:active {
+        transform: scale(0.95);
+    }
+</style>
+{% endblock %}

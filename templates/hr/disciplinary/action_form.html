@@ -1,0 +1,100 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}
+{% trans "Edit Disciplinary Action" %}
+{% else %}
+{% trans "Record Disciplinary Action" %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        {% if form.instance.pk %}
+                        {% trans "Edit Disciplinary Action" %}
+                        {% else %}
+                        {% trans "Record Disciplinary Action" %}
+                        {% endif %}
+                    </h1>
+                    <p class="text-muted mb-0">{% trans "Fill in the details below" %}</p>
+                </div>
+                <a href="{% url 'hr:disciplinary_list' %}" class="btn btn-outline-secondary">
+                    <i class="bx bx-arrow-back me-2"></i>{% trans "Back to List" %}
+                </a>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <h5 class="mb-3 text-primary">{% trans "Incident Details" %}</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-12">
+                                {{ form.staff|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.action_type|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.incident_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.action_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.violation|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.description|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3 text-primary pt-3 border-top">{% trans "Action Taken" %}</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-12">
+                                {{ form.action_details|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.duration_days|as_crispy_field }}
+                                <small class="text-muted">{% trans "Leave empty if not applicable (e.g. for warnings)"
+                                    %}</small>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.fine_amount|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3 text-primary pt-3 border-top">{% trans "Follow-up" %}</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                {{ form.follow_up_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form.follow_up_notes|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <a href="{% url 'hr:disciplinary_list' %}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bx bx-save me-2"></i>{% trans "Save Record" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

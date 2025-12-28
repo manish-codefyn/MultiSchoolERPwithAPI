@@ -1,0 +1,63 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block title %}Confirm Payment{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0 text-white">Payment Confirmation</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="bx bx-shield-quarter fs-1 text-primary"></i>
+                        <h4>Secure Payment</h4>
+                    </div>
+
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Invoice Number</span>
+                            <strong>{{ invoice.invoice_number }}</strong>
+                        </li>
+                         <li class="list-group-item d-flex justify-content-between">
+                            <span>Billing Period</span>
+                            <strong>{{ invoice.billing_period }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Amount to Pay</span>
+                            <strong class="text-success fs-5">₹{{ amount }}</strong>
+                        </li>
+                    </ul>
+
+                    <form action="{{ callback_url }}" method="post" id="razorpay-form">
+                        <!-- Razorpay Checkout Script -->
+                        <script
+                            src="https://checkout.razorpay.com/v1/checkout.js"
+                            data-key="{{ razorpay_key_id }}" 
+                            data-amount="{{ razorpay_order_id.amount }}" 
+                            data-currency="INR"
+                            data-order_id="{{ razorpay_order_id }}"
+                            data-buttontext="Pay with Razorpay"
+                            data-name="EduERP Payment"
+                            data-description="Invoice #{{ invoice.invoice_number }}"
+                            data-image="https://your-logo-url.com/logo.png"
+                            data-prefill.name="{{ student.user.get_full_name }}"
+                            data-prefill.email="{{ student.user.email }}"
+                            data-prefill.contact="{{ student.mobile_number }}"
+                            data-theme.color="#3399cc"
+                        ></script>
+                        <input type="hidden" custom="Hidden Element" name="hidden">
+                    </form>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="bx bx-info-circle"></i> You will be redirected to Razorpay's secure payment gateway.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

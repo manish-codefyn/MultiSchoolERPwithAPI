@@ -1,0 +1,36 @@
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
+
+{% block title %}{% trans "Apply for Leave" %}{% endblock %}
+
+{% block content %}
+
+        {% url 'hr:leave_list' as list_url %}
+        {% include 'partials/breadcrumb.html' with page_title=_("Apply for Leave") parent_text=_("Leave Applications") parent_url=list_url current_text=_("Apply") %}
+
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                         <div class="alert alert-info mt-3">
+                            <i class="bx bx-info-circle me-2"></i>{% trans "Days will be calculated automatically based on start and end dates." %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'hr:leave_list' %}" class="btn btn-light">{% trans "Cancel" %}</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bx bx-paper-plane me-2"></i>{% trans "Submit Application" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

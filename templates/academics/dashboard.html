@@ -1,0 +1,224 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Academics Dashboard" %}{% endblock %}
+{% block page_description %}{% trans "Overview of academic years, terms, and classes" %}{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        {% if missing_academic_year %}
+        <div class="alert alert-danger border-0 bg-danger alert-dismissible fade show py-2">
+            <div class="d-flex align-items-center">
+                <div class="font-35 text-white"><i class="bx bx-error-circle"></i></div>
+                <div class="ms-3">
+                    <h6 class="mb-0 text-white">Academic Year Not Set!</h6>
+                    <div class="text-white">There is no active academic year configured. Please <a href="{% url 'academics:academic_year_list' %}" class="text-white fw-bold" style="text-decoration: underline;">set a current academic year</a> to enable all features.</div>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% elif total_academic_years_all > 0 and total_academic_years == 0 %}
+         <div class="alert alert-danger border-0 bg-danger alert-dismissible fade show py-2">
+            <div class="d-flex align-items-center">
+                <div class="font-35 text-white"><i class="bx bx-error-circle"></i></div>
+                <div class="ms-3">
+                    <h6 class="mb-0 text-white">No Active Academic Years!</h6>
+                    <div class="text-white">You have {{ total_academic_years_all }} academic years in the system, but none are active. Check your archives or deleted records.</div>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
+        {% if total_academic_years_all == 0 %}
+        <div class="alert alert-primary border-0 bg-primary alert-dismissible fade show py-2">
+            <div class="d-flex align-items-center">
+                <div class="font-35 text-white"><i class="bx bx-info-circle"></i></div>
+                <div class="ms-3">
+                    <h6 class="mb-0 text-white">Get Started!</h6>
+                    <div class="text-white">No academic years found. <a href="{% url 'academics:academic_year_create' %}" class="text-white fw-bold">Create your first Academic Year</a>.</div>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
+        {% if missing_term %}
+        <div class="alert alert-warning border-0 bg-warning alert-dismissible fade show py-2">
+            <div class="d-flex align-items-center">
+                <div class="font-35 text-dark"><i class="bx bx-info-circle"></i></div>
+                <div class="ms-3">
+                    <h6 class="mb-0 text-dark">Current Term Not Set!</h6>
+                    <div class="text-dark">Please <a href="{% url 'academics:term_list' %}" class="text-dark fw-bold" style="text-decoration: underline;">set the current term</a> to ensure correct academic tracking.</div>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
+        {% if total_classes_all > 0 and total_classes == 0 %}
+        <div class="alert alert-info border-0 bg-info alert-dismissible fade show py-2">
+             <div class="d-flex align-items-center">
+                <div class="font-35 text-white"><i class="bx bx-info-circle"></i></div>
+                <div class="ms-3">
+                    <h6 class="mb-0 text-white">No Active Classes Found</h6>
+                    <div class="text-white">You have {{ total_classes_all }} classes in the system, but none are active. Check your class configurations.</div>
+                </div>
+            </div>
+             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% elif total_classes_all == 0 %}
+         <div class="alert alert-primary border-0 bg-primary alert-dismissible fade show py-2">
+             <div class="d-flex align-items-center">
+                <div class="font-35 text-white"><i class="bx bx-info-circle"></i></div>
+                <div class="ms-3">
+                    <h6 class="mb-0 text-white">Welcome!</h6>
+                    <div class="text-white">It looks like you haven't created any classes yet. <a href="{% url 'academics:class_create' %}" class="text-white fw-bold">Create your first class</a> to get started.</div>
+                </div>
+            </div>
+             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+        
+        {% if total_students_all > 0 and total_students == 0 %}
+        <div class="alert alert-info border-0 bg-info alert-dismissible fade show py-2">
+             <div class="d-flex align-items-center">
+                <div class="font-35 text-white"><i class="bx bx-info-circle"></i></div>
+                <div class="ms-3">
+                    <h6 class="mb-0 text-white">No Active Students Found</h6>
+                     <div class="text-white">You have {{ total_students_all }} students in the system, but none are active.</div>
+                </div>
+            </div>
+             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<div class="row">
+    <!-- Quick Stats Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="mb-0 text-secondary">Academic Year</p>
+                        <h4 class="my-1 text-primary">{{ current_academic_year.name|default:"Not Set" }}</h4>
+                    </div>
+                    <div class="widgets-icons rounded-circle text-white bg-primary ms-auto">
+                        <i class="bx bx-calendar"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm border-start border-success border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="mb-0 text-secondary">Current Term</p>
+                        <h4 class="my-1 text-success">{{ current_term.name|default:"Not Set" }}</h4>
+                    </div>
+                    <div class="widgets-icons rounded-circle text-white bg-success ms-auto">
+                        <i class="bx bx-time"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="mb-0 text-secondary">Total Classes</p>
+                        <h4 class="my-1 text-info">{{ active_classes_count|default:"0" }}</h4>
+                    </div>
+                    <div class="widgets-icons rounded-circle text-white bg-info ms-auto">
+                        <i class="bx bx-buildings"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="mb-0 text-secondary">Total Students</p>
+                        <h4 class="my-1 text-warning">{{ total_students_count|default:"0" }}</h4>
+                    </div>
+                    <div class="widgets-icons rounded-circle text-white bg-warning ms-auto">
+                        <i class="bx bx-user"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Actions -->
+    <div class="col-12 mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">{% trans "Quick Actions" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:academic_year_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-primary"><i class="bx bx-calendar-event"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Academic Years</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:term_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-success"><i class="bx bx-time-five"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Terms</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:class_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-info"><i class="bx bx-building"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Classes</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:section_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-warning"><i class="bx bx-group"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Sections</h6>
+                        </a>
+                    </div>
+                     <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:subject_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-danger"><i class="bx bx-book"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Subjects</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:timetable_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-dark"><i class="bx bx-table"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Timetable</h6>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        background-color: #f8f9fa;
+        transform: translateY(-3px);
+    }
+    .transition {
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}

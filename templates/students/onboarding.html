@@ -1,0 +1,212 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Student Onboarding" %} - {{ student.full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        --card-hover-transform: translateY(-5px);
+    }
+
+    .hero-section {
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 1rem;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-bg-pattern {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        opacity: 0.1;
+        background-image: radial-gradient(#ffffff 2px, transparent 2px);
+        background-size: 30px 30px;
+        pointer-events: none;
+    }
+
+    .step-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .step-card:hover {
+        transform: var(--card-hover-transform);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        border-color: #6366f1;
+    }
+
+    .step-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .step-card:hover .step-icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    /* Status Colors */
+    .status-completed .step-icon-wrapper {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+    
+    .status-pending .step-icon-wrapper {
+        background-color: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+    }
+
+    .status-badge {
+        padding: 0.5em 1em;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.025em;
+    }
+
+    .progress-pill {
+        height: 10px;
+        border-radius: 10px;
+        background-color: rgba(255,255,255,0.2);
+        overflow: hidden;
+    }
+
+    .progress-bar-custom {
+        background-color: #ffffff; 
+        height: 100%;
+        border-radius: 10px;
+        transition: width 1s ease-in-out;
+    }
+
+    .animate-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .step-card-delay-1 { animation-delay: 0.1s; }
+    .step-card-delay-2 { animation-delay: 0.2s; }
+    .step-card-delay-3 { animation-delay: 0.3s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+    <!-- Hero / Header Section -->
+    <div class="hero-section shadow animate-up">
+        <div class="hero-bg-pattern"></div>
+        <div class="row align-items-center position-relative">
+            <div class="col-lg-8">
+                <h1 class="display-6 fw-bold mb-2">
+                    {% trans "Welcome," %} {{ student.first_name }}! 👋
+                </h1>
+                <p class="lead opacity-75 mb-4">
+                    {% trans "Let's complete your student profile to get you started." %}
+                </p>
+                
+                <div class="d-flex align-items-center mb-2">
+                    <span class="fw-bold me-3">{% trans "Onboarding Progress" %}</span>
+                    <span class="badge bg-white text-primary rounded-pill px-3">{{ progress|floatformat:0 }}%</span>
+                </div>
+                <div class="progress-pill w-75">
+                    <div class="progress-bar-custom" style="width: {{ progress }}%"></div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 text-center text-lg-end mt-4 mt-lg-0">
+                {% if is_ready_for_review %}
+                    <div class="animate-pulse">
+                        <i class='bx bxs-check-circle fs-1 mb-2'></i>
+                        <h5 class="mb-3">{% trans "You're All Set!" %}</h5>
+                        <a href="{% url 'students:student_detail' pk=student.pk %}" class="btn btn-light text-primary fw-bold rounded-pill px-4 py-2 hover-lift">
+                            <i class="bx bx-rocket me-2"></i>{% trans "View Full Profile" %}
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="opacity-75">
+                        <i class='bx bx-time-five fs-1 mb-2'></i>
+                        <h5>{% trans "In Progress" %}</h5>
+                        <small>{% trans "Please complete all required steps" %}</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4 animate-up" style="animation-delay: 0.1s">
+        <h5 class="text-muted fw-bold text-uppercase fs-7 ls-1 mb-0">{% trans "Required Steps" %}</h5>
+        <a href="{% url 'students:student_list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bx bx-arrow-back me-1"></i>{% trans "Back to List" %}
+        </a>
+    </div>
+
+    <!-- Steps Grid -->
+    <div class="row g-4">
+        {% for step in steps %}
+        <div class="col-xl-3 col-md-6 animate-up text-decoration-none {% if forloop.counter0 == 0 %}step-card-delay-1{% elif forloop.counter0 == 1 %}step-card-delay-2{% else %}step-card-delay-3{% endif %}">
+            <a href="{{ step.url }}" class="text-decoration-none text-dark">
+                <div class="card h-100 step-card bg-white rounded-4 shadow-sm status-{{ step.is_completed|yesno:'completed,pending' }}">
+                    <div class="card-body p-4 text-center d-flex flex-column align-items-center">
+                        
+                        <!-- Icon -->
+                        <div class="step-icon-wrapper mb-3">
+                            <i class="{{ step.icon }}"></i>
+                        </div>
+                        
+                        <!-- Title -->
+                        <h5 class="fw-bold mb-2">{{ step.title }}</h5>
+                        
+                        <!-- Optional Badge -->
+                        {% if step.optional %}
+                        <span class="badge bg-light text-secondary rounded-pill mb-3">{% trans "Optional" %}</span>
+                        {% endif %}
+                        
+                        <!-- Status line -->
+                        <div class="mt-auto pt-3 border-top w-100">
+                             {% if step.is_completed %}
+                                <span class="d-inline-flex align-items-center text-success fw-bold small">
+                                    <i class='bx bxs-check-circle me-1 fs-5'></i> {% trans "Completed" %}
+                                </span>
+                            {% else %}
+                                <span class="d-inline-flex align-items-center text-primary fw-bold small">
+                                    {% if step.optional %}
+                                        <i class='bx bx-plus-circle me-1 fs-5'></i> {% trans "Add Details" %}
+                                    {% else %}
+                                        <i class='bx bx-radio-circle-marked me-1 fs-5'></i> {% trans "Pending" %}
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
