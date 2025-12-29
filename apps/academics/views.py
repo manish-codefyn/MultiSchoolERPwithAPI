@@ -4,12 +4,13 @@ Academic Management Views
 import logging
 from django.db import transaction
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.contrib.auth.decorators import login_required
 
 from apps.core.views import (
     BaseListView, BaseDetailView, BaseCreateView, 
@@ -895,6 +896,12 @@ class TimeTableByClassView(BaseTemplateView):
         section_id = self.request.GET.get('section_id')
         academic_year_id = self.request.GET.get('academic_year')
         
+        # Default to current academic year if not specified
+        if not academic_year_id:
+            current_year = AcademicYear.objects.filter(is_current=True).first()
+            if current_year:
+                academic_year_id = str(current_year.id)
+        
         if class_id and section_id and academic_year_id:
             # Get timetable for the class-section
             timetable_entries = TimeTable.objects.filter(
@@ -903,20 +910,33 @@ class TimeTableByClassView(BaseTemplateView):
                 academic_year_id=academic_year_id
             ).order_by('day', 'period_number')
             
-            # Organize by day
-            days = {}
-            for entry in timetable_entries:
-                if entry.day not in days:
-                    days[entry.day] = []
-                days[entry.day].append(entry)
+            # Organize by day and period for matrix view
+            grid = {}
+            max_periods = 8 # Default
             
-            context['timetable'] = days
-            context['selected_class'] = SchoolClass.objects.get(id=class_id)
-            context['selected_section'] = Section.objects.get(id=section_id)
-            context['selected_academic_year'] = AcademicYear.objects.get(id=academic_year_id)
+            # Initialize grid structure (optional, or just build dynamically)
+            # We need to know the range of periods to render columns
+            periods_list = list(range(1, 9)) # 1 to 8
+            
+            for day_code, day_name in TimeTable.DAY_CHOICES:
+                grid[day_code] = {}
+                for p in periods_list:
+                    grid[day_code][p] = None
+            
+            for entry in timetable_entries:
+                if entry.day in grid:
+                    grid[entry.day][entry.period_number] = entry
+                    
+            context['timetable_grid'] = grid
+            context['periods'] = periods_list
+            context['current_class'] = SchoolClass.objects.get(id=class_id)
+            context['current_section'] = Section.objects.get(id=section_id)
+            context['current_academic_year'] = AcademicYear.objects.get(id=academic_year_id)
         
         # Get filter options
         context['classes'] = SchoolClass.objects.filter(is_active=True)
+        if class_id:
+            context['sections'] = Section.objects.filter(class_name_id=class_id, is_active=True)
         context['academic_years'] = AcademicYear.objects.all()
         
         return context
@@ -1700,3 +1720,98 @@ def load_subjects(request):
     
     return JsonResponse(data, safe=False)
         
+
+from .timetable_generator import TimetableGenerator, TimetableValidator
+
+
+@login_required
+def generate_timetable_view(request, class_id, section_id):
+    """Generate timetable for a class/section"""
+    class_obj = get_object_or_404(SchoolClass, id=class_id)
+    section = get_object_or_404(Section, id=section_id, class_name=class_obj)
+    academic_year = AcademicYear.objects.get(is_current=True)
+    
+    if request.method == 'POST':
+        try:
+            generator = TimetableGenerator(class_obj, section, academic_year)
+            entries = generator.generate(overwrite=True)
+            
+            messages.success(
+                request,
+                f'Timetable generated successfully for {class_obj.name} {section.name}!'
+            )
+            return redirect('academics:timetable_view', class_id=class_id, section_id=section_id)
+            
+        except Exception as e:
+            messages.error(request, f'Error generating timetable: {str(e)}')
+    
+    return render(request, 'academics/timetable_generate.html', {
+        'class_obj': class_obj,
+        'section': section,
+        'academic_year': academic_year,
+    })
+
+
+class TimetableView(BaseListView):
+    """View timetable for a class"""
+    model = TimeTable
+    template_name = 'academics/timetable_view.html'
+    context_object_name = 'timetable'
+    
+    def get_queryset(self):
+        class_obj = get_object_or_404(SchoolClass, id=self.kwargs['class_id'])
+        section = get_object_or_404(Section, id=self.kwargs['section_id'], class_name=class_obj)
+        academic_year = AcademicYear.objects.get(is_current=True)
+        
+        return TimeTable.objects.filter(
+            class_name=class_obj,
+            section=section,
+            academic_year=academic_year
+        ).select_related('subject__subject', 'teacher').order_by('day', 'period_number')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        class_obj = get_object_or_404(SchoolClass, id=self.kwargs['class_id'])
+        section = get_object_or_404(Section, id=self.kwargs['section_id'], class_name=class_obj)
+        academic_year = AcademicYear.objects.get(is_current=True)
+        
+        # Group by day
+        days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
+        timetable_by_day = {day: [] for day in days}
+        
+        for entry in self.get_queryset():
+            timetable_by_day[entry.day].append(entry)
+        
+        context.update({
+            'class_obj': class_obj,
+            'section': section,
+            'academic_year': academic_year,
+            'timetable_by_day': timetable_by_day,
+            'days': days,
+        })
+        
+        return context
+
+
+@login_required
+def validate_timetable_api(request):
+    """API endpoint to validate timetable"""
+    class_id = request.GET.get('class_id')
+    section_id = request.GET.get('section_id')
+    year_id = request.GET.get('year_id')
+    
+    if not all([class_id, section_id, year_id]):
+        return JsonResponse({'error': 'Missing parameters'}, status=400)
+    
+    class_obj = get_object_or_404(SchoolClass, id=class_id)
+    section = get_object_or_404(Section, id=section_id)
+    academic_year = get_object_or_404(AcademicYear, id=year_id)
+    
+    errors = TimetableValidator.validate_timetable(class_obj, section, academic_year)
+    
+    return JsonResponse({
+        'valid': len(errors) == 0,
+        'errors': errors,
+        'class': str(class_obj),
+        'section': str(section),
+    })

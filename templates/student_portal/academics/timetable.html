@@ -24,11 +24,11 @@
                         <tbody>
                             {% for entry in timetable_entries %}
                             <tr>
-                                <td>{{ entry.get_day_of_week_display }}</td>
-                                <td>{{ entry.start_time }}</td>
-                                <td>{{ entry.end_time }}</td>
-                                <td>{{ entry.subject.name }}</td>
-                                <td>{{ entry.teacher }}</td>
+                                <td>{{ entry.get_day_display }}</td>
+                                <td>{{ entry.start_time|time:"H:i" }}</td>
+                                <td>{{ entry.end_time|time:"H:i" }}</td>
+                                <td>{{ entry.subject.subject.name }}</td>
+                                <td>{{ entry.teacher.get_full_name|default:entry.teacher.username|default:"-" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

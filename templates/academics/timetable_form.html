@@ -7,12 +7,23 @@
 {% endblock %}
 
 {% block content %}
+{% url 'academics:timetable_list' as list_url %}
+{% if object %}
+    {% trans "Edit Timetable Entry" as p_title %}
+    {% trans "Edit" as c_text %}
+{% else %}
+    {% trans "New Timetable Entry" as p_title %}
+    {% trans "Create" as c_text %}
+{% endif %}
+
+{% include 'partials/breadcrumb.html' with page_title=p_title parent_text=_("Timetable") parent_url=list_url current_text=c_text action_url=list_url action_text=_("Back") %}
+
 <div class="row">
     <div class="col-md-10 mx-auto">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
                 <h5 class="card-title mb-0">
-                    {% if object %}{% trans "Edit Entry" %}{% else %}{% trans "New Timetable Entry" %}{% endif %}
+                    {{ p_title }}
                 </h5>
             </div>
             <div class="card-body p-4">
@@ -88,17 +99,36 @@
 </div>
 {% endblock %}
 
+
 {% block extra_scripts %}
+<link href="{% static 'assets/plugins/select2/css/select2.min.css' %}" rel="stylesheet" />
+<link href="{% static 'assets/plugins/select2/css/select2-bootstrap4.css' %}" rel="stylesheet" />
+<script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>
+
 <script>
     $(document).ready(function() {
+        // Initialize Select2
+        $('.single-select').select2({
+            theme: 'bootstrap4',
+            width: $(this).data('width') ? $(this).data('width') : $(this).hasClass('w-100') ? '100%' : 'style',
+            placeholder: $(this).data('placeholder'),
+            allowClear: Boolean($(this).data('allow-clear')),
+        });
+
+        // Add class to select fields to enable initialization if not already done via class
+        $('#id_class_name, #id_section, #id_subject, #id_teacher, #id_academic_year').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+
         const classSelect = $('#id_class_name');
         const sectionSelect = $('#id_section');
         const subjectSelect = $('#id_subject');
 
         function loadDependentData(classId) {
             if (!classId) {
-                sectionSelect.html('<option value="">---------</option>');
-                subjectSelect.html('<option value="">---------</option>');
+                sectionSelect.html('<option value="">---------</option>').trigger('change');
+                subjectSelect.html('<option value="">---------</option>').trigger('change');
                 return;
             }
 
@@ -111,25 +141,10 @@
                 success: function(data) {
                     let sectionHtml = '<option value="">---------</option>';
                     data.forEach(function(section) {
-                        // Check if current value matches (for edit mode)
                         const selected = (section.id == sectionSelect.attr('data-selected')) ? 'selected' : '';
                         sectionHtml += `<option value="${section.id}" ${selected}>${section.name}</option>`;
                     });
-                    
-                    // Preserve selected value logic is tricky in pure JS without knowing initial state easily,
-                    // but for edit mode, standard Django form rendering usually pre-selects correct option 
-                    // IF the queryset in form __init__ was set correctly (which we did).
-                    // However, if we replace HTML, we wipe that selection unless we are careful.
-                    // Actually, since we only trigger this on CHANGE, initially rendered form is correct.
-                    // We should only replace options if it's a user interaction.
-                    
-                    // WAIT. If we are in edit mode, the form already rendered with correct options.
-                    // We should NOT clear them on page load unless we want to refresh.
-                    // Actually, standard pattern: trigger only on change.
-                    // But if page reloads with error, we want to maintain state.
-                    
-                    // Better strategy: Only update if triggered by change event.
-                    sectionSelect.html(sectionHtml);
+                    sectionSelect.html(sectionHtml).trigger('change');
                 }
             });
 
@@ -142,17 +157,17 @@
                 success: function(data) {
                     let subjectHtml = '<option value="">---------</option>';
                     if (data.length === 0) {
-                        subjectHtml = '<option value="">{% trans "No subjects found for this class" %}</option>';
+                        subjectHtml = '<option value="">{% trans "No subjects assigned to this class!" %}</option>';
                     } else {
                         data.forEach(function(item) {
                             subjectHtml += `<option value="${item.id}">${item.subject__name}</option>`;
                         });
                     }
-                    subjectSelect.html(subjectHtml);
+                    subjectSelect.html(subjectHtml).trigger('change');
                 },
                 error: function(xhr, status, error) {
                      console.error("Error loading subjects:", error);
-                     subjectSelect.html('<option value="">{% trans "Error loading subjects" %}</option>');
+                     subjectSelect.html('<option value="">{% trans "Error loading subjects" %}</option>').trigger('change');
                 }
             });
         }
@@ -160,6 +175,17 @@
         classSelect.change(function() {
             loadDependentData($(this).val());
         });
+        
+        // Initial load if class is selected (e.g. edit mode)
+        if (classSelect.val()) {
+             // We don't want to wipe out existing selections on page load in edit mode
+             // unless we specifically need to refresh. 
+             // Ideally, the form renders with correct initial options.
+             // So we might NOT want to call loadDependentData() immediately on edit 
+             // IF the form fields are already populated by Django. 
+             // But for 'create' mode with just class pre-selected, we might.
+             // Let's assume Django populates the form correctly for Edit.
+        }
     });
 </script>
 {% endblock %}

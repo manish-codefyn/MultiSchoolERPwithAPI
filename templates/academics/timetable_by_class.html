@@ -106,3 +106,51 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        const classSelect = $('select[name="class_id"]');
+        const sectionSelect = $('select[name="section_id"]');
+
+        function loadDependentData(classId) {
+            if (!classId) {
+                sectionSelect.html('<option value="">{% trans "All Sections" %}</option>');
+                return;
+            }
+
+            // Load Sections
+            $.ajax({
+                url: "{% url 'academics:ajax_load_sections' %}",
+                data: {
+                    'class_id': classId
+                },
+                success: function(data) {
+                    let sectionHtml = '<option value="">{% trans "Select Section" %}</option>';
+                    const currentSectionId = "{{ current_section.id|default:'' }}";
+                    
+                    data.forEach(function(section) {
+                        const selected = (section.id == currentSectionId) ? 'selected' : '';
+                        sectionHtml += `<option value="${section.id}" ${selected}>${section.name}</option>`;
+                    });
+                    sectionSelect.html(sectionHtml);
+                },
+                error: function(xhr, status, error) {
+                     console.error("Error loading sections:", error);
+                }
+            });
+        }
+
+        classSelect.change(function() {
+            loadDependentData($(this).val());
+        });
+        
+        // Trigger on load if class is selected but sections might be empty (though server side usually handles this if submitted)
+        // But for pure client side interactions or back button, good to have.
+        // Actually, if page loaded with class_id, Django template loop might have populated sections? 
+        // Let's check the view... View DOES NOT pass 'sections' unless valid request? 
+        // Checking view: context['classes'] is passed. 'sections' is NOT explicitly passed in get_context_data unless I missed it.
+        // Let's check view again.
+    });
+</script>
+{% endblock %}

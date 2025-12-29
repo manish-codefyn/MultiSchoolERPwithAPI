@@ -294,11 +294,23 @@ class PortalTimetableView(StudentPortalBaseView, TemplateView):
         student = self.get_student()
         if student and student.current_class:
             # Fetch timetable entries
-            context['timetable_entries'] = TimeTable.objects.filter(
+            queryset = TimeTable.objects.filter(
                 class_name=student.current_class
-            ).filter(
+            )
+            
+            # Filter by section (either global for class or specific to section)
+            queryset = queryset.filter(
                 Q(section__isnull=True) | Q(section=student.section)
+            )
+            
+            # Filter by academic year (Crucial fix)
+            if student.academic_year:
+                queryset = queryset.filter(academic_year=student.academic_year)
+            
+            context['timetable_entries'] = queryset.select_related(
+                'subject', 'subject__subject', 'teacher', 'class_name', 'section'
             ).order_by('day', 'start_time')
+            
         return context
 
 # ==================== GAMES & EXTRAS ====================

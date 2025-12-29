@@ -18,10 +18,13 @@
                 <button type="button" class="btn btn-outline-primary active" id="btnListView" title="List View">
                     <i class="bx bx-list-ul"></i>
                 </button>
-                <button type="button" class="btn btn-outline-primary" id="btnGridView" title="Grid View">
+                <button type="button" class="btn btn-outline-primary" id="btnGridView" title="Card View">
                     <i class="bx bx-grid-alt"></i>
                 </button>
             </div>
+            <a href="{% url 'academics:timetable_by_class' %}" class="btn btn-outline-secondary shadow-sm" title="Matrix View">
+                <i class="bx bx-table"></i> {% trans "Matrix View" %}
+            </a>
             
             {% if perms.academics.add_timetable %}
             <a href="{% url 'academics:timetable_create' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
