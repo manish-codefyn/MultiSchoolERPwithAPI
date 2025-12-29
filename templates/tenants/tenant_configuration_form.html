@@ -18,7 +18,7 @@
                     
                     <h6 class="mb-3">Branding</h6>
                     <div class="row g-3">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             {% if form.instance.logo %}
                                 <div class="mb-2">
                                     <label class="form-label d-block">Current Logo</label>
@@ -26,6 +26,15 @@
                                 </div>
                             {% endif %}
                             {{ form.logo|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {% if form.instance.square_logo %}
+                                <div class="mb-2">
+                                    <label class="form-label d-block">Current Square Logo</label>
+                                    <img src="{{ form.instance.square_logo.url }}" alt="Square Logo" style="max-height: 80px; width: 80px; object-fit: cover;" class="border rounded p-1">
+                                </div>
+                            {% endif %}
+                            {{ form.square_logo|as_crispy_field }}
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Primary Color</label>

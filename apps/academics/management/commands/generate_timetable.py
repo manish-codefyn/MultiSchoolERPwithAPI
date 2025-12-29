@@ -42,6 +42,11 @@ class Command(BaseCommand):
             action='store_true',
             help='Overwrite existing timetable'
         )
+        parser.add_argument(
+            '--auto',
+            action='store_true',
+            help='Use Auto-scheduler (OR-Tools) instead of simple generator'
+        )
     
     def handle(self, *args, **options):
         if options['validate']:
@@ -58,8 +63,22 @@ class Command(BaseCommand):
             section = Section.objects.get(id=options['section_id'])
             academic_year = AcademicYear.objects.get(id=options['year_id'])
             
-            generator = TimetableGenerator(class_obj, section, academic_year)
-            entries = generator.generate(overwrite=options['force'])
+            entries = []
+            if options.get('auto'):
+                from apps.academics.services.auto_scheduler import AutoTimetableGenerator
+                self.stdout.write(self.style.WARNING("Using Auto-scheduler (AI)..."))
+                generator = AutoTimetableGenerator(class_obj, section, academic_year)
+                count = generator.generate()
+                if count is not None:
+                     self.stdout.write(self.style.SUCCESS(f"Successfully auto-generated {count} entries!"))
+                     # Fake entries list to satisfy logic below or return
+                     return 
+                else:
+                     self.stdout.write(self.style.ERROR("Auto-generation failed. No solution found."))
+                     return
+            else:
+                generator = TimetableGenerator(class_obj, section, academic_year)
+                entries = generator.generate(overwrite=options['force'])
             
             self.stdout.write(
                 self.style.SUCCESS(

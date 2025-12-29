@@ -45,6 +45,7 @@ urlpatterns = [
     path(f"{API_PREFIX}library/", include("apps.library.api.urls")),
     path(f"{API_PREFIX}security/", include("apps.security.api.urls")),
     path(f"{API_PREFIX}students/", include("apps.students.api.urls")),
+    path(f"{API_PREFIX}student-portal/", include("apps.student_portal.api.urls")),
     path(f"{API_PREFIX}tenants/", include("apps.tenants.api.urls")),
     path(f"{API_PREFIX}public/", include("apps.public.api.urls")),
     path(f"{API_PREFIX}transportation/", include("apps.transportation.api.urls")),

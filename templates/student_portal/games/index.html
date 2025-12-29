@@ -4,55 +4,113 @@
 {% block title %}Games & Learning{% endblock %}
 
 {% block content %}
-<div class="row mb-3">
-    <div class="col-12">
-        <h4 class="mb-0">Brain Gym</h4>
-        <p class="text-muted">Sharpen your mind with these activities</p>
-    </div>
-</div>
-
-<div class="row">
-    <h5 class="mb-3">Mind Games</h5>
-    {% for game in mind_games %}
-    <div class="col-6 col-md-4 mb-3">
-        <a href="{{ game.url }}" class="card text-center h-100 shadow-sm border-0 game-card">
-            <div class="card-body">
-                <div class="mb-3">
-                    <span class="badge rounded-pill bg-label-{{ game.color }} p-3">
-                        <i class="bx bx-{{ game.icon }} fs-1"></i>
-                    </span>
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card border-0 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="bg-primary p-4 position-relative" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                                    <i class="bx bx-joystick text-white fs-1"></i>
+                                </div>
+                            </div>
+                            <div class="col text-white">
+                                <h3 class="mb-1 fw-bold">🧠 Brain Gym</h3>
+                                <p class="mb-0 opacity-75">Sharpen your mind with fun activities!</p>
+                            </div>
+                            <div class="col-auto d-none d-md-block">
+                                <div class="d-flex gap-3">
+                                    <div class="text-center">
+                                        <div class="bg-white bg-opacity-25 rounded-3 px-3 py-2">
+                                            <i class="bx bx-trophy text-warning fs-4"></i>
+                                            <div class="text-white small mt-1">Earn Points</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="bg-white bg-opacity-25 rounded-3 px-3 py-2">
+                                            <i class="bx bx-brain text-info fs-4"></i>
+                                            <div class="text-white small mt-1">Build Skills</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h6 class="card-title mb-0">{{ game.name }}</h6>
             </div>
-        </a>
+        </div>
     </div>
-    {% endfor %}
-</div>
 
-<div class="row mt-3">
-    <h5 class="mb-3">Knowledge Games</h5>
-    {% for game in knowledge_games %}
-    <div class="col-6 col-md-4 mb-3">
-        <a href="{{ game.url }}" class="card text-center h-100 shadow-sm border-0 game-card">
-            <div class="card-body">
-                <div class="mb-3">
-                    <span class="badge rounded-pill bg-label-{{ game.color }} p-3">
-                        <i class="bx bx-{{ game.icon }} fs-1"></i>
-                    </span>
+    <!-- Mind Games Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="bg-primary text-white rounded-3 p-2 d-inline-flex">
+                    <i class="bx bx-brain"></i>
+                </span>
+                <h5 class="mb-0 fw-bold">Mind Games</h5>
+            </div>
+        </div>
+        {% for game in mind_games %}
+        <div class="col-6 col-md-4 col-lg-3 mb-3">
+            <a href="{{ game.url }}" class="card stat-card-custom h-100 border-0 text-decoration-none game-card-modern bg-{{ game.color }} text-white">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                            <i class="bx bx-{{ game.icon }} fs-1"></i>
+                        </div>
+                    </div>
+                    <h6 class="card-title mb-1 fw-bold">{{ game.name }}</h6>
+                    <span class="badge bg-white bg-opacity-25 small">Play Now</span>
                 </div>
-                <h6 class="card-title mb-0">{{ game.name }}</h6>
-            </div>
-        </a>
+            </a>
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
 
-<style>
-    .game-card {
-        transition: transform 0.2s;
-    }
-    .game-card:active {
-        transform: scale(0.95);
-    }
-</style>
+    <!-- Knowledge Games Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <span class="bg-success text-white rounded-3 p-2 d-inline-flex">
+                    <i class="bx bx-book-reader"></i>
+                </span>
+                <h5 class="mb-0 fw-bold">Knowledge Games</h5>
+            </div>
+        </div>
+        {% for game in knowledge_games %}
+        <div class="col-6 col-md-4 col-lg-3 mb-3">
+            <a href="{{ game.url }}" class="card stat-card-custom h-100 border-0 text-decoration-none game-card-modern bg-{{ game.color }} text-white">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                            <i class="bx bx-{{ game.icon }} fs-1"></i>
+                        </div>
+                    </div>
+                    <h6 class="card-title mb-1 fw-bold">{{ game.name }}</h6>
+                    <span class="badge bg-white bg-opacity-25 small">Play Now</span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Coming Soon Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card border-0">
+                <div class="card-body text-center py-5">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bx bx-rocket text-primary fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">More Games Coming Soon!</h5>
+                    <p class="text-muted mb-0">Stay tuned for exciting new brain games and learning activities</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

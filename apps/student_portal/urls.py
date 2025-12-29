@@ -5,7 +5,9 @@ from .views import (
     PortalPaymentInitiateView,
     PortalPaymentCallbackView,
     PortalTimetableView,
-    PortalTimetableView,
+    PortalAssignmentListView,
+    PortalAssignmentDetailView,
+    PortalAssignmentSubmitView,
     PortalGamesView,
     MemoryGameView,
     MathQuizView,
@@ -32,6 +34,9 @@ urlpatterns = [
     
     # Academics
     path('academics/timetable/', PortalTimetableView.as_view(), name='timetable'),
+    path('academics/assignments/', PortalAssignmentListView.as_view(), name='assignments'),
+    path('academics/assignments/<uuid:pk>/', PortalAssignmentDetailView.as_view(), name='assignment_detail'),
+    path('academics/assignments/<uuid:pk>/submit/', PortalAssignmentSubmitView.as_view(), name='assignment_submit'),
     
     # Games
     path('games/', PortalGamesView.as_view(), name='games'),

@@ -10,6 +10,8 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
+from apps.communications.models import MessageThread, Message
+
 
 from apps.core.views import BaseView
 from apps.students.models import Student
@@ -68,6 +70,120 @@ class StudentDashboardView(StudentPortalBaseView, TemplateView):
 
         return context
 
+
+class PortalAssignmentListView(StudentPortalBaseView, TemplateView):
+    """Student view for their assignments"""
+    template_name = 'student_portal/academics/assignments.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        student = self.get_student()
+        if not student:
+            return context
+
+        # Get all assignments for student's class
+        all_assignments = Assignment.objects.filter(
+            class_name=student.current_class,
+            status='PUBLISHED'
+        ).filter(
+            Q(section__isnull=True) | Q(section=student.section)
+        ).select_related('subject', 'class_name', 'section').order_by('-due_date')
+
+        # Get student's submissions
+        submitted_ids = Submission.objects.filter(
+            student=student
+        ).values_list('assignment_id', flat=True)
+
+        # Categorize assignments
+        now = timezone.now()
+        pending = []
+        submitted = []
+        overdue = []
+
+        for assignment in all_assignments:
+            if assignment.id in submitted_ids:
+                # Get submission details
+                assignment.submission = Submission.objects.filter(
+                    assignment=assignment, student=student
+                ).first()
+                submitted.append(assignment)
+            elif assignment.due_date < now:
+                overdue.append(assignment)
+            else:
+                pending.append(assignment)
+
+        context['pending_assignments'] = pending
+        context['submitted_assignments'] = submitted
+        context['overdue_assignments'] = overdue
+        context['total_count'] = len(all_assignments)
+        context['pending_count'] = len(pending)
+        context['submitted_count'] = len(submitted)
+        context['overdue_count'] = len(overdue)
+
+        return context
+
+
+class PortalAssignmentDetailView(StudentPortalBaseView, DetailView):
+    """View assignment details and submit"""
+    model = Assignment
+    template_name = 'student_portal/academics/assignment_detail.html'
+    context_object_name = 'assignment'
+
+    def get_queryset(self):
+        student = self.get_student()
+        if not student:
+            return Assignment.objects.none()
+        return Assignment.objects.filter(
+            class_name=student.current_class,
+            status='PUBLISHED'
+        ).filter(
+            Q(section__isnull=True) | Q(section=student.section)
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        student = self.get_student()
+        if student:
+            context['submission'] = Submission.objects.filter(
+                assignment=self.object, student=student
+            ).first()
+            context['can_submit'] = self.object.due_date >= timezone.now() or not context['submission']
+        return context
+
+
+class PortalAssignmentSubmitView(StudentPortalBaseView, View):
+    """Handle assignment submission"""
+
+    def post(self, request, pk):
+        student = self.get_student()
+        if not student:
+            messages.error(request, "Student profile not found.")
+            return redirect('student_portal:assignments')
+
+        assignment = get_object_or_404(Assignment, pk=pk)
+
+        # Check if already submitted
+        existing = Submission.objects.filter(assignment=assignment, student=student).first()
+        if existing:
+            messages.warning(request, "You have already submitted this assignment.")
+            return redirect('student_portal:assignment_detail', pk=pk)
+
+        # Create submission
+        submission_text = request.POST.get('submission_text', '')
+        submission_file = request.FILES.get('submission_file')
+
+        submission = Submission.objects.create(
+            tenant=request.tenant,
+            assignment=assignment,
+            student=student,
+            submission_text=submission_text,
+            submission_file=submission_file
+        )
+
+        messages.success(request, "Assignment submitted successfully!")
+        return redirect('student_portal:assignment_detail', pk=pk)
+
+
 # ==================== FINANCIALS ====================
 
 class PortalInvoiceListView(StudentPortalBaseView, ListView):
@@ -80,6 +196,7 @@ class PortalInvoiceListView(StudentPortalBaseView, ListView):
         if not student:
             return Invoice.objects.none()
         return Invoice.objects.filter(student=student).order_by('-issue_date')
+
 
 class PortalPaymentInitiateView(StudentPortalBaseView, View):
     """Create Razorpay Order and show payment page"""
@@ -362,8 +479,6 @@ class StudentProfileView(StudentPortalBaseView, DetailView):
 
 
 # ==================== COMMUNICATIONS ====================
-
-from apps.communications.models import MessageThread, Message
 
 
 

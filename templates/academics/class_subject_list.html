@@ -12,11 +12,19 @@
             <h4 class="mb-0 text-primary fw-bold">{% trans "Class Subject Allocations" %}</h4>
             <p class="text-muted small mb-0">{% trans "Assign and manage subjects for each class" %}</p>
         </div>
-        {% if perms.academics.add_classsubject %}
-        <a href="{% url 'academics:class_subject_create' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-            <i class="bx bx-plus fs-5"></i> {% trans "Assign Subject" %}
-        </a>
-        {% endif %}
+        <div class="d-flex gap-2">
+            {% if perms.academics.add_classsubject %}
+            <form action="{% url 'academics:class_subject_initialize' %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary d-flex align-items-center gap-2 shadow-sm" onclick="return confirm('{% trans "Auto-map subjects to classes? This will create mappings." %}');">
+                    <i class="bx bx-list-check fs-5"></i> {% trans "AI Initialize" %}
+                </button>
+            </form>
+            <a href="{% url 'academics:class_subject_create' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+                <i class="bx bx-plus fs-5"></i> {% trans "Assign Subject" %}
+            </a>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Filter Card -->

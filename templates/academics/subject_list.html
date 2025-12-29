@@ -3,7 +3,23 @@
 {% load i18n %}
 
 {% block page_title %}{% trans "Subjects" %}{% endblock %}
-
+{% block extra_css %}
+<style>
+/* Custom modern table styles */
+#subjectTable thead th {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+.bg-label-primary { background-color: #e7e7ff !important; color: #696cff !important; }
+.bg-label-info { background-color: #d7f5fc !important; color: #03c3ec !important; }
+.bg-label-warning { background-color: #fff2d6 !important; color: #ffab00 !important; }
+.bg-label-secondary { background-color: #ebeef0 !important; color: #8592a3 !important; }
+.hover-primary:hover { color: #696cff !important; }
+.avatar-sm { width: 2.5rem; height: 2.5rem; }
+</style>
+{% endblock %}
 {% block content %}
 <div class="container-fluid px-4">
     <!-- Header -->
@@ -12,11 +28,19 @@
             <h4 class="mb-0 text-primary fw-bold">{% trans "Subject Library" %}</h4>
             <p class="text-muted small mb-0">{% trans "Manage master list of subjects and courses" %}</p>
         </div>
-        {% if perms.academics.add_subject %}
-        <a href="{% url 'academics:subject_create' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-            <i class="bx bx-plus fs-5"></i> {% trans "New Subject" %}
-        </a>
-        {% endif %}
+        <div class="d-flex gap-2">
+            {% if perms.academics.add_subject %}
+            <form action="{% url 'academics:subject_initialize' %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary d-flex align-items-center gap-2 shadow-sm" onclick="return confirm('{% trans "Initialize standard subjects? This will create any missing standard subjects." %}');">
+                    <i class="bx bx-list-check fs-5"></i> {% trans "AI Initialize" %}
+                </button>
+            </form>
+            <a href="{% url 'academics:subject_create' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+                <i class="bx bx-plus fs-5"></i> {% trans "New Subject" %}
+            </a>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Table Card -->
@@ -138,21 +162,6 @@
     </div>
 </div>
 
-<style>
-/* Custom modern table styles */
-#subjectTable thead th {
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #e9ecef;
-}
-.bg-label-primary { background-color: #e7e7ff !important; color: #696cff !important; }
-.bg-label-info { background-color: #d7f5fc !important; color: #03c3ec !important; }
-.bg-label-warning { background-color: #fff2d6 !important; color: #ffab00 !important; }
-.bg-label-secondary { background-color: #ebeef0 !important; color: #8592a3 !important; }
-.hover-primary:hover { color: #696cff !important; }
-.avatar-sm { width: 2.5rem; height: 2.5rem; }
-</style>
 {% endblock %}
 
 {% block extra_scripts %}

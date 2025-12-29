@@ -1,0 +1,89 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}{% trans "Manage Holiday" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">
+                    {% if form.instance.pk %}
+                        {% trans "Edit Holiday" %}
+                    {% else %}
+                        {% trans "Add New Holiday" %}
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            {{ form.name|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.holiday_type|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.academic_year|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.start_date|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.end_date|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            {{ form.description|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                             <div class="alert alert-info py-2">
+                                <small><i class="bx bx-info-circle"></i> {% trans "Leave 'Affected Classes' empty to apply this holiday to ALL classes." %}</small>
+                             </div>
+                            {{ form.affected_classes|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <div class="text-end mt-3">
+                        <a href="{% url 'academics:holiday_list' %}" class="btn btn-light me-2">{% trans "Cancel" %}</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-save"></i> {% trans "Save Holiday" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Flatpickr for Date Selection -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("input[name*='date']", {
+            dateFormat: "Y-m-d",
+            allowInput: true
+        });
+    });
+</script>
+{% endblock %}

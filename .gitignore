@@ -170,3 +170,4 @@ fix_*.py
 secrets/
 
 !school_erp_app/lib/
+!student_portal/lib/

@@ -321,6 +321,7 @@ REST_FRAMEWORK = {
         "anon": "100/day",
         "user": "1000/hour",
     },
+    "COERCE_DECIMAL_TO_STRING": False,
 }
 
 # JWT Configuration

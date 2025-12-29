@@ -7,11 +7,11 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView,View, CreateView, UpdateView, DeleteView
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
-
+from django.utils.translation import gettext_lazy as _
 from apps.core.views import (
     BaseListView, BaseDetailView, BaseCreateView, 
     BaseUpdateView, BaseDeleteView, BaseTemplateView
@@ -1815,3 +1815,162 @@ def validate_timetable_api(request):
         'class': str(class_obj),
         'section': str(section),
     })
+
+
+# ============================================================================
+# AUTO TIMETABLE GENERATION
+# ============================================================================
+
+from apps.academics.services.auto_scheduler import AutoTimetableGenerator
+
+class AutoGenerateTimetableView(View):
+    """
+    Handle Auto Timetable Generation from UI
+    """
+    def post(self, request, *args, **kwargs):
+        class_id = request.POST.get('class_id')
+        section_id = request.POST.get('section_id')
+        year_id = request.POST.get('academic_year')
+        
+        if not all([class_id, section_id, year_id]):
+            messages.error(request, _("Missing required fields."))
+            return redirect('academics:timetable_list')
+            
+        try:
+            class_obj = get_object_or_404(SchoolClass, id=class_id)
+            section = get_object_or_404(Section, id=section_id)
+            academic_year = get_object_or_404(AcademicYear, id=year_id)
+            
+            generator = AutoTimetableGenerator(class_obj, section, academic_year)
+            count = generator.generate()
+            
+            if count is not None:
+                messages.success(request, _(f"Successfully auto-generated {count} entries."))
+            else:
+                messages.error(request, _("Auto-generation failed. Could not find a valid schedule."))
+                
+        except Exception as e:
+            messages.error(request, _(f"Error during generation: {str(e)}"))
+            
+        return redirect('academics:timetable_list')
+
+
+# ============================================================================
+# SUBJECT INITIALIZATION
+# ============================================================================
+
+class InitializeSubjectsView(View):
+    """
+    Initialize standard subjects for the tenant
+    """
+    def post(self, request, *args, **kwargs):
+        standard_subjects = [
+            # Core
+            {'name': 'English', 'code': 'ENG', 'type': 'CORE', 'group': 'GENERAL'},
+            {'name': 'Hindi', 'code': 'HIN', 'type': 'LANGUAGE', 'group': 'GENERAL'},
+            {'name': 'Mathematics', 'code': 'MATH', 'type': 'CORE', 'group': 'SCIENCE'},
+            {'name': 'Science', 'code': 'SCI', 'type': 'CORE', 'group': 'SCIENCE'},
+            {'name': 'Social Science', 'code': 'SST', 'type': 'CORE', 'group': 'ARTS'},
+            
+            # Science Stream
+            {'name': 'Physics', 'code': 'PHY', 'type': 'CORE', 'group': 'SCIENCE', 'has_practical': True},
+            {'name': 'Chemistry', 'code': 'CHEM', 'type': 'CORE', 'group': 'SCIENCE', 'has_practical': True},
+            {'name': 'Biology', 'code': 'BIO', 'type': 'CORE', 'group': 'SCIENCE', 'has_practical': True},
+            {'name': 'Computer Science', 'code': 'CS', 'type': 'ELECTIVE', 'group': 'SCIENCE', 'has_practical': True},
+            
+            # Commerce Stream
+            {'name': 'Accountancy', 'code': 'ACC', 'type': 'CORE', 'group': 'COMMERCE'},
+            {'name': 'Business Studies', 'code': 'BST', 'type': 'CORE', 'group': 'COMMERCE'},
+            {'name': 'Economics', 'code': 'ECO', 'type': 'CORE', 'group': 'COMMERCE'},
+            
+            # Arts/Humanities
+            {'name': 'History', 'code': 'HIST', 'type': 'CORE', 'group': 'ARTS'},
+            {'name': 'Geography', 'code': 'GEO', 'type': 'CORE', 'group': 'ARTS', 'has_practical': True},
+            {'name': 'Political Science', 'code': 'POL', 'type': 'CORE', 'group': 'ARTS'},
+            
+            # Others
+            {'name': 'Physical Education', 'code': 'PE', 'type': 'CO_CURRICULAR', 'group': 'GENERAL', 'has_practical': True},
+            {'name': 'Art & Craft', 'code': 'ART', 'type': 'CO_CURRICULAR', 'group': 'GENERAL'},
+            {'name': 'Music', 'code': 'MUS', 'type': 'CO_CURRICULAR', 'group': 'GENERAL'},
+            {'name': 'Library', 'code': 'LIB', 'type': 'CO_CURRICULAR', 'group': 'GENERAL'},
+        ]
+        
+        created_count = 0
+        for subj_data in standard_subjects:
+            subject, created = Subject.objects.get_or_create(
+                code=subj_data['code'],
+                defaults={
+                    'name': subj_data['name'],
+                    'subject_type': subj_data['type'],
+                    'subject_group': subj_data['group'],
+                    'has_practical': subj_data.get('has_practical', False),
+                    'is_scoring': True,
+                    'credit_hours': 1
+                }
+            )
+            if created:
+                created_count += 1
+                
+        if created_count > 0:
+            messages.success(request, _(f"Successfully initialized {created_count} standard subjects."))
+        else:
+            messages.info(request, _("Standard subjects already exist."))
+            
+        return redirect('academics:subject_list')
+
+
+class InitializeClassSubjectsView(View):
+    """
+    Initialize class subjects (mapping) for the tenant
+    """
+    def post(self, request, *args, **kwargs):
+        from apps.academics.models import ClassSubject, Subject, SchoolClass, AcademicYear
+        try:
+            academic_year = AcademicYear.objects.filter(is_current=True).first()
+            if not academic_year:
+                messages.error(request, _("No active academic year found."))
+                return redirect('academics:class_subject_list')
+                
+            classes = SchoolClass.objects.filter(is_active=True)
+            subjects = {s.code: s for s in Subject.objects.filter(is_active=True)}
+            
+            created_count = 0
+            
+            for cls in classes:
+                # Define codes list for this class
+                codes_to_add = []
+                
+                # Logic based on class number
+                if cls.numeric_name <= 10:
+                    # General Subjects for Class 1-10
+                    codes_to_add = ['ENG', 'HIN', 'MATH', 'SCI', 'SST', 'CS', 'PE', 'ART', 'MUS', 'LIB']
+                else:
+                    # All Stream Subjects for Class 11-12
+                    codes_to_add = ['ENG', 'MATH', 'CS', 'PE', 
+                                   'PHY', 'CHEM', 'BIO',           # Science
+                                   'ACC', 'BST', 'ECO',            # Commerce
+                                   'HIST', 'GEO', 'POL']           # Arts
+                
+                for code in codes_to_add:
+                    if code in subjects:
+                        subject_obj, created = ClassSubject.objects.get_or_create(
+                            class_name=cls,
+                            subject=subjects[code],
+                            academic_year=academic_year,
+                            defaults={
+                                'is_compulsory': code in ['ENG', 'HIN', 'MATH', 'SCI', 'SST'],
+                                'periods_per_week': 6 if code in ['MATH', 'SCI', 'PHY', 'CHEM', 'ACC'] else 4
+                            }
+                        )
+                        if created:
+                            created_count += 1
+                            
+            if created_count > 0:
+                messages.success(request, _(f"Successfully mapped {created_count} subjects to classes."))
+            else:
+                messages.info(request, _("Class subjects already mapped."))
+                
+        except Exception as e:
+            messages.error(request, _(f"Error initializing: {str(e)}"))
+            
+        return redirect('academics:class_subject_list')

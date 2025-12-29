@@ -26,11 +26,72 @@
                 <i class="bx bx-table"></i> {% trans "Matrix View" %}
             </a>
             
+            <!-- Auto Gen Button -->
             {% if perms.academics.add_timetable %}
+            <button type="button" class="btn btn-warning shadow-sm" data-bs-toggle="modal" data-bs-target="#autoGenModal" title="AI Auto-scheduler">
+                <i class="bx bx-bot"></i> {% trans "Auto Generate" %}
+            </button>
             <a href="{% url 'academics:timetable_create' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
                 <i class="bx bx-plus fs-5"></i> {% trans "Add Entry" %}
             </a>
             {% endif %}
+        </div>
+    </div>
+
+    <!-- Auto Gen Modal -->
+    <div class="modal fade" id="autoGenModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bx bx-bot text-warning me-2"></i>{% trans "Auto Generate Timetable" %}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{% url 'academics:timetable_auto_generate' %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <i class="bx bx-error-circle me-1"></i>
+                            {% trans "This will overwrite existing timetable entries for the selected class/section!" %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Academic Year" %}</label>
+                            <select name="academic_year" class="form-select" required>
+                                {% for year in academic_years %}
+                                <option value="{{ year.id }}" {% if year.is_current %}selected{% endif %}>{{ year.name }}</option>
+                                {% empty %}
+                                <option value="">{% trans "No Academic Years Found (Please Create One)" %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Class" %}</label>
+                            <select name="class_id" id="autoGenClass" class="form-select" required>
+                                <option value="">{% trans "Select Class" %}</option>
+                                {% for class_obj in classes %}
+                                <option value="{{ class_obj.id }}">{{ class_obj.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Section" %}</label>
+                            <select name="section_id" id="autoGenSection" class="form-select" required>
+                                <option value="">{% trans "Select Class First" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-check"></i> {% trans "Generate" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -407,6 +468,32 @@
             } else {
                 switchToList();
             }
+
+            // Auto Gen Modal - Load Sections
+            $('#autoGenClass').change(function() {
+                const classId = $(this).val();
+                const sectionSelect = $('#autoGenSection');
+                
+                if (!classId) {
+                    sectionSelect.html('<option value="">{% trans "Select Class First" %}</option>');
+                    return;
+                }
+
+                $.ajax({
+                    url: "{% url 'academics:ajax_load_sections' %}",
+                    data: { 'class_id': classId },
+                    success: function(data) {
+                        let html = '<option value="">{% trans "Select Section" %}</option>';
+                        data.forEach(function(section) {
+                            html += `<option value="${section.id}">${section.name}</option>`;
+                        });
+                        sectionSelect.html(html);
+                    },
+                    error: function() {
+                         sectionSelect.html('<option value="">{% trans "Error loading sections" %}</option>');
+                    }
+                });
+            });
         });
     </script>
 {% endblock %}

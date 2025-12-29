@@ -6,6 +6,10 @@
 {% block page_description %}{% trans "Overview of academic years, terms, and classes" %}{% endblock %}
 
 {% block content %}
+<div class="dashboard-hero">
+    <h1>Welcome to the Academics Dashboard</h1>
+    <p>Quick overview of your academic setup.</p>
+</div>
 <div class="row mb-3">
     <div class="col-12">
         {% if missing_academic_year %}
@@ -99,7 +103,7 @@
 <div class="row">
     <!-- Quick Stats Cards -->
     <div class="col-md-3 mb-4">
-        <div class="card border-0 shadow-sm border-start border-primary border-4 h-100">
+        <div class="card glass-card border-0 shadow-sm border-start border-primary border-4 h-100">
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
@@ -114,7 +118,7 @@
         </div>
     </div>
     <div class="col-md-3 mb-4">
-        <div class="card border-0 shadow-sm border-start border-success border-4 h-100">
+        <div class="card glass-card border-0 shadow-sm border-start border-success border-4 h-100">
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
@@ -129,7 +133,7 @@
         </div>
     </div>
     <div class="col-md-3 mb-4">
-        <div class="card border-0 shadow-sm border-start border-info border-4 h-100">
+        <div class="card glass-card border-0 shadow-sm border-start border-info border-4 h-100">
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
@@ -144,7 +148,7 @@
         </div>
     </div>
     <div class="col-md-3 mb-4">
-        <div class="card border-0 shadow-sm border-start border-warning border-4 h-100">
+        <div class="card glass-card border-0 shadow-sm border-start border-warning border-4 h-100">
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
@@ -170,39 +174,88 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-2 col-6 text-center">
-                        <a href="{% url 'academics:academic_year_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                        <a href="{% url 'academics:academic_year_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
                             <div class="font-35 text-primary"><i class="bx bx-calendar-event"></i></div>
                             <h6 class="mb-0 mt-2 text-dark">Academic Years</h6>
                         </a>
                     </div>
                     <div class="col-md-2 col-6 text-center">
-                        <a href="{% url 'academics:term_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                        <a href="{% url 'academics:term_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
                             <div class="font-35 text-success"><i class="bx bx-time-five"></i></div>
                             <h6 class="mb-0 mt-2 text-dark">Terms</h6>
                         </a>
                     </div>
                     <div class="col-md-2 col-6 text-center">
-                        <a href="{% url 'academics:class_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                        <a href="{% url 'academics:class_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
                             <div class="font-35 text-info"><i class="bx bx-building"></i></div>
                             <h6 class="mb-0 mt-2 text-dark">Classes</h6>
                         </a>
                     </div>
                     <div class="col-md-2 col-6 text-center">
-                        <a href="{% url 'academics:section_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                        <a href="{% url 'academics:section_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
                             <div class="font-35 text-warning"><i class="bx bx-group"></i></div>
                             <h6 class="mb-0 mt-2 text-dark">Sections</h6>
                         </a>
                     </div>
                      <div class="col-md-2 col-6 text-center">
-                        <a href="{% url 'academics:subject_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                        <a href="{% url 'academics:subject_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
                             <div class="font-35 text-danger"><i class="bx bx-book"></i></div>
                             <h6 class="mb-0 mt-2 text-dark">Subjects</h6>
                         </a>
                     </div>
                     <div class="col-md-2 col-6 text-center">
-                        <a href="{% url 'academics:timetable_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                        <a href="{% url 'academics:timetable_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
                             <div class="font-35 text-dark"><i class="bx bx-table"></i></div>
                             <h6 class="mb-0 mt-2 text-dark">Timetable</h6>
+                        </a>
+                    </div>
+                    <!-- Added Links -->
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:class_subject_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
+                            <div class="font-35 text-primary"><i class="bx bx-book-content"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Class Subjects</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:attendance_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
+                            <div class="font-35 text-success"><i class="bx bx-check-square"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Attendance</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:holiday_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
+                            <div class="font-35 text-info"><i class="bx bx-calendar-star"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Holidays</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:study_material_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
+                            <div class="font-35 text-warning"><i class="bx bx-file"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Study Materials</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:syllabus_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
+                            <div class="font-35 text-danger"><i class="bx bx-list-check"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Syllabus</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:stream_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
+                            <div class="font-35 text-secondary"><i class="bx bx-git-branch"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Streams</h6>
+                        </a>
+                    </div>
+                     <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:house_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
+                            <div class="font-35 text-primary"><i class="bx bx-shield"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Houses</h6>
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-6 text-center">
+                        <a href="{% url 'academics:grading_system_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition">
+                            <div class="font-35 text-warning"><i class="bx bx-bar-chart-alt-2"></i></div>
+                            <h6 class="mb-0 mt-2 text-dark">Grading</h6>
                         </a>
                     </div>
                 </div>

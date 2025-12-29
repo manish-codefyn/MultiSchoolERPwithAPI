@@ -71,6 +71,7 @@ urlpatterns = [
     # SUBJECT URLs
     # ============================================================================
     path('subjects/', views.SubjectListView.as_view(), name='subject_list'),
+    path('subjects/initialize/', views.InitializeSubjectsView.as_view(), name='subject_initialize'),
     path('subjects/<uuid:pk>/', views.SubjectDetailView.as_view(), name='subject_detail'),
     path('subjects/create/', views.SubjectCreateView.as_view(), name='subject_create'),
     path('subjects/<uuid:pk>/update/', views.SubjectUpdateView.as_view(), name='subject_update'),
@@ -80,6 +81,7 @@ urlpatterns = [
     # CLASS SUBJECT URLs
     # ============================================================================
     path('class-subjects/', views.ClassSubjectListView.as_view(), name='class_subject_list'),
+    path('class-subjects/initialize/', views.InitializeClassSubjectsView.as_view(), name='class_subject_initialize'),
     path('class-subjects/create/', views.ClassSubjectCreateView.as_view(), name='class_subject_create'),
     path('class-subjects/<uuid:pk>/update/', views.ClassSubjectUpdateView.as_view(), name='class_subject_update'),
     path('class-subjects/<uuid:pk>/delete/', views.ClassSubjectDeleteView.as_view(), name='class_subject_delete'),
@@ -92,6 +94,7 @@ urlpatterns = [
     path('timetable/<uuid:pk>/update/', views.TimeTableUpdateView.as_view(), name='timetable_update'),
     path('timetable/<uuid:pk>/delete/', views.TimeTableDeleteView.as_view(), name='timetable_delete'),
     path('timetable/by-class/', views.TimeTableByClassView.as_view(), name='timetable_by_class'),
+    path('timetable/auto-generate/', views.AutoGenerateTimetableView.as_view(), name='timetable_auto_generate'),
     
     # ============================================================================
     # ATTENDANCE URLs

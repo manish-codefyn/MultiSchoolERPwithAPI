@@ -5,99 +5,141 @@
 
 {% block content %}
 <div class="container-fluid">
-    <h4 class="mb-4">Welcome, {{ current_user.get_full_name }}</h4>
-
-    <div class="row">
-        <!-- Fees Widget -->
-        <div class="col-md-4 mb-4">
-            <div class="card bg-primary text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase mb-1">Pending Fees</h6>
-                            <h2 class="mb-0">₹{{ pending_fees }}</h2>
-                            <small>{{ pending_invoice_count }} Invoices Due</small>
-                        </div>
-                        <div class="text-right">
-                            <i class="bx bx-wallet fs-1"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer bg-transparent border-0 text-right">
-                    <a href="{% url 'student_portal:invoice_list' %}" class="text-white">View Details <i class="bx bx-right-arrow-alt"></i></a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Attendance Widget -->
-        <div class="col-md-4 mb-4">
-            <div class="card bg-success text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase mb-1">Attendance</h6>
-                            <h2 class="mb-0">95%</h2>
-                            <small>Excellent</small>
-                        </div>
-                        <div class="text-right">
-                            <i class="bx bx-calendar-check fs-1"></i>
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="bg-primary p-4">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="bg-white rounded-circle d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                                    <i class="bx bx-user text-primary fs-1"></i>
+                                </div>
+                            </div>
+                            <div class="col text-white">
+                                <small class="text-white-50 text-uppercase">Welcome back</small>
+                                <h3 class="mb-0 fw-bold">{{ current_user.get_full_name }}</h3>
+                            </div>
+                            <div class="col-auto d-none d-md-block">
+                                <span class="badge bg-white text-primary fs-6 fw-normal py-2 px-3 rounded-pill">
+                                    <i class="bx bx-calendar me-1"></i>
+                                    <span id="current-date"></span>
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                 <div class="card-footer bg-transparent border-0 text-right">
-                    <a href="#" class="text-white">View Report <i class="bx bx-right-arrow-alt"></i></a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Assignments Widget -->
-        <div class="col-md-4 mb-4">
-            <div class="card bg-warning text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-uppercase mb-1">Upcoming Tasks</h6>
-                            <h2 class="mb-0">{{ upcoming_assignments.count }}</h2>
-                            <small>Assignments Due</small>
-                        </div>
-                        <div class="text-right">
-                            <i class="bx bx-task fs-1"></i>
-                        </div>
+                    <div class="bg-light px-4 py-2">
+                        <small class="text-muted"><i class="bx bx-info-circle me-1"></i>Here's what's happening with your academics today</small>
                     </div>
-                </div>
-                 <div class="card-footer bg-transparent border-0 text-right">
-                    <a href="{% url 'assignments:assignment_list' %}" class="text-white">Go to Assignments <i class="bx bx-right-arrow-alt"></i></a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Upcoming Assignments</h5>
+    <!-- Stats Cards Row -->
+    <div class="row g-4 mb-4">
+        <!-- Pending Fees Card -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card stat-card-custom bg-primary text-white h-100 border-0 shadow">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                            <i class="bx bx-wallet fs-3"></i>
+                        </div>
+                    </div>
+                    <p class="text-uppercase small fw-semibold mb-1 opacity-75">Pending Fees</p>
+                    <h2 class="fw-bold mb-1">₹{{ pending_fees|default:"0" }}</h2>
+                    <p class="small mb-3 opacity-75">{{ pending_invoice_count|default:"0" }} Invoices Due</p>
+                    <a href="{% url 'student_portal:invoice_list' %}" class="btn btn-light btn-sm rounded-pill px-3">
+                        View Details <i class="bx bx-right-arrow-alt ms-1"></i>
+                    </a>
                 </div>
-                <div class="card-body">
+            </div>
+        </div>
+
+        <!-- Attendance Card -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card stat-card-custom bg-success text-white h-100 border-0 shadow">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                            <i class="bx bx-calendar-check fs-3"></i>
+                        </div>
+                    </div>
+                    <p class="text-uppercase small fw-semibold mb-1 opacity-75">Attendance Rate</p>
+                    <h2 class="fw-bold mb-1">95%</h2>
+                    <p class="small mb-3 opacity-75">Excellent Performance!</p>
+                    <a href="#" class="btn btn-light btn-sm rounded-pill px-3">
+                        View Report <i class="bx bx-right-arrow-alt ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Card -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card stat-card-custom bg-warning text-white h-100 border-0 shadow">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="bg-white bg-opacity-25 rounded-3 p-3">
+                            <i class="bx bx-task fs-3"></i>
+                        </div>
+                    </div>
+                    <p class="text-uppercase small fw-semibold mb-1 opacity-75">Upcoming Tasks</p>
+                    <h2 class="fw-bold mb-1">{{ upcoming_assignments.count|default:"0" }}</h2>
+                    <p class="small mb-3 opacity-75">Assignments Due</p>
+                    <a href="{% url 'student_portal:assignments' %}" class="btn btn-light btn-sm rounded-pill px-3">
+                        Go to Assignments <i class="bx bx-right-arrow-alt ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row g-4">
+        <!-- Assignments Table -->
+        <div class="col-lg-8">
+            <div class="card dashboard-card border-0 h-100">
+                <div class="card-header bg-white border-0 py-3 px-4">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <span class="bg-primary text-white rounded-3 p-2 d-inline-flex">
+                            <i class="bx bx-book-open"></i>
+                        </span>
+                        Upcoming Assignments
+                    </h5>
+                </div>
+                <div class="card-body p-4">
                     {% if upcoming_assignments %}
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
                                     <tr>
-                                        <th>Title</th>
-                                        <th>Subject</th>
-                                        <th>Due Date</th>
-                                        <th>Action</th>
+                                        <th class="text-uppercase small fw-semibold text-muted">Title</th>
+                                        <th class="text-uppercase small fw-semibold text-muted">Subject</th>
+                                        <th class="text-uppercase small fw-semibold text-muted">Due Date</th>
+                                        <th class="text-uppercase small fw-semibold text-muted">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for assignment in upcoming_assignments %}
                                     <tr>
-                                        <td>{{ assignment.title }}</td>
-                                        <td><span class="badge bg-label-info">{{ assignment.subject }}</span></td>
-                                        <td>{{ assignment.due_date|date:"D, d M" }}</td>
+                                        <td class="fw-semibold">{{ assignment.title }}</td>
                                         <td>
-                                            <a href="{% url 'assignments:assignment_detail' assignment.pk %}" class="btn btn-sm btn-primary">View</a>
+                                            <span class="badge bg-primary rounded-pill px-3 py-2">
+                                                <i class="bx bx-book me-1"></i>{{ assignment.subject }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark rounded-pill px-3 py-2">
+                                                <i class="bx bx-calendar me-1"></i>{{ assignment.due_date|date:"D, d M" }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'student_portal:assignments' %}" class="btn btn-primary btn-sm rounded-pill px-3">
+                                                <i class="bx bx-show me-1"></i>View
+                                            </a>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -105,30 +147,123 @@
                             </table>
                         </div>
                     {% else %}
-                        <p class="text-muted text-center my-4">No pending assignments! Good playing.</p>
+                        <div class="text-center py-5">
+                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                                <i class="bx bx-check-circle text-success fs-1"></i>
+                            </div>
+                            <p class="text-muted mb-0">No pending assignments! Keep up the great work! 🎉</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-4">
-             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Quick Links</h5>
+
+        <!-- Quick Links - App Style -->
+        <div class="col-lg-4">
+            <div class="card dashboard-card border-0 h-100">
+                <div class="card-header bg-white border-0 py-3 px-4">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <span class="bg-info text-white rounded-3 p-2 d-inline-flex">
+                            <i class="bx bx-grid-alt"></i>
+                        </span>
+                        Quick Access
+                    </h5>
                 </div>
-                <div class="list-group list-group-flush">
-                    <a href="{% url 'student_portal:timetable' %}" class="list-group-item list-group-item-action">
-                        <i class="bx bx-time me-2"></i> Class Timetable
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="bx bx-book-content me-2"></i> Exam Results
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="bx bx-download me-2"></i> Download Syllabus
-                    </a>
+                <div class="card-body p-3">
+                    <div class="row g-3">
+                        <!-- Timetable -->
+                        <div class="col-4">
+                            <a href="{% url 'student_portal:timetable' %}" class="app-icon text-decoration-none d-block text-center">
+                                <div class="app-icon-box bg-primary mb-2 mx-auto">
+                                    <i class="bx bx-time text-white fs-4"></i>
+                                </div>
+                                <span class="small text-dark">Timetable</span>
+                            </a>
+                        </div>
+                        <!-- Results -->
+                        <div class="col-4">
+                            <a href="#" class="app-icon text-decoration-none d-block text-center">
+                                <div class="app-icon-box bg-success mb-2 mx-auto">
+                                    <i class="bx bx-trophy text-white fs-4"></i>
+                                </div>
+                                <span class="small text-dark">Results</span>
+                            </a>
+                        </div>
+                        <!-- Syllabus -->
+                        <div class="col-4">
+                            <a href="#" class="app-icon text-decoration-none d-block text-center">
+                                <div class="app-icon-box bg-warning mb-2 mx-auto">
+                                    <i class="bx bx-book text-white fs-4"></i>
+                                </div>
+                                <span class="small text-dark">Syllabus</span>
+                            </a>
+                        </div>
+                        <!-- Profile -->
+                        <div class="col-4">
+                            <a href="{% url 'student_portal:profile' %}" class="app-icon text-decoration-none d-block text-center">
+                                <div class="app-icon-box bg-info mb-2 mx-auto">
+                                    <i class="bx bx-user text-white fs-4"></i>
+                                </div>
+                                <span class="small text-dark">Profile</span>
+                            </a>
+                        </div>
+                        <!-- Invoices -->
+                        <div class="col-4">
+                            <a href="{% url 'student_portal:invoice_list' %}" class="app-icon text-decoration-none d-block text-center">
+                                <div class="app-icon-box bg-danger mb-2 mx-auto">
+                                    <i class="bx bx-receipt text-white fs-4"></i>
+                                </div>
+                                <span class="small text-dark">Fees</span>
+                            </a>
+                        </div>
+                        <!-- Games -->
+                        <div class="col-4">
+                            <a href="{% url 'student_portal:games' %}" class="app-icon text-decoration-none d-block text-center">
+                                <div class="app-icon-box bg-purple mb-2 mx-auto" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <i class="bx bx-joystick text-white fs-4"></i>
+                                </div>
+                                <span class="small text-dark">Games</span>
+                            </a>
+                        </div>
+                        <!-- Attendance -->
+                        <div class="col-4">
+                            <a href="#" class="app-icon text-decoration-none d-block text-center">
+                                <div class="app-icon-box bg-secondary mb-2 mx-auto">
+                                    <i class="bx bx-calendar-check text-white fs-4"></i>
+                                </div>
+                                <span class="small text-dark">Attendance</span>
+                            </a>
+                        </div>
+                        <!-- Assignments -->
+                        <div class="col-4">
+                            <a href="{% url 'student_portal:assignments' %}" class="app-icon text-decoration-none d-block text-center">
+                                <div class="app-icon-box mb-2 mx-auto" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                    <i class="bx bx-task text-white fs-4"></i>
+                                </div>
+                                <span class="small text-dark">Tasks</span>
+                            </a>
+                        </div>
+                        <!-- Messages -->
+                        <div class="col-4">
+                            <a href="{% url 'student_portal:inbox' %}" class="app-icon text-decoration-none d-block text-center">
+                                <div class="app-icon-box mb-2 mx-auto" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                                    <i class="bx bx-message-dots text-white fs-4"></i>
+                                </div>
+                                <span class="small text-dark">Messages</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const today = new Date();
+    document.getElementById('current-date').textContent = today.toLocaleDateString('en-IN', options);
+});
+</script>
 {% endblock %}

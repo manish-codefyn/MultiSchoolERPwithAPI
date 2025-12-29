@@ -1,0 +1,185 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block title %}{{ assignment.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="{% url 'student_portal:assignments' %}" class="btn btn-outline-secondary btn-sm rounded-pill">
+            <i class="bx bx-arrow-back me-1"></i> Back to Assignments
+        </a>
+    </div>
+
+    <!-- Assignment Header -->
+    <div class="card dashboard-card border-0 mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-start gap-3">
+                <div class="bg-primary text-white rounded-3 p-3">
+                    <i class="bx bx-task fs-2"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h4 class="mb-2 fw-bold">{{ assignment.title }}</h4>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-primary rounded-pill px-3 py-2">{{ assignment.subject.name }}</span>
+                        <span class="badge bg-info rounded-pill px-3 py-2">{{ assignment.get_assignment_type_display }}</span>
+                        <span class="badge bg-dark rounded-pill px-3 py-2">{{ assignment.max_marks }} Marks</span>
+                        {% if assignment.is_overdue and not submission %}
+                            <span class="badge bg-danger rounded-pill px-3 py-2"><i class="bx bx-error-circle me-1"></i>Overdue</span>
+                        {% elif submission %}
+                            <span class="badge bg-success rounded-pill px-3 py-2"><i class="bx bx-check me-1"></i>Submitted</span>
+                        {% else %}
+                            <span class="badge bg-warning rounded-pill px-3 py-2"><i class="bx bx-time me-1"></i>Pending</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Assignment Details -->
+        <div class="col-lg-8">
+            <div class="card dashboard-card border-0 mb-4">
+                <div class="card-header bg-transparent py-3 px-4 border-0">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <i class="bx bx-info-circle text-primary"></i> Details
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if assignment.description %}
+                        <p class="mb-0">{{ assignment.description|linebreaks }}</p>
+                    {% else %}
+                        <p class="text-muted mb-0">No description provided.</p>
+                    {% endif %}
+                    
+                    {% if assignment.attachment %}
+                    <hr>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bx bx-file text-primary fs-4"></i>
+                        <a href="{{ assignment.attachment.url }}" target="_blank" class="text-primary">
+                            Download Attachment
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Submission Form -->
+            {% if not submission %}
+            <div class="card dashboard-card border-0">
+                <div class="card-header bg-transparent py-3 px-4 border-0">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <i class="bx bx-upload text-success"></i> Submit Your Work
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" action="{% url 'student_portal:assignment_submit' assignment.pk %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Your Answer / Notes</label>
+                            <textarea name="submission_text" class="form-control" rows="5" placeholder="Type your answer or notes here..."></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">Upload File (Optional)</label>
+                            <input type="file" name="submission_file" class="form-control">
+                            <small class="text-muted">Upload your assignment file (PDF, DOC, Image, etc.)</small>
+                        </div>
+                        <button type="submit" class="btn btn-success rounded-pill px-4">
+                            <i class="bx bx-upload me-1"></i> Submit Assignment
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <!-- Already Submitted -->
+            <div class="card dashboard-card border-0 border-success border-start border-4">
+                <div class="card-header bg-success bg-opacity-10 py-3 px-4 border-0">
+                    <h5 class="mb-0 d-flex align-items-center gap-2 text-success">
+                        <i class="bx bx-check-circle"></i> Your Submission
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Submitted At</small>
+                            <strong>{{ submission.submitted_at|date:"d M Y, h:i A" }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Status</small>
+                            <span class="badge bg-{{ submission.status|lower }} rounded-pill">{{ submission.get_status_display }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if submission.submission_text %}
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Your Answer</small>
+                        <div class="bg-light rounded-3 p-3">{{ submission.submission_text|linebreaks }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if submission.submission_file %}
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-1">Uploaded File</small>
+                        <a href="{{ submission.submission_file.url }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill">
+                            <i class="bx bx-download me-1"></i> View File
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if submission.marks_obtained %}
+                    <hr>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Marks Obtained</small>
+                            <h4 class="text-success mb-0">{{ submission.marks_obtained }}/{{ assignment.max_marks }}</h4>
+                        </div>
+                        {% if submission.teacher_remarks %}
+                        <div class="col-12">
+                            <small class="text-muted d-block mb-1">Teacher Remarks</small>
+                            <div class="alert alert-info mb-0">{{ submission.teacher_remarks }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card dashboard-card border-0">
+                <div class="card-header bg-transparent py-3 px-4 border-0">
+                    <h6 class="mb-0">Assignment Info</h6>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between px-4 py-3 border-0">
+                            <span class="text-muted">Subject</span>
+                            <strong>{{ assignment.subject.name }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-4 py-3 border-0">
+                            <span class="text-muted">Class</span>
+                            <strong>{{ assignment.class_name }}{% if assignment.section %} - {{ assignment.section }}{% endif %}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-4 py-3 border-0">
+                            <span class="text-muted">Assigned</span>
+                            <strong>{{ assignment.assigned_date|date:"d M Y" }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-4 py-3 border-0">
+                            <span class="text-muted">Due Date</span>
+                            <strong class="{% if assignment.is_overdue %}text-danger{% endif %}">{{ assignment.due_date|date:"d M Y, h:i A" }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-4 py-3 border-0">
+                            <span class="text-muted">Max Marks</span>
+                            <strong>{{ assignment.max_marks }}</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

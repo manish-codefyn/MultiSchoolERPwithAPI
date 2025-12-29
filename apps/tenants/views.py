@@ -143,7 +143,7 @@ class TenantConfigurationUpdateView(SuperuserRequiredMixin, UpdateView):
         'academic_year', 'timezone', 'language', 'currency', 'date_format',
         'session_timeout', 'max_login_attempts', 'password_expiry_days',
         'enable_library', 'enable_finance', 'enable_inventory',
-        'logo', 'primary_color', 'secondary_color'
+        'logo', 'square_logo', 'primary_color', 'secondary_color'
     ]
     template_name = 'tenants/config_form.html'
     
@@ -403,7 +403,7 @@ class TenantConfigurationUpdateView(SuperuserRequiredMixin, UpdateView):
     fields = ['academic_year', 'timezone', 'language', 'currency', 'date_format',
               'session_timeout', 'max_login_attempts', 'password_expiry_days',
               'enable_library', 'enable_finance', 'enable_inventory',
-              'logo', 'primary_color', 'secondary_color']
+              'logo', 'square_logo', 'primary_color', 'secondary_color']
     template_name = 'tenants/tenant_configuration_form.html'
     
     def get_object(self, queryset=None):
