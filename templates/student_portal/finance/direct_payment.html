@@ -1,0 +1,55 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block title %}Pay New Fee{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between mb-4">
+        <h4>Pay New Fee</h4>
+        <a href="{% url 'student_portal:invoice_list' %}" class="btn btn-outline-secondary">
+            <i class="bx bx-arrow-back"></i> Back to Invoices
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0 text-white">Select Fee to Pay</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4 text-center">
+                            <i class="bx bx-rupee fs-1 text-primary"></i>
+                            <p class="text-muted mt-2">Select a fee type below to generate an invoice and pay immediately.</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="fee_structure" class="form-label">Fee Type</label>
+                            <select name="fee_structure" id="fee_structure" class="form-select" required>
+                                <option value="" selected disabled>-- Select Fee --</option>
+                                {% for fee in fee_structures %}
+                                    <option value="{{ fee.id }}">
+                                        {{ fee.name }} (₹{{ fee.amount }})
+                                    </option>
+                                {% empty %}
+                                    <option disabled>No fees available for your class.</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Proceed to Payment <i class="bx bx-right-arrow-alt"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

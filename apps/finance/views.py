@@ -86,8 +86,19 @@ class FeeStructureListView(BaseListView):
 
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        self.filterset = FeeStructureFilter(self.request.GET, queryset=qs, request=self.request)
+        # Bypass BaseListView.get_queryset to avoid forced is_active=True filtering
+        # We handle active/inactive status via the filterset
+        # Use all_objects manager to include inactive records
+        queryset = self.model.all_objects.all()
+        
+        if self.tenant:
+            queryset = queryset.filter(tenant=self.tenant)
+            
+        # Apply ordering
+        if self.ordering:
+            queryset = queryset.order_by(*self.ordering)
+            
+        self.filterset = FeeStructureFilter(self.request.GET, queryset=queryset, request=self.request)
         return self.filterset.qs
 
     def get_context_data(self, **kwargs):
@@ -191,8 +202,31 @@ class InvoiceCreateView(BaseCreateView):
     
     def form_valid(self, form):
         form.instance.issued_by = self.request.user
-        messages.success(self.request, 'Invoice created successfully!')
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        
+        # Auto-generate invoice items based on student's class and active fee structures
+        student = self.object.student
+        academic_year = self.object.academic_year
+        
+        fees = FeeStructure.objects.filter(
+            class_name=student.current_class,
+            academic_year=academic_year,
+            is_active=True,
+            tenant=self.object.tenant
+        )
+        
+        if fees.exists():
+            for fee in fees:
+                self.object.add_invoice_item(
+                    fee_structure=fee,
+                    amount=fee.amount,
+                    description=f"{fee.get_fee_type_display()} - {fee.get_frequency_display()}"
+                )
+            messages.success(self.request, f'Invoice created successfully with {fees.count()} fee items.')
+        else:
+            messages.warning(self.request, 'Invoice created but no applicable fee structures found for this student.')
+            
+        return response
 
 class InvoiceUpdateView(BaseUpdateView):
     model = Invoice
@@ -666,11 +700,29 @@ class PaymentGatewayView(BaseView):
         invoice = get_object_or_404(Invoice, pk=invoice_id, tenant=request.tenant)
         
         # Initialize Razorpay Client
-        # Note: In a real app, get these from settings/db and handle secrets securely
+        from apps.tenants.models import PaymentConfiguration
         from django.conf import settings
-        # Providing default fallback for demo if settings not present
-        key_id = getattr(settings, 'RAZORPAY_KEY_ID', 'rzp_test_placeholder')
-        key_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', 'secret_placeholder')
+        
+        key_id = None
+        key_secret = None
+        
+        # Try DB Configuration first
+        try:
+            config = PaymentConfiguration.objects.get(tenant=request.tenant)
+            if config.razorpay_key_id and config.razorpay_key_secret:
+                key_id = config.razorpay_key_id
+                key_secret = config.razorpay_key_secret
+        except PaymentConfiguration.DoesNotExist:
+            pass
+            
+        # Fallback to settings
+        if not key_id:
+            key_id = getattr(settings, 'RAZORPAY_KEY_ID', None)
+            key_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', None)
+            
+        if not key_id or not key_secret:
+            messages.error(request, "Payment gateway configuration missing.")
+            return redirect('finance:my_invoices')
         
         client = razorpay.Client(auth=(key_id, key_secret))
         

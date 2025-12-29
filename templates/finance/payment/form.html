@@ -1,5 +1,10 @@
 {% extends 'layouts/dashboard.html' %}
-{% load i18n crispy_forms_tags %}
+{% load i18n crispy_forms_tags static %}
+
+{% block extra_css %}
+    <link href="{% static 'assets/plugins/select2/css/select2.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'assets/plugins/select2/css/select2-bootstrap4.css' %}" rel="stylesheet" />
+{% endblock %}
 
 {% block title %}{% trans "Record Payment" %}{% endblock %}
 
@@ -69,4 +74,18 @@
             </form>
         </div>
     </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            $('#id_invoice').select2({
+                theme: 'bootstrap4',
+                width: '100%',
+                placeholder: "{% trans 'Select Invoice' %}",
+                allowClear: true
+            });
+        });
+    </script>
 {% endblock %}

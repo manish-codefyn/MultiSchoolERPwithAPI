@@ -29,9 +29,11 @@ class FeeStructureFilter(django_filters.FilterSet):
         choices=FeeStructure.FEE_FREQUENCY_CHOICES,
         empty_label='All Frequencies'
     )
-    is_active = django_filters.BooleanFilter(
-        widget=forms.CheckboxInput(),
-        label='Active Only'
+    is_active = django_filters.ChoiceFilter(
+        choices=[(True, 'Active'), (False, 'Inactive')],
+        empty_label='All Statuses',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Status'
     )
     
     class Meta:

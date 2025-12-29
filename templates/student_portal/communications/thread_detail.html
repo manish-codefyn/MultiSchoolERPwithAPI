@@ -1,0 +1,61 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block title %}Thread{% endblock %}
+
+{% block content %}
+<div class="card h-100" style="max-height: 80vh;">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'student_portal:inbox' %}" class="btn btn-sm btn-icon btn-light me-2">
+                <i class="bx bx-arrow-back"></i>
+            </a>
+            <h5 class="mb-0">{{ thread.subject|default:"Conversation" }}</h5>
+        </div>
+        <div class="avatars">
+             {% for p in thread.participants.all %}
+                {% if p != request.user %}
+                <span class="badge bg-secondary rounded-pill">{{ p.get_full_name|first }}</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="card-body overflow-auto" id="chat-messages" style="display: flex; flex-direction: column-reverse;">
+        <!-- Messages are rendered normally, but flex-reverse keeps scroll at bottom usually if structure changes -->
+        <!-- Logic: Standard list -->
+        <div class="d-flex flex-column gap-3">
+            {% for message in thread.messages.all %}
+            <div class="d-flex {% if message.sender == request.user %}justify-content-end{% else %}justify-content-start{% endif %}">
+                <div class="card {% if message.sender == request.user %}bg-primary text-white{% else %}bg-light{% endif %}" style="max-width: 75%;">
+                    <div class="card-body p-2 px-3">
+                        <small class="d-block mb-1 opacity-75" style="font-size: 0.75rem;">
+                             {% if message.sender == request.user %}You{% else %}{{ message.sender.get_full_name }}{% endif %} • {{ message.created_at|date:"H:i" }}
+                        </small>
+                        <p class="mb-0">{{ message.body }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card-footer bg-white">
+        <form method="post">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" name="body" class="form-control border-0 bg-light" placeholder="Type a message..." required>
+                <button class="btn btn-primary" type="submit">
+                    <i class="bx bx-send"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Simple auto-scroll to bottom
+    const container = document.getElementById('chat-messages');
+    container.scrollTop = container.scrollHeight;
+</script>
+{% endblock %}

@@ -6,7 +6,7 @@ from apps.finance.models import (
     FeeStructure, FeeDiscount, Invoice, InvoiceItem, AppliedDiscount,
     Payment, Refund, ExpenseCategory, Expense, Budget, BudgetCategory,
     BudgetItem, BudgetTemplate, BudgetTemplateItem, FinancialTransaction,
-    BankAccount, FinancialReport
+    BankAccount, FinancialReport, TaxConfiguration
 )
 from .serializers import (
     FeeStructureSerializer, FeeDiscountSerializer, InvoiceSerializer,

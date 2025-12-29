@@ -1,0 +1,64 @@
+{% extends 'student_portal/layout.html' %}
+{% load static %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0">Messages</h4>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                <i class="bx bx-plus"></i> New Message
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="list-group list-group-flush">
+                {% for thread in threads %}
+                <a href="{% url 'student_portal:thread_detail' thread.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start p-3 {% if not thread.is_read %}bg-light{% endif %}">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold">{{ thread.subject|default:"(No Subject)" }}</div>
+                        <small class="text-muted">
+                            {% with other_participants=thread.participants.all %}
+                                With: {% for p in other_participants %}{% if p != request.user %}{{ p.get_full_name }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}
+                            {% endwith %}
+                        </small>
+                        <p class="mb-0 text-secondary text-truncate" style="max-width: 500px;">
+                            {{ thread.messages.last.body|striptags }}
+                        </p>
+                    </div>
+                    <small class="text-nowrap text-muted">{{ thread.last_message_at|timesince }} ago</small>
+                </a>
+                {% empty %}
+                <div class="p-5 text-center">
+                    <div class="mb-3">
+                        <i class="bx bx-message-square-dots fs-1 text-muted"></i>
+                    </div>
+                    <p class="text-muted">No messages yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Simple New Message Modal Placeholder -->
+<div class="modal fade" id="newMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>To start a new conversation, please contact your administrator or teacher directly via the specific module.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

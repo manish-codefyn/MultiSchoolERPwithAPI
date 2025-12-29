@@ -10,7 +10,11 @@ from .views import (
     MemoryGameView,
     MathQuizView,
     TicTacToeView,
-    StudentProfileView
+    StudentProfileView,
+    PortalInboxView,
+    PortalThreadDetailView,
+    PortalInvoicePrintView,
+    PortalDirectPaymentInitiateView
 )
 
 app_name = 'student_portal'
@@ -21,8 +25,10 @@ urlpatterns = [
     
     # Financials
     path('finance/invoices/', PortalInvoiceListView.as_view(), name='invoice_list'),
-    path('finance/pay/<int:pk>/', PortalPaymentInitiateView.as_view(), name='pay_invoice'),
-    path('finance/callback/', PortalPaymentCallbackView.as_view(), name='payment_callback'),
+    path('finance/payment/direct/', PortalDirectPaymentInitiateView.as_view(), name='direct_payment'),
+    path('finance/invoices/<uuid:pk>/pay/', PortalPaymentInitiateView.as_view(), name='pay_invoice'),
+    path('finance/invoices/<uuid:pk>/print/', PortalInvoicePrintView.as_view(), name='print_invoice'),
+    path('finance/payment/callback/', PortalPaymentCallbackView.as_view(), name='payment_callback'),
     
     # Academics
     path('academics/timetable/', PortalTimetableView.as_view(), name='timetable'),
@@ -31,5 +37,10 @@ urlpatterns = [
     path('games/', PortalGamesView.as_view(), name='games'),
     path('games/memory/', MemoryGameView.as_view(), name='games_memory'),
     path('games/quiz/', MathQuizView.as_view(), name='games_quiz'),
+    path('games/quiz/', MathQuizView.as_view(), name='games_quiz'),
     path('games/tictactoe/', TicTacToeView.as_view(), name='games_tictactoe'),
+
+    # Communications
+    path('communications/inbox/', PortalInboxView.as_view(), name='inbox'),
+    path('communications/thread/<uuid:pk>/', PortalThreadDetailView.as_view(), name='thread_detail'),
 ]

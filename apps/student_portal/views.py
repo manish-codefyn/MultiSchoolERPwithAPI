@@ -1,4 +1,5 @@
 from django.views.generic import TemplateView, ListView, DetailView, View
+from decimal import Decimal
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
@@ -17,6 +18,7 @@ from apps.finance.services import RazorpayService
 from apps.assignments.models import Assignment, Submission
 from apps.academics.models import TimeTable, Subject
 from apps.exams.models import ExamResult
+from apps.communications.models import MessageThread, Message
 
 class StudentPortalBaseView(BaseView):
     """Base view for student portal ensuring user is a student"""
@@ -90,27 +92,121 @@ class PortalPaymentInitiateView(StudentPortalBaseView, View):
             return redirect('student_portal:invoice_list')
 
         # Create Razorpay Order
-        order = RazorpayService.create_order(
-            amount=invoice.due_amount, 
-            currency="INR", 
-            receipt=str(invoice.invoice_number),
-            notes={'invoice_id': invoice.pk, 'student_id': invoice.student.pk}
-        )
+        try:
+            order = RazorpayService.create_order(
+                amount=invoice.due_amount, 
+                currency="INR", 
+                receipt=str(invoice.invoice_number),
+                notes={'invoice_id': str(invoice.pk), 'student_id': str(invoice.student.pk)},
+                tenant=request.tenant
+            )
+        except Exception as e:
+            import traceback
+            traceback.print_exc() # Print to console for server logs
+            messages.error(request, f"Failed to initiate payment gateway: {str(e)}")
+            return redirect('student_portal:invoice_list')
 
         if not order:
             messages.error(request, "Failed to initiate payment gateway. Please try again.")
             return redirect('student_portal:invoice_list')
 
+        # Get Key ID for frontend
+        razorpay_key_id = getattr(settings, 'RAZORPAY_KEY_ID', '')
+        try:
+            from apps.tenants.models import PaymentConfiguration
+            pc = PaymentConfiguration.objects.get(tenant=request.tenant)
+            if pc.razorpay_key_id:
+                razorpay_key_id = pc.razorpay_key_id
+        except Exception:
+            pass
+
         context = {
             'invoice': invoice,
             'razorpay_order_id': order['id'],
-            'razorpay_key_id': getattr(settings, 'RAZORPAY_KEY_ID', ''),
+            'razorpay_key_id': razorpay_key_id,
             'amount': invoice.due_amount,
+            'amount_paise': int(invoice.due_amount * 100), # Razorpay expects paise
             'currency': 'INR',
             'callback_url': request.build_absolute_uri(reverse_lazy('student_portal:payment_callback')),
             'student': self.get_student() # For pre-filling email/contact
         }
         return render(request, 'student_portal/finance/payment_confirm.html', context)
+
+
+class PortalDirectPaymentInitiateView(StudentPortalBaseView, View):
+    template_name = 'student_portal/finance/direct_payment.html'
+
+    def get(self, request):
+        student = self.get_student()
+        if not student:
+            messages.error(request, "Student profile not found.")
+            return redirect('student_portal:dashboard')
+
+        from apps.finance.models import FeeStructure
+        
+        # Filter active fees for this tenant
+        fees = FeeStructure.objects.filter(
+            tenant=request.tenant,
+            is_active=True
+        )
+        
+        context = {
+            'fee_structures': fees
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        student = self.get_student()
+        if not student:
+            return redirect('student_portal:dashboard')
+
+        fee_structure_id = request.POST.get('fee_structure')
+        if not fee_structure_id:
+            messages.error(request, "Please select a fee type.")
+            return redirect('student_portal:direct_payment')
+
+        try:
+            from apps.finance.models import FeeStructure, Invoice, InvoiceItem
+            from apps.academics.models import AcademicYear
+            
+            fee_structure = get_object_or_404(FeeStructure, pk=fee_structure_id, tenant=request.tenant)
+
+            # Get current academic year
+            academic_year = AcademicYear.objects.filter(tenant=request.tenant, is_current=True).first()
+            if not academic_year:
+                # Fallback to any latest year or return error
+                academic_year = AcademicYear.objects.filter(tenant=request.tenant).order_by('-start_date').first()
+                if not academic_year:
+                     messages.error(request, "No active academic year found for this tenant.")
+                     return redirect('student_portal:direct_payment')
+
+            # Create Invoice
+            invoice = Invoice.objects.create(
+                tenant=request.tenant,
+                student=student,
+                academic_year=academic_year,
+                issue_date=timezone.now().date(),
+                due_date=timezone.now().date(), # Due immediately
+                billing_period=f"Immediate Payment - {timezone.now().strftime('%B %Y')}",
+                created_by=request.user 
+            )
+
+            # Add Item
+            invoice.add_invoice_item(
+                fee_structure=fee_structure,
+                amount=fee_structure.amount,
+                description=fee_structure.name
+            )
+            
+            invoice.save()
+            
+            messages.success(request, "Invoice created. Proceeding to payment...")
+            return redirect('student_portal:pay_invoice', pk=invoice.pk)
+
+        except Exception as e:
+            messages.error(request, f"Error creating invoice: {str(e)}")
+            return redirect('student_portal:direct_payment')
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PortalPaymentCallbackView(View):
@@ -127,24 +223,61 @@ class PortalPaymentCallbackView(View):
              return redirect('student_portal:invoice_list')
 
         # Verify Signature
-        if RazorpayService.verify_payment_signature(payment_id, order_id, signature):
-            # Success - Find relevant invoice (this might need session storage or custom notes processing if stateless)
-            # ideally, we query Razorpay or check our logs, but for simplicity, we assume we need to handle it.
-            # IMPORTANT: In a real callback, we don't always know the context unless we successfully passed it in 'notes' and formatted the callback to include it, 
-            # OR we rely on the frontend redirect. Razorpay standard checkout POSTs to callback_url.
-            
-            # Since we can't easily pass custom args to the callback URL in standard checkout without query params (and POST drops them sometimes), 
-            # we should look up the order or rely on the fact that we created it. 
-            # A robust way is to use a webhook. For this synchronous flow:
-            
-            messages.success(request, "Payment successful! It may take a few moments to update.")
-            return redirect('student_portal:invoice_list')
-            
-            # Note: Actual DB update should ideally be done via Webhook or by verifying order status from API 
-            # if we want to be secure against client-side manipulation. 
-            # I will assume we add a verification step or webhook later. 
-            # For now, to make it work, I'll add a 'verify' step view if needed, or trusting the signature here is 'okay' 
-            # IF we can find the invoice. 
+        # Verify Signature
+        if RazorpayService.verify_payment_signature(payment_id, order_id, signature, tenant=request.tenant):
+            try:
+                # 1. Fetch Order to get Notes (Invoice ID)
+                client = RazorpayService.get_client(tenant=request.tenant)
+                order = client.order.fetch(order_id)
+                notes = order.get('notes', {})
+                invoice_id = notes.get('invoice_id')
+                
+                if not invoice_id:
+                     # Fallback: simple redirect if no invoice context (shouldn't happen with our initiate view)
+                     messages.warning(request, "Payment verified but invoice context missing.")
+                     return redirect('student_portal:invoice_list')
+
+                # 2. Get Invoice & Create Payment
+                # We import here to avoid circular dependencies if any
+                from apps.finance.models import Invoice, Payment
+                from django.utils import timezone
+                
+                invoice = get_object_or_404(Invoice, pk=invoice_id)
+                
+                # Check duplication
+                if not Payment.objects.filter(transaction_id=payment_id).exists():
+                    # Calculate amount from order (paise to main unit)
+                    amount_paid = float(order['amount']) / 100
+                    
+                    Payment.objects.create(
+                        tenant=request.tenant,
+                        invoice=invoice,
+                        student=invoice.student,
+                        amount=amount_paid,
+                        payment_date=timezone.now().date(),
+                        payment_method='ONLINE', # Must be one of CHOICES
+                        gateway_name='Razorpay',
+                        gateway_response=order,
+                        transaction_id=payment_id,
+                        status='COMPLETED', 
+                        notes=f"Razorpay Order: {order_id}"
+                    )
+                    
+                    # Update Invoice Status
+                    invoice.paid_amount += Decimal(str(amount_paid))
+                    invoice.save()
+                    
+                    messages.success(request, f"Payment of {amount_paid} received successfully!")
+                else:
+                    messages.info(request, "Payment already recorded.")
+                    
+                return redirect('student_portal:invoice_list')
+                
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                messages.error(request, f"Payment verified but failed to record locally: {str(e)}")
+                return redirect('student_portal:invoice_list')
             
         else:
             messages.error(request, "Payment verification failed.")
@@ -165,7 +298,7 @@ class PortalTimetableView(StudentPortalBaseView, TemplateView):
                 class_name=student.current_class
             ).filter(
                 Q(section__isnull=True) | Q(section=student.section)
-            ).order_by('day_of_week', 'start_time')
+            ).order_by('day', 'start_time')
         return context
 
 # ==================== GAMES & EXTRAS ====================
@@ -214,3 +347,116 @@ class StudentProfileView(StudentPortalBaseView, DetailView):
             context['addresses'] = student.addresses.all()
         return context
 
+
+
+# ==================== COMMUNICATIONS ====================
+
+from apps.communications.models import MessageThread, Message
+
+
+
+class PortalInboxView(StudentPortalBaseView, ListView):
+
+    model = MessageThread
+
+    template_name = 'student_portal/communications/inbox.html'
+
+    context_object_name = 'threads'
+
+    
+
+    def get_queryset(self):
+
+        user = self.request.user
+
+        return MessageThread.objects.filter(
+
+            participants=user, 
+
+            is_active=True
+
+        ).prefetch_related('participants', 'messages').distinct().order_by('-last_message_at')
+
+
+
+class PortalThreadDetailView(StudentPortalBaseView, DetailView):
+
+    model = MessageThread
+
+    template_name = 'student_portal/communications/thread_detail.html'
+
+    context_object_name = 'thread'
+
+
+
+    def get_object(self):
+
+        obj = super().get_object()
+
+        # Security check: User must be participant
+
+        if self.request.user not in obj.participants.all():
+
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+
+        return obj
+
+
+
+    def post(self, request, *args, **kwargs):
+
+        thread = self.get_object()
+
+        body = request.POST.get('body')
+
+        
+
+        if body:
+
+            message = Message.objects.create(
+
+                thread=thread,
+
+                sender=request.user,
+
+                body=body,
+
+                message_type='MESSAGE',
+
+                subject=f"Re: {thread.title}"
+
+            )
+
+            # Update thread last message
+
+            thread.last_message_at = timezone.now()
+
+            thread.save()
+
+            
+
+            # TODO: Send Real-time notification to other participants?
+
+            # Implemented simplified broadcast via channel layer if consumer supports it.
+
+            # But focusing on saving for now.
+
+
+
+        return redirect('student_portal:thread_detail', pk=thread.pk)
+
+
+class PortalInvoicePrintView(StudentPortalBaseView, DetailView):
+    model = Invoice
+    template_name = 'student_portal/finance/invoice_print.html'
+    context_object_name = 'invoice'
+
+    def get_object(self):
+        obj = super().get_object()
+        # Security: Only own invoices
+        if obj.student.user != self.request.user and not self.request.user.is_superuser:
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied
+        return obj

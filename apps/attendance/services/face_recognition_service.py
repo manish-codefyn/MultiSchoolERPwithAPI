@@ -4,6 +4,13 @@ Simpler installation and maintenance than dlib/face_recognition
 """
 
 import os
+
+# Suppress TensorFlow logs and warnings
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+import warnings
+warnings.filterwarnings('ignore', message='.*sparse_softmax_cross_entropy.*')
 import json
 import numpy as np
 import cv2

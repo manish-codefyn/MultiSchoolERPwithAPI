@@ -92,3 +92,12 @@ urlpatterns = [
     path('financial-reports/', FinancialReportListCreateAPIView.as_view(), name='financial-report-list'),
     path('financial-reports/<uuid:pk>/', FinancialReportDetailAPIView.as_view(), name='financial-report-detail'),
 ]
+
+# Student Portal Finance API
+from rest_framework.routers import DefaultRouter
+from .student_views import StudentInvoiceViewSet
+
+router = DefaultRouter()
+router.register(r'student/invoices', StudentInvoiceViewSet, basename='student-invoice')
+
+urlpatterns += router.urls

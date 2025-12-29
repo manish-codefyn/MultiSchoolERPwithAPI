@@ -858,7 +858,7 @@ class Notification(BaseModel):
     )
     
     # Action and Link
-    action_url = models.URLField(blank=True, verbose_name=_("Action URL"))
+    action_url = models.CharField(max_length=500, blank=True, verbose_name=_("Action URL"))
     action_text = models.CharField(
         max_length=100,
         blank=True,

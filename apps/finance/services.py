@@ -11,10 +11,26 @@ class RazorpayService:
     """
     
     @staticmethod
-    def get_client():
+    def get_client(tenant=None):
         """Get authenticated Razorpay client"""
-        key_id = getattr(settings, 'RAZORPAY_KEY_ID', '')
-        key_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', '')
+        key_id = None
+        key_secret = None
+        
+        # Try finding tenant config first
+        if tenant:
+            try:
+                from apps.tenants.models import PaymentConfiguration
+                config = PaymentConfiguration.objects.get(tenant=tenant)
+                if config.razorpay_key_id and config.razorpay_key_secret:
+                    key_id = config.razorpay_key_id
+                    key_secret = config.razorpay_key_secret
+            except (ImportError, Exception):
+                pass
+        
+        # Fallback to settings
+        if not key_id:
+            key_id = getattr(settings, 'RAZORPAY_KEY_ID', '')
+            key_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', '')
         
         if not key_id or not key_secret:
             logger.warning("Razorpay keys not configured.")
@@ -23,17 +39,19 @@ class RazorpayService:
         return razorpay.Client(auth=(key_id, key_secret))
 
     @staticmethod
-    def create_order(amount, currency="INR", receipt=None, notes=None):
+    def create_order(amount, currency="INR", receipt=None, notes=None, tenant=None):
         """
         Create a Razorpay order
         :param amount: Amount in currency (not subunits)
         :param currency: Currency code
         :param receipt: Internal receipt ID
         :param notes: Dictionary of notes
+        :param tenant: Tenant object for configuration lookup
         """
-        client = RazorpayService.get_client()
+        client = RazorpayService.get_client(tenant)
         if not client:
-            return None
+            raise Exception("Razorpay keys not configured (Tenant or Global)")
+
             
         try:
             # Convert amount to subunits (paisa)
@@ -50,14 +68,15 @@ class RazorpayService:
             return order
         except Exception as e:
             logger.error(f"Razorpay Order Creation Failed: {str(e)}")
-            return None
+            raise e
+
 
     @staticmethod
-    def verify_payment_signature(payment_id, order_id, signature):
+    def verify_payment_signature(payment_id, order_id, signature, tenant=None):
         """
         Verify Razorpay payment signature
         """
-        client = RazorpayService.get_client()
+        client = RazorpayService.get_client(tenant)
         if not client:
             return False
             

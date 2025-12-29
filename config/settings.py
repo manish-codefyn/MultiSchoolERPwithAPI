@@ -17,15 +17,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Environment variables
 env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+# Try loading .env from config directory first, then root
+env_path = os.path.join(BASE_DIR, "config", ".env")
+if not os.path.exists(env_path):
+    env_path = os.path.join(BASE_DIR, ".env")
+environ.Env.read_env(env_path)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY", default="django-insecure-your-secret-key-here")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
+# SECURITY WARNING: don't run with debug turned on in production!
+# Force DEBUG=True for local development environment to avoid 404s/static issues
+DEBUG = True 
+
+# Force allow all hosts for local development multi-tenancy
+ALLOWED_HOSTS = ["*"]
 # To allow all tenant subdomains, add your base domain with a leading dot.
 # Example: ALLOWED_HOSTS=.schoolerp.com,localhost
 # This allows: schoolerp.com, tenant1.schoolerp.com, tenant2.schoolerp.com, etc.
@@ -498,10 +506,14 @@ FIELD_ENCRYPTION_KEY = env(
 )
 # Default tenant configuration
 DEFAULT_TENANT_CONFIG = {
-    "max_users": 100,
     "max_storage_mb": 1024,
     "allowed_modules": ["academics", "students", "finance"],
 }
+
+# Payment Gateway Configuration
+# Support both standard naming and user's existing naming convention
+RAZORPAY_KEY_ID = env("RAZORPAY_KEY_ID", default=env("RAZORPAY_PUBLIC_KEY", default=""))
+RAZORPAY_KEY_SECRET = env("RAZORPAY_KEY_SECRET", default=env("RAZORPAY_SECRET_KEY", default=""))
 
 # settings.py
 

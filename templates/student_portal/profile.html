@@ -1,160 +1,228 @@
 {% extends 'student_portal/layout.html' %}
 {% load static %}
 
+{% block title %}My Profile{% endblock %}
+
 {% block content %}
-<div class="row">
-    <!-- Profile Header Card -->
-    <div class="col-12 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-            <div class="card-body p-0">
-                <div class="bg-primary p-4 text-center text-white">
-                    <div class="mb-3 position-relative d-inline-block">
-                        {% if request.user.profile_picture %}
-                            <img src="{{ request.user.profile_picture.url }}" class="rounded-circle border border-4 border-white" width="100" height="100" alt="{{ student.full_name }}">
-                        {% else %}
-                            <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center mx-auto border border-4 border-white" style="width: 100px; height: 100px;">
-                                <i class="bx bx-user fs-1"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <h5 class="mb-1 fw-bold">{{ student.full_name }}</h5>
-                    <p class="mb-0 opacity-75">{{ student.current_class.name }} - {{ student.section.name }}</p>
-                    <span class="badge bg-white text-primary mt-2 rounded-pill px-3">{{ student.admission_number }}</span>
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow rounded-4 overflow-hidden">
+                <!-- Cover Photo Area -->
+                <div class="bg-primary bg-gradient p-5 text-center position-relative" style="height: 180px; background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                    <!-- You could add a decorative pattern or shape here -->
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Personal Information -->
-    <div class="col-12 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                <h6 class="fw-bold mb-0"><i class="bx bx-id-card me-2 text-primary"></i>Personal Information</h6>
-            </div>
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 text-muted col-4">Date of Birth</div>
-                    <div class="flex-grow-1 fw-medium">{{ student.date_of_birth|date:"d M, Y" }}</div>
-                </div>
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 text-muted col-4">Gender</div>
-                    <div class="flex-grow-1 fw-medium">{{ student.get_gender_display }}</div>
-                </div>
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 text-muted col-4">Blood Group</div>
-                    <div class="flex-grow-1 fw-medium">{{ student.blood_group|default:"-" }}</div>
-                </div>
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 text-muted col-4">Email</div>
-                    <div class="flex-grow-1 fw-medium text-break">{{ student.personal_email }}</div>
-                </div>
-                <div class="d-flex align-items-center mb-0">
-                    <div class="flex-shrink-0 text-muted col-4">Mobile</div>
-                    <div class="flex-grow-1 fw-medium">{{ student.mobile_primary }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Academic Information -->
-    <div class="col-12 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-             <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                <h6 class="fw-bold mb-0"><i class="bx bx-book-reader me-2 text-success"></i>Academic Details</h6>
-            </div>
-            <div class="card-body p-4">
-                 <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 text-muted col-4">Roll Number</div>
-                    <div class="flex-grow-1 fw-medium">{{ student.roll_number }}</div>
-                </div>
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 text-muted col-4">Academic Year</div>
-                    <div class="flex-grow-1 fw-medium">{{ student.academic_year.name }}</div>
-                </div>
-                <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 text-muted col-4">Enrollment Date</div>
-                    <div class="flex-grow-1 fw-medium">{{ student.enrollment_date|date:"d M, Y" }}</div>
-                </div>
-                 <div class="d-flex align-items-center mb-3">
-                    <div class="flex-shrink-0 text-muted col-4">Status</div>
-                    <div class="flex-grow-1">
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
-                            {{ student.get_status_display }}
-                        </span>
-                    </div>
-                </div>
-                 <div class="d-flex align-items-center mb-0">
-                    <div class="flex-shrink-0 text-muted col-4">Category</div>
-                    <div class="flex-grow-1 fw-medium">{{ student.get_category_display }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Guardians -->
-    <div class="col-12 mb-4">
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                <h6 class="fw-bold mb-0"><i class="bx bx-family-heart me-2 text-warning"></i>Guardian Information</h6>
-            </div>
-            <div class="card-body p-4">
-                <div class="row g-3">
-                    {% for guardian in guardians %}
-                    <div class="col-12 col-md-6">
-                        <div class="p-3 bg-light rounded-3 border">
-                            <div class="d-flex align-items-center mb-2">
-                                <h6 class="mb-0 fw-bold">{{ guardian.full_name }}</h6>
-                                <span class="badge bg-secondary ms-2">{{ guardian.get_relation_display }}</span>
-                                {% if guardian.is_primary %}
-                                    <span class="badge bg-primary ms-1">Primary</span>
-                                {% endif %}
-                            </div>
-                            <div class="small text-muted mb-1">
-                                <i class="bx bx-phone me-1"></i> {{ guardian.phone_primary }}
-                            </div>
-                            {% if guardian.email %}
-                            <div class="small text-muted">
-                                <i class="bx bx-envelope me-1"></i> {{ guardian.email }}
-                            </div>
+                
+                <div class="card-body pt-0 px-4 text-center position-relative">
+                    <!-- Profile Picture -->
+                    <div class="position-absolute top-0 start-50 translate-middle">
+                        {% with photo=student.get_photo %}
+                            {% if photo and photo.file %}
+                                <img src="{{ photo.file.url }}" alt="{{ student.full_name }}" 
+                                     class="rounded-circle border border-5 border-white shadow bg-white" 
+                                     style="width: 140px; height: 140px; object-fit: cover;">
+                            {% elif request.user.profile_picture %}
+                                <img src="{{ request.user.profile_picture.url }}" alt="{{ student.full_name }}" 
+                                     class="rounded-circle border border-5 border-white shadow bg-white" 
+                                     style="width: 140px; height: 140px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle border border-5 border-white shadow bg-white d-flex align-items-center justify-content-center mx-auto text-primary" 
+                                     style="width: 140px; height: 140px; font-size: 3.5rem;">
+                                    <i class="bx bx-user"></i>
+                                </div>
                             {% endif %}
+                        {% endwith %}
+                    </div>
+                    
+                    <div style="margin-top: 80px;">
+                        <h3 class="fw-bold mb-1 text-dark">{{ student.full_name }}</h3>
+                        <p class="text-muted mb-2 fs-5">{{ student.current_class.name }} - {{ student.section.name }}</p>
+                        
+                        <div class="d-flex justify-content-center gap-2 mb-3">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                                <i class="bx bx-id-card me-1"></i> {{ student.admission_number }}
+                            </span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                                <i class="bx bx-check-circle me-1"></i> {{ student.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Personal Info -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-0 text-primary">
+                        <i class="bx bx-user-circle me-2"></i>Personal Info
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3 d-flex align-items-center">
+                            <div class="icon-box bg-light text-primary rounded-circle p-2 me-3">
+                                <i class="bx bx-cake fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Date of Birth</small>
+                                <span class="fw-medium">{{ student.date_of_birth|date:"d M, Y" }}</span>
+                            </div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-center">
+                            <div class="icon-box bg-light text-danger rounded-circle p-2 me-3">
+                                <i class="bx bx-droplet fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Blood Group</small>
+                                <span class="fw-medium">{{ student.blood_group|default:"-" }}</span>
+                            </div>
+                        </li>
+                         <li class="mb-3 d-flex align-items-center">
+                            <div class="icon-box bg-light text-info rounded-circle p-2 me-3">
+                                <i class="bx bx-male-female fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Gender</small>
+                                <span class="fw-medium">{{ student.get_gender_display }}</span>
+                            </div>
+                        </li>
+                        <li class="mb-3 d-flex align-items-center">
+                            <div class="icon-box bg-light text-success rounded-circle p-2 me-3">
+                                <i class="bx bx-envelope fs-5"></i>
+                            </div>
+                            <div class="text-truncate" style="max-width: 200px;">
+                                <small class="text-muted d-block">Email</small>
+                                <span class="fw-medium" title="{{ student.personal_email }}">{{ student.personal_email }}</span>
+                            </div>
+                        </li>
+                         <li class="d-flex align-items-center">
+                            <div class="icon-box bg-light text-warning rounded-circle p-2 me-3">
+                                <i class="bx bx-phone fs-5"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Mobile</small>
+                                <span class="fw-medium">{{ student.mobile_primary }}</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Column: Academic Info -->
+        <div class="col-lg-4">
+             <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-0 text-success">
+                        <i class="bx bx-book-open me-2"></i>Academic Details
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                     <ul class="list-unstyled mb-0">
+                        <li class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Roll Number</span>
+                                <span class="fw-bold">{{ student.roll_number }}</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                            </div>
+                        </li>
+                        <li class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Academic Year</span>
+                                <span class="fw-bold">{{ student.academic_year.name }}</span>
+                            </div>
+                        </li>
+                         <li class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Category</span>
+                                <span class="fw-bold">{{ student.get_category_display }}</span>
+                            </div>
+                        </li>
+                        <li class="mb-3">
+                             <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">Enrollment Date</span>
+                                <span class="fw-bold">{{ student.enrollment_date|date:"d M, Y" }}</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Guardians -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                 <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-0 text-warning">
+                        <i class="bx bx-family-heart me-2"></i>Guardians
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% for guardian in guardians %}
+                    <div class="d-flex align-items-start mb-3 pb-3 border-bottom last-border-none">
+                        <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center p-3 me-3" style="width: 50px; height: 50px;">
+                            <span class="fs-5 fw-bold">{{ guardian.full_name|slice:":1" }}</span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ guardian.full_name }}</h6>
+                            <small class="text-muted">{{ guardian.get_relation_display }}</small>
+                            <div class="mt-1 small">
+                                <a href="tel:{{ guardian.phone_primary }}" class="text-decoration-none text-muted me-2">
+                                    <i class="bx bx-phone"></i> {{ guardian.phone_primary }}
+                                </a>
+                            </div>
                         </div>
                     </div>
                     {% empty %}
-                    <div class="col-12 text-center text-muted">
-                        No guardian information available.
-                    </div>
+                        <p class="text-muted text-center">No guardian details.</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Addresses -->
-    <div class="col-12 mb-4">
-        <div class="card border-0 shadow-sm rounded-4">
-           <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                <h6 class="fw-bold mb-0"><i class="bx bx-map me-2 text-danger"></i>Address</h6>
-            </div>
-            <div class="card-body p-4">
-                {% if student.current_address %}
-                <div class="mb-3">
-                    <div class="text-uppercase text-muted small fw-bold mb-1">Current Address</div>
-                    <p class="mb-0">{{ student.current_address }}</p>
+        <!-- Bottom Row: Address -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6 class="fw-bold text-danger mb-3"><i class="bx bx-map me-2"></i>Current Address</h6>
+                            <p class="text-muted mb-0 ps-4 border-start border-3 border-danger">
+                                {{ student.current_address|default:"No current address recorded." }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                             <h6 class="fw-bold text-secondary mb-3"><i class="bx bx-home me-2"></i>Permanent Address</h6>
+                             <p class="text-muted mb-0 ps-4 border-start border-3 border-secondary">
+                                {{ student.permanent_address|default:"No permanent address recorded." }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                {% endif %}
-                
-                {% if student.permanent_address %}
-                <div class="mb-0">
-                    <div class="text-uppercase text-muted small fw-bold mb-1">Permanent Address</div>
-                    <p class="mb-0">{{ student.permanent_address }}</p>
-                </div>
-                {% endif %}
-
-                {% if not student.current_address and not student.permanent_address %}
-                     <p class="text-muted text-center mb-0">No address details recorded.</p>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.icon-box {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.last-border-none:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+</style>
 {% endblock %}

@@ -65,42 +65,56 @@
     </div>
 </div>
 
-<div class="row row-cols-1 row-cols-md-3 g-3 mt-4">
+<div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 mt-4">
     <div class="col">
-        <div class="card radius-10 border shadow-none mb-0">
-            <div class="card-body text-center">
-                <div class="widgets-icons rounded-circle bg-light-info text-info mx-auto mb-3">
+        <a href="{% url 'tenants:global_user_list' %}" class="card radius-10 border shadow-none mb-0 text-decoration-none h-100 hover-shadow">
+            <div class="card-body text-center p-3">
+                <div class="widgets-icons rounded-circle bg-light-info text-info mx-auto mb-2 font-24 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                     <i class='bx bx-user-voice'></i>
                 </div>
-                <h5>Global Users</h5>
-                <p class="mb-3 text-secondary">Manage all system users across tenants.</p>
-                <a href="{% url 'tenants:global_user_list' %}" class="btn btn-outline-info btn-sm radius-30">View Users</a>
+                <h6 class="mb-0 text-dark font-14">Users</h6>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col">
-        <div class="card radius-10 border shadow-none mb-0">
-            <div class="card-body text-center">
-                <div class="widgets-icons rounded-circle bg-light-danger text-danger mx-auto mb-3">
+        <a href="{% url 'tenants:global_student_list' %}" class="card radius-10 border shadow-none mb-0 text-decoration-none h-100 hover-shadow">
+            <div class="card-body text-center p-3">
+                <div class="widgets-icons rounded-circle bg-light-danger text-danger mx-auto mb-2 font-24 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                     <i class='bx bxs-user-detail'></i>
                 </div>
-                <h5>Global Students</h5>
-                <p class="mb-3 text-secondary">Cross-tenant student record lookup.</p>
-                <a href="{% url 'tenants:global_student_list' %}" class="btn btn-outline-danger btn-sm radius-30">View Students</a>
+                <h6 class="mb-0 text-dark font-14">Students</h6>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col">
-        <div class="card radius-10 border shadow-none mb-0">
-            <div class="card-body text-center">
-                <div class="widgets-icons rounded-circle bg-light-warning text-warning mx-auto mb-3">
+        <a href="{% url 'tenants:notification_list' %}" class="card radius-10 border shadow-none mb-0 text-decoration-none h-100 hover-shadow">
+            <div class="card-body text-center p-3">
+                <div class="widgets-icons rounded-circle bg-light-warning text-warning mx-auto mb-2 font-24 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                     <i class='bx bx-notification'></i>
                 </div>
-                <h5>System Broadcast</h5>
-                <p class="mb-3 text-secondary">Notify tenants about updates or maintenance.</p>
-                <a href="{% url 'tenants:notification_list' %}" class="btn btn-outline-warning btn-sm radius-30">Manage Alerts</a>
+                <h6 class="mb-0 text-dark font-14">Broadcasts</h6>
             </div>
-        </div>
+        </a>
+    </div>
+    <div class="col">
+        <a href="{% url 'tenants:payment_config' request.tenant.pk %}" class="card radius-10 border shadow-none mb-0 text-decoration-none h-100 hover-shadow">
+            <div class="card-body text-center p-3">
+                <div class="widgets-icons rounded-circle bg-light-success text-success mx-auto mb-2 font-24 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class='bx bx-credit-card'></i>
+                </div>
+                <h6 class="mb-0 text-dark font-14">Payments</h6>
+            </div>
+        </a>
+    </div>
+     <div class="col">
+        <a href="{% url 'tenants:service_list' %}" class="card radius-10 border shadow-none mb-0 text-decoration-none h-100 hover-shadow">
+            <div class="card-body text-center p-3">
+                <div class="widgets-icons rounded-circle bg-light-primary text-primary mx-auto mb-2 font-24 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class='bx bx-server'></i>
+                </div>
+                <h6 class="mb-0 text-dark font-14">Services</h6>
+            </div>
+        </a>
     </div>
 </div>
 

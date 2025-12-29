@@ -55,6 +55,7 @@ urlpatterns = [
     path("transportation/", include("apps.transportation.urls", namespace="transportation")),
     path("users/", include("apps.users.urls", namespace="users")),
 
+
     # Tenants + Public
     path("", include("apps.tenants.urls", namespace="tenants")),
     path("", include("apps.public.urls")),
