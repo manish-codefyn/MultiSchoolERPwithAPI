@@ -13,7 +13,14 @@ class FinanceRepository {
     final dio = _ref.read(apiClientProvider).client;
     try {
       final response = await dio.get('student-portal/invoices/');
-      return (response.data as List).map((e) => Invoice.fromJson(e)).toList();
+      final dynamic responseData = response.data;
+      List results;
+      if (responseData is Map && responseData.containsKey('results')) {
+        results = responseData['results'] as List;
+      } else {
+        results = responseData as List;
+      }
+      return results.map((e) => Invoice.fromJson(e)).toList();
     } catch (e) {
       rethrow;
     }

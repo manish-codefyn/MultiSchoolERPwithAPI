@@ -5,6 +5,7 @@ import '../data/assignments_repository.dart';
 import '../models/assignment.dart';
 import '../../../core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AssignmentDetailScreen extends ConsumerStatefulWidget {
   final String id;
@@ -94,6 +95,22 @@ class _AssignmentDetailScreenState extends ConsumerState<AssignmentDetailScreen>
                           Text('${a.maxMarks} marks', style: const TextStyle(color: AppTheme.textMuted)),
                         ],
                       ),
+                        if (a.attachmentUrl != null) ...[
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            final url = Uri.parse(a.attachmentUrl!);
+                            if (await canLaunchUrl(url)) {
+                              await launchUrl(url, mode: LaunchMode.externalApplication);
+                            }
+                          },
+                          icon: const Icon(Icons.download_rounded),
+                          label: const Text('Download Attachment'),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(40),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

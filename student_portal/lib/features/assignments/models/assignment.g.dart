@@ -18,6 +18,7 @@ Assignment _$AssignmentFromJson(Map<String, dynamic> json) => Assignment(
   dueDate: json['due_date'] as String,
   maxMarks: (json['max_marks'] as num).toInt(),
   isOverdue: json['is_overdue'] as bool,
+  attachmentUrl: json['attachment'] as String?,
   submissionStatus: json['submission_status'] as Map<String, dynamic>?,
 );
 
@@ -35,4 +36,5 @@ Map<String, dynamic> _$AssignmentToJson(Assignment instance) =>
       'max_marks': instance.maxMarks,
       'is_overdue': instance.isOverdue,
       'submission_status': instance.submissionStatus,
+      'attachment': instance.attachmentUrl,
     };

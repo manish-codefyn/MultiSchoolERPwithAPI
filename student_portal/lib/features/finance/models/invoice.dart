@@ -32,8 +32,15 @@ class Invoice {
     required this.dueAmount,
     required this.status,
     required this.statusDisplay,
+    @JsonKey(name: 'print_url')
+    this.printUrl,
+    @JsonKey(name: 'download_url')
+    this.downloadUrl,
     this.items,
   });
+
+  final String? printUrl;
+  final String? downloadUrl;
 
   factory Invoice.fromJson(Map<String, dynamic> json) => _$InvoiceFromJson(json);
   Map<String, dynamic> toJson() => _$InvoiceToJson(this);

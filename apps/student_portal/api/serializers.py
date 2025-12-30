@@ -4,7 +4,9 @@ from apps.core.api.serializers import TenantAwareSerializer
 from apps.students.models import Student, StudentDocument
 from apps.finance.models import Invoice, Payment
 from apps.assignments.models import Assignment, Submission
-from apps.academics.models import TimeTable, Subject
+from apps.academics.models import TimeTable, Subject, StudentAttendance
+from apps.hostel.models import Hostel, Room, HostelAllocation, HostelAttendance
+from apps.exams.models import Exam, ExamResult, SubjectResult, ExamSubject
 from apps.communications.models import MessageThread, Message
 
 
@@ -50,7 +52,11 @@ class StudentProfileSerializer(TenantAwareSerializer):
         """Get student photo URL"""
         photo = obj.get_photo()
         if photo and photo.file:
-            return photo.file.url
+            request = self.context.get('request')
+            photo_url = photo.file.url
+            if request:
+                return request.build_absolute_uri(photo_url)
+            return photo_url
         return None
 
 
@@ -69,9 +75,28 @@ class InvoiceListSerializer(TenantAwareSerializer):
         fields = [
             'id', 'invoice_number', 'issue_date', 'due_date',
             'total_amount', 'paid_amount', 'due_amount',
-            'status', 'status_display'
+            'status', 'status_display', 'print_url', 'download_url'
         ]
         read_only_fields = fields
+
+    print_url = serializers.SerializerMethodField()
+    download_url = serializers.SerializerMethodField()
+
+    def get_print_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            from django.urls import reverse
+            path = reverse('student_portal:print_invoice', kwargs={'pk': obj.pk})
+            return request.build_absolute_uri(path)
+        return None
+
+    def get_download_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            from django.urls import reverse
+            path = reverse('student_portal:download_invoice', kwargs={'pk': obj.pk})
+            return request.build_absolute_uri(path)
+        return None
 
 
 class InvoiceDetailSerializer(InvoiceListSerializer):
@@ -133,9 +158,19 @@ class AssignmentListSerializer(TenantAwareSerializer):
             'subject', 'subject_name', 'class_name',
             'assigned_date', 'due_date', 'max_marks',
             'is_overdue', 'submission_status',
-            'created_at'
+            'attachment', 'created_at'
         ]
         read_only_fields = fields
+
+    attachment = serializers.SerializerMethodField()
+
+    def get_attachment(self, obj):
+        if obj.attachment:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.attachment.url)
+            return obj.attachment.url
+        return None
     
     def get_submission_status(self, obj):
         """Check if current student has submitted"""
@@ -284,6 +319,7 @@ class MessageSerializer(TenantAwareSerializer):
     sent_at = serializers.DateTimeField(source='created_at', read_only=True)
     text = serializers.CharField(source='body', read_only=True)
     is_me = serializers.SerializerMethodField()
+    sender_name = serializers.SerializerMethodField()
     
     class Meta:
         model = Message
@@ -301,7 +337,7 @@ class MessageSerializer(TenantAwareSerializer):
     def get_is_me(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return obj.sender == request.user
+            return obj.sender_id == request.user.id
         return False
 
 
@@ -322,8 +358,12 @@ class MessageThreadSerializer(TenantAwareSerializer):
     
     def get_other_participant(self, obj):
         request = self.context.get('request')
-        if not request: return "Unknown"
+        if not request or not request.user.is_authenticated:
+            return "System"
         other = obj.participants.exclude(id=request.user.id).first()
+        if not other:
+            # If only one participant (the user), or no others found
+            other = obj.participants.first()
         return other.get_full_name() if other else "System"
 
     def get_last_message(self, obj):
@@ -332,16 +372,14 @@ class MessageThreadSerializer(TenantAwareSerializer):
     
     def get_unread_count(self, obj):
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            # We need to import MessageRecipient here to avoid circular imports if any, 
-            # though it should be fine in this file.
-            from apps.communications.models import MessageRecipient
-            return MessageRecipient.objects.filter(
-                message__thread=obj, 
-                recipient=request.user, 
-                is_read=False
-            ).count()
-        return 0
+        if not request or not request.user.is_authenticated:
+            return 0
+        from apps.communications.models import MessageRecipient
+        return MessageRecipient.objects.filter(
+            message__thread=obj, 
+            recipient=request.user, 
+            is_read=False
+        ).count()
 
 
 class MessageThreadDetailSerializer(MessageThreadSerializer):
@@ -352,6 +390,131 @@ class MessageThreadDetailSerializer(MessageThreadSerializer):
     class Meta(MessageThreadSerializer.Meta):
         fields = MessageThreadSerializer.Meta.fields + ['messages']
 
+
+class NotificationSerializer(TenantAwareSerializer):
+    """Serializer for notifications"""
+    
+    class Meta:
+        from apps.communications.models import Notification
+        model = Notification
+        fields = [
+            'id', 'title', 'message', 'notification_type',
+            'is_read', 'created_at'
+        ]
+        read_only_fields = fields
+
+
+# ============================================================================
+# ATTENDANCE SERIALIZERS
+# ============================================================================
+
+class StudentAttendanceSerializer(TenantAwareSerializer):
+    """Serializer for student attendance records"""
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    session_display = serializers.CharField(source='get_session_display', read_only=True)
+    
+    class Meta:
+        model = StudentAttendance
+        fields = [
+            'id', 'date', 'status', 'status_display',
+            'session', 'session_display', 'remarks'
+        ]
+        read_only_fields = fields
+
+# ============================================================================
+# HOSTEL SERIALIZERS
+# ============================================================================
+
+class HostelSerializer(TenantAwareSerializer):
+    """Serializer for hostel details"""
+    type_display = serializers.CharField(source='get_hostel_type_display', read_only=True)
+    
+    class Meta:
+        model = Hostel
+        fields = ['id', 'name', 'code', 'hostel_type', 'type_display', 'address']
+        read_only_fields = fields
+
+class RoomSerializer(TenantAwareSerializer):
+    """Serializer for room details"""
+    type_display = serializers.CharField(source='get_room_type_display', read_only=True)
+    
+    class Meta:
+        model = Room
+        fields = ['id', 'room_number', 'floor', 'room_type', 'type_display', 'capacity']
+        read_only_fields = fields
+
+class HostelAllocationSerializer(TenantAwareSerializer):
+    """Serializer for student hostel allocation"""
+    hostel_details = HostelSerializer(source='hostel', read_only=True)
+    room_details = RoomSerializer(source='room', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    
+    class Meta:
+        model = HostelAllocation
+        fields = [
+            'id', 'hostel_details', 'room_details',
+            'allocation_date', 'status', 'status_display',
+            'is_active', 'bed_number'
+        ]
+        read_only_fields = fields
+
+class HostelAttendanceSerializer(TenantAwareSerializer):
+    """Serializer for hostel attendance"""
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    
+    class Meta:
+        model = HostelAttendance
+        fields = ['id', 'date', 'status', 'status_display', 'remarks']
+        read_only_fields = fields
+
+# ============================================================================
+# EXAM & RESULT SERIALIZERS
+# ============================================================================
+
+class ExamListSerializer(TenantAwareSerializer):
+    """Serializer for exam listing"""
+    exam_type_name = serializers.CharField(source='exam_type.name', read_only=True)
+    class_name_display = serializers.CharField(source='class_name.name', read_only=True)
+    academic_year_display = serializers.CharField(source='academic_year.name', read_only=True)
+    
+    class Meta:
+        model = Exam
+        fields = [
+            'id', 'name', 'exam_type_name', 'class_name_display',
+            'academic_year_display', 'start_date', 'end_date', 'status', 'is_published'
+        ]
+        read_only_fields = fields
+
+class SubjectResultSerializer(TenantAwareSerializer):
+    """Serializer for individual subject marks"""
+    subject_name = serializers.CharField(source='exam_subject.subject.name', read_only=True)
+    max_marks = serializers.DecimalField(source='exam_subject.max_marks', max_digits=5, decimal_places=2, read_only=True)
+    pass_marks = serializers.DecimalField(source='exam_subject.pass_marks', max_digits=5, decimal_places=2, read_only=True)
+    
+    class Meta:
+        model = SubjectResult
+        fields = [
+            'id', 'subject_name', 'theory_marks', 'practical_marks', 
+            'total_marks', 'max_marks', 'pass_marks', 'is_absent', 'grade_point'
+        ]
+        read_only_fields = fields
+
+class ExamResultSerializer(TenantAwareSerializer):
+    """Serializer for full exam results"""
+    exam_name = serializers.CharField(source='exam.name', read_only=True)
+    exam_type = serializers.CharField(source='exam.exam_type.name', read_only=True)
+    subject_results = SubjectResultSerializer(source='subject_results', many=True, read_only=True)
+    status_display = serializers.CharField(source='get_result_status_display', read_only=True)
+    overall_grade_display = serializers.CharField(source='overall_grade.name', read_only=True, default='-')
+    
+    class Meta:
+        model = ExamResult
+        fields = [
+            'id', 'exam_name', 'exam_type', 'total_marks', 'obtained_marks',
+            'percentage', 'result_status', 'status_display', 'overall_grade_display',
+            'rank', 'is_published', 'subject_results'
+        ]
+        read_only_fields = fields
 
 # ============================================================================
 # DASHBOARD SERIALIZERS

@@ -14,6 +14,12 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/communications/presentation/inbox_screen.dart';
 import '../../features/communications/presentation/thread_screen.dart';
 import '../../features/tenant/presentation/tenant_selection_screen.dart';
+import '../../features/communications/presentation/notifications_screen.dart';
+import '../../features/dashboard/presentation/games_screen.dart';
+import '../../features/timetable/presentation/attendance_screen.dart';
+import '../../features/hostel/presentation/hostel_screen.dart';
+import '../../features/exams/presentation/exam_list_screen.dart';
+import '../../features/exams/presentation/result_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
@@ -94,6 +100,48 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => ThreadScreen(id: state.pathParameters['id']!),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/games',
+        builder: (context, state) => const GamesScreen(),
+        routes: [
+          GoRoute(
+            path: 'tictactoe',
+            builder: (context, state) => const TicTacToeGame(),
+          ),
+          GoRoute(
+            path: 'math-quiz',
+            builder: (context, state) => const MathQuizGame(),
+          ),
+          GoRoute(
+            path: 'word-search',
+            builder: (context, state) => const WordSearchGame(),
+          ),
+          GoRoute(
+            path: 'memory-match',
+            builder: (context, state) => const MemoryMatchGame(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/attendance',
+        builder: (context, state) => const AttendanceScreen(),
+      ),
+      GoRoute(
+        path: '/hostel',
+        builder: (context, state) => const HostelScreen(),
+      ),
+      GoRoute(
+        path: '/exams',
+        builder: (context, state) => const ExamListScreen(),
+      ),
+      GoRoute(
+        path: '/results/:id',
+        builder: (context, state) => ResultDetailScreen(resultId: state.pathParameters['id']!),
       ),
     ],
   );

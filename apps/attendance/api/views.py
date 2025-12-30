@@ -191,11 +191,16 @@ class MarkQRAttendanceAPIView(APIView):
             else:
                 msg = f"Check-in marked for {staff.full_name}"
 
-            return Response({
                 "message": msg,
                 "student_name": staff.full_name,  # reuse key for frontend compat
                 "status": "PRESENT",
-                "photo_url": staff.profile_image.url if staff.profile_image else None
+                "photo_url": staff.profile_image.url if staff.profile_image else None,
+                "staff": {
+                    "name": staff.full_name,
+                    "employee_id": staff.employee_id,
+                    "photo_url": staff.profile_image.url if staff.profile_image else None,
+                    "department": str(staff.department) if staff.department else None
+                }
             })
 
         # ---------------------------------------------------------
@@ -238,11 +243,21 @@ class MarkQRAttendanceAPIView(APIView):
                     'marked_by': request.user if request.user.is_authenticated else None
                 }
             )
+            photo_doc = student.get_photo()
+            photo_url = photo_doc.file.url if photo_doc and photo_doc.file else None
+
             return Response({
                 "message": f"Transport {trip_type} marked for {student.first_name}",
                 "student_name": student.full_name,
                 "status": "PRESENT",
-                "photo_url": student.get_photo().file.url if student.get_photo() and student.get_photo().file else None
+                "photo_url": photo_url,
+                "student": {
+                    "name": student.full_name,
+                    "class": str(student.current_class),
+                    "section": str(student.section),
+                    "admission_number": student.admission_number,
+                    "photo_url": photo_url
+                }
             })
 
         # HOSTEL ATTENDANCE
@@ -257,14 +272,30 @@ class MarkQRAttendanceAPIView(APIView):
                     'remarks': 'QR Scan'
                 }
             )
+            photo_doc = student.get_photo()
+            photo_url = photo_doc.file.url if photo_doc and photo_doc.file else None
+
             return Response({
                 "message": f"Hostel attendance marked for {student.first_name}",
                 "student_name": student.full_name,
                 "status": "PRESENT",
-                "photo_url": student.get_photo().file.url if student.get_photo() and student.get_photo().file else None
+                "photo_url": photo_url,
+                "student": {
+                    "name": student.full_name,
+                    "class": str(student.current_class),
+                    "section": str(student.section),
+                    "admission_number": student.admission_number,
+                    "photo_url": photo_url
+                }
             })
 
         # REGULAR STUDENT ATTENDANCE (Default)
+        if not student.current_class or not student.section:
+            return Response(
+                {"error": f"Student {student.first_name} is not assigned to a class or section. Attendance cannot be marked."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         att, created = StudentAttendance.objects.update_or_create(
             student=student,
             date=today,
@@ -284,7 +315,14 @@ class MarkQRAttendanceAPIView(APIView):
             "student_name": student.full_name,
             "roll_number": student.roll_number,
             "status": "PRESENT",
-            "photo_url": photo_url
+            "photo_url": photo_url,
+            "student": {
+                "name": student.full_name,
+                "class": str(student.current_class),
+                "section": str(student.section),
+                "admission_number": student.admission_number,
+                "photo_url": photo_url
+            }
         })
 
 

@@ -4,6 +4,7 @@ import '../data/finance_repository.dart';
 import '../models/invoice.dart';
 import '../../../core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class InvoiceDetailScreen extends ConsumerWidget {
   final String id;
@@ -94,6 +95,40 @@ class InvoiceDetailScreen extends ConsumerWidget {
                   icon: const Icon(Icons.payment),
                   label: const Text('Pay Now'),
                 ),
+              if (inv.printUrl != null) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final url = Uri.parse(inv.printUrl!);
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  icon: const Icon(Icons.print_rounded),
+                  label: const Text('Print Preview'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                ),
+              ],
+              if (inv.downloadUrl != null) ...[
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final url = Uri.parse(inv.downloadUrl!);
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  icon: const Icon(Icons.download_rounded),
+                  label: const Text('Download PDF'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    backgroundColor: AppTheme.secondaryBlue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
             ],
           ),
         ),

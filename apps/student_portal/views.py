@@ -580,10 +580,34 @@ class PortalInvoicePrintView(StudentPortalBaseView, DetailView):
     template_name = 'student_portal/finance/invoice_print.html'
     context_object_name = 'invoice'
 
-    def get_object(self):
-        obj = super().get_object()
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
         # Security: Only own invoices
         if obj.student.user != self.request.user and not self.request.user.is_superuser:
             from django.core.exceptions import PermissionDenied
             raise PermissionDenied
         return obj
+
+class PortalInvoiceDownloadView(PortalInvoicePrintView):
+    """Generate and download PDF invoice"""
+    
+    def get(self, request, *args, **kwargs):
+        from xhtml2pdf import pisa
+        from io import BytesIO
+        from django.template.loader import get_template
+        from django.http import HttpResponse
+        
+        invoice = self.get_object()
+        template = get_template(self.template_name)
+        context = self.get_context_data(object=invoice)
+        html = template.render(context)
+        
+        result = BytesIO()
+        pisa_status = pisa.CreatePDF(BytesIO(html.encode("UTF-8")), dest=result)
+        
+        if not pisa_status.err:
+            response = HttpResponse(result.getvalue(), content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.invoice_number}.pdf"'
+            return response
+        
+        return HttpResponse(f"Error generating PDF: {pisa_status.err}", status=500)

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../../core/theme/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -37,10 +38,18 @@ class ProfileScreen extends ConsumerWidget {
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
-                        backgroundImage: profile.photoUrl != null ? NetworkImage(profile.photoUrl!) : null,
-                        child: profile.photoUrl == null 
-                            ? const Icon(Icons.person, size: 60, color: AppTheme.primaryBlue) 
-                            : null,
+                        child: ClipOval(
+                          child: profile.photoUrl != null
+                              ? CachedNetworkImage(
+                                  imageUrl: profile.photoUrl!,
+                                  width: 120,
+                                  height: 120,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => const CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) => const Icon(Icons.person, size: 60, color: AppTheme.primaryBlue),
+                                )
+                              : const Icon(Icons.person, size: 60, color: AppTheme.primaryBlue),
+                        ),
                       ),
                       Positioned(
                         bottom: 0,

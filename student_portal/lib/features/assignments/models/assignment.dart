@@ -38,8 +38,12 @@ class Assignment {
     required this.dueDate,
     required this.maxMarks,
     required this.isOverdue,
+    @JsonKey(name: 'attachment')
+    this.attachmentUrl,
     this.submissionStatus,
   });
+
+  final String? attachmentUrl;
 
   bool get isSubmitted => submissionStatus?['submitted'] ?? false;
   String? get status => submissionStatus?['status'];

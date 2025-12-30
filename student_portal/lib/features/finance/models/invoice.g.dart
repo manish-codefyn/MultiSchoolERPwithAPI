@@ -16,6 +16,8 @@ Invoice _$InvoiceFromJson(Map<String, dynamic> json) => Invoice(
   dueAmount: (json['due_amount'] as num).toDouble(),
   status: json['status'] as String,
   statusDisplay: json['status_display'] as String,
+  printUrl: json['print_url'] as String?,
+  downloadUrl: json['download_url'] as String?,
   items: (json['items'] as List<dynamic>?)
       ?.map((e) => InvoiceItem.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -32,6 +34,8 @@ Map<String, dynamic> _$InvoiceToJson(Invoice instance) => <String, dynamic>{
   'status': instance.status,
   'status_display': instance.statusDisplay,
   'items': instance.items,
+  'print_url': instance.printUrl,
+  'download_url': instance.downloadUrl,
 };
 
 InvoiceItem _$InvoiceItemFromJson(Map<String, dynamic> json) => InvoiceItem(

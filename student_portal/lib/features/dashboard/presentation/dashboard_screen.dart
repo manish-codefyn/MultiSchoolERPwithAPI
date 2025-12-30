@@ -5,6 +5,7 @@ import '../data/dashboard_repository.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../../core/theme/app_theme.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -40,34 +41,43 @@ class DashboardScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Welcome back,',
-                                    style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 16),
-                                  ),
-                                  Text(
-                                    profile?.fullName ?? 'Student',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
                               CircleAvatar(
                                 radius: 28,
                                 backgroundColor: Colors.white24,
-                                backgroundImage: profile?.photoUrl != null 
-                                    ? NetworkImage(profile!.photoUrl!) 
-                                    : null,
-                                child: profile?.photoUrl == null 
-                                    ? const Icon(Icons.person, color: Colors.white, size: 30) 
-                                    : null,
+                                child: ClipOval(
+                                  child: profile?.photoUrl != null
+                                      ? CachedNetworkImage(
+                                          imageUrl: profile!.photoUrl!,
+                                          width: 56,
+                                          height: 56,
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) => const CircularProgressIndicator(strokeWidth: 2),
+                                          errorWidget: (context, url, error) => const Icon(Icons.person, color: Colors.white, size: 30),
+                                        )
+                                      : const Icon(Icons.person, color: Colors.white, size: 30),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Welcome back,',
+                                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 16),
+                                    ),
+                                    Text(
+                                      profile?.fullName ?? 'Student',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -90,6 +100,10 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
               actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                  onPressed: () => context.push('/notifications'),
+                ),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.white),
                   onPressed: () => ref.read(authControllerProvider.notifier).logout(),
@@ -187,7 +201,25 @@ class DashboardScreen extends ConsumerWidget {
                           icon: Icons.videogame_asset_rounded,
                           label: 'Games',
                           color: Colors.indigo,
-                          onTap: () {},
+                          onTap: () => context.push('/games'),
+                        ),
+                        _QuickLink(
+                          icon: Icons.event_note_rounded,
+                          label: 'Attendance',
+                          color: Colors.redAccent,
+                          onTap: () => context.push('/attendance'),
+                        ),
+                        _QuickLink(
+                          icon: Icons.hotel,
+                          label: 'Hostel',
+                          color: Colors.brown,
+                          onTap: () => context.push('/hostel'),
+                        ),
+                        _QuickLink(
+                          icon: Icons.assignment_turned_in_rounded,
+                          label: 'Exams',
+                          color: Colors.deepOrange,
+                          onTap: () => context.push('/exams'),
                         ),
                       ],
                     ),

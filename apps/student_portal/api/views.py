@@ -22,8 +22,15 @@ from .serializers import (
     AssignmentListSerializer, AssignmentDetailSerializer, SubmissionCreateSerializer,
     TimetableSerializer,
     MessageThreadSerializer, MessageThreadDetailSerializer, MessageSerializer,
+    NotificationSerializer, StudentAttendanceSerializer,
+    HostelAllocationSerializer, HostelAttendanceSerializer, HostelSerializer,
+    ExamListSerializer, ExamResultSerializer,
     DashboardSerializer
 )
+from apps.academics.models import StudentAttendance
+from apps.hostel.models import HostelAllocation, HostelAttendance, Hostel
+from apps.exams.models import Exam, ExamResult
+from apps.communications.models import MessageThread, Message, Notification
 
 
 # ============================================================================
@@ -301,6 +308,9 @@ class ThreadDetailAPIView(StudentPortalMixin, BaseRetrieveAPIView):
             is_read=False
         ).update(is_read=True, read_at=timezone.now())
         
+        # Perform audit
+        self.perform_audit(instance=instance)
+        
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -314,7 +324,7 @@ class SendMessageAPIView(StudentPortalMixin, BaseAPIView):
         except MessageThread.DoesNotExist:
             return Response({'error': 'Thread not found'}, status=404)
         
-        content = request.data.get('content', '').strip()
+        content = request.data.get('text', request.data.get('content', '')).strip()
         if not content:
             return Response({'error': 'Message content required'}, status=400)
         # Create message
@@ -333,3 +343,170 @@ class SendMessageAPIView(StudentPortalMixin, BaseAPIView):
             'success': True,
             'message': MessageSerializer(message, context={'request': request}).data
         }, status=status.HTTP_201_CREATED)
+
+
+class NotificationListAPIView(StudentPortalMixin, BaseListAPIView):
+    """List notifications for the current user"""
+    
+    serializer_class = NotificationSerializer
+    pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return Notification.objects.none()
+        return Notification.objects.filter(
+            recipient=self.request.user,
+            is_dismissed=False
+        ).order_by('-created_at')
+
+
+class MarkNotificationReadAPIView(StudentPortalMixin, BaseAPIView):
+    """Mark a notification as read"""
+    
+    def post(self, request, pk):
+        try:
+            notification = Notification.objects.get(
+                pk=pk, 
+                recipient=request.user
+            )
+            notification.is_read = True
+            notification.save()
+            return Response({'success': True})
+        except Notification.DoesNotExist:
+            return Response({'error': 'Notification not found'}, status=404)
+
+# ============================================================================
+# ATTENDANCE API
+# ============================================================================
+
+class AttendanceListAPIView(StudentPortalMixin, BaseListAPIView):
+    """List student's attendance records"""
+    
+    serializer_class = StudentAttendanceSerializer
+    pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        student = self.get_student()
+        if not student:
+            return StudentAttendance.objects.none()
+        return StudentAttendance.objects.filter(student=student).order_by('-date')
+
+
+# ============================================================================
+# HOSTEL API
+# ============================================================================
+
+class HostelDetailsAPIView(StudentPortalMixin, BaseAPIView):
+    """Get current student's hostel allocation and attendance"""
+    
+    def get(self, request, *args, **kwargs):
+        student = self.get_student()
+        if not student:
+            return Response({'error': 'Student not found'}, status=404)
+        
+        allocation = HostelAllocation.objects.filter(
+            student=student, 
+            is_active=True
+        ).first()
+        
+        if not allocation:
+            data = {
+                'allocation': None,
+                'roommates': [],
+                'attendance_history': HostelAttendanceSerializer(
+                    HostelAttendance.objects.filter(student=student).order_by('-date')[:10],
+                    many=True,
+                    context={'request': request}
+                ).data
+            }
+            return Response(data)
+        
+        # Get roommates (other students in the same room)
+        roommate_allocations = HostelAllocation.objects.filter(
+            room=allocation.room,
+            is_active=True
+        ).exclude(student=student).select_related('student')
+        
+        roommates = []
+        for a in roommate_allocations:
+            photo_url = None
+            photo = a.student.get_photo()
+            if photo and photo.file:
+                photo_url = request.build_absolute_uri(photo.file.url)
+            
+            roommates.append({
+                'id': str(a.student.id),
+                'full_name': a.student.full_name,
+                'class': a.student.current_class.name if a.student.current_class else None,
+                'photo_url': photo_url
+            })
+        
+        # Get recent attendance
+        attendance = HostelAttendance.objects.filter(
+            student=student
+        ).order_by('-date')[:10]
+        
+        data = {
+            'allocation': HostelAllocationSerializer(allocation, context={'request': request}).data,
+            'roommates': roommates,
+            'attendance_history': HostelAttendanceSerializer(attendance, many=True, context={'request': request}).data
+        }
+        
+        return Response(data)
+
+class HostelListAPIView(StudentPortalMixin, BaseListAPIView):
+    """List all available hostels"""
+    serializer_class = HostelSerializer
+    queryset = Hostel.objects.filter(is_active=True)
+
+
+# ============================================================================
+# EXAMS & RESULTS API
+# ============================================================================
+
+class ExamListAPIView(StudentPortalMixin, BaseListAPIView):
+    """List exams applicable to the student's class"""
+    serializer_class = ExamListSerializer
+    
+    def get_queryset(self):
+        student = self.get_student()
+        if not student or not student.current_class:
+            return Exam.objects.none()
+        
+        return Exam.objects.filter(
+            class_name=student.current_class,
+            is_published=True
+        ).order_by('-start_date')
+
+class ExamResultListAPIView(StudentPortalMixin, BaseListAPIView):
+    """List results for the current student"""
+    serializer_class = ExamResultSerializer
+    
+    def get_queryset(self):
+        student = self.get_student()
+        if not student:
+            return ExamResult.objects.none()
+        
+        return ExamResult.objects.filter(
+            student=student,
+            is_published=True
+        ).order_by('-exam__start_date')
+
+class ExamResultDetailAPIView(StudentPortalMixin, BaseAPIView):
+    """Get detailed result for a specific exam"""
+    
+    def get(self, request, pk, *args, **kwargs):
+        student = self.get_student()
+        if not student:
+            return Response({'error': 'Student not found'}, status=404)
+        
+        try:
+            result = ExamResult.objects.get(
+                pk=pk,
+                student=student,
+                is_published=True
+            )
+            serializer = ExamResultSerializer(result, context={'request': request})
+            return Response(serializer.data)
+        except ExamResult.DoesNotExist:
+            return Response({'error': 'Result not found'}, status=404)

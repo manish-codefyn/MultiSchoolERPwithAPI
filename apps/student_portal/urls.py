@@ -16,6 +16,7 @@ from .views import (
     PortalInboxView,
     PortalThreadDetailView,
     PortalInvoicePrintView,
+    PortalInvoiceDownloadView,
     PortalDirectPaymentInitiateView
 )
 
@@ -30,6 +31,7 @@ urlpatterns = [
     path('finance/payment/direct/', PortalDirectPaymentInitiateView.as_view(), name='direct_payment'),
     path('finance/invoices/<uuid:pk>/pay/', PortalPaymentInitiateView.as_view(), name='pay_invoice'),
     path('finance/invoices/<uuid:pk>/print/', PortalInvoicePrintView.as_view(), name='print_invoice'),
+    path('finance/invoices/<uuid:pk>/download/', PortalInvoiceDownloadView.as_view(), name='download_invoice'),
     path('finance/payment/callback/', PortalPaymentCallbackView.as_view(), name='payment_callback'),
     
     # Academics
