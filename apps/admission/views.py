@@ -5,9 +5,18 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+import datetime
+
 from .models import AdmissionCycle, AdmissionProgram, OnlineApplication
 from .forms import AdmissionApplicationForm, AdmissionStatusCheckForm
 from apps.core.utils.tenant import get_current_tenant
+
+from .forms import (
+    ApplicationStep1Form, ApplicationStep2Form, ApplicationStep3Form, 
+    ApplicationDocumentForm
+)
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
 
 
 class AdmissionLandingView(TemplateView):
@@ -262,11 +271,6 @@ class AdmissionProgramDeleteView(LoginRequiredMixin, PermissionRequiredMixin, De
 
 # ==================== MULTI-STEP ADMISSION VIEWS ====================
 
-from .forms import (
-    ApplicationStep1Form, ApplicationStep2Form, ApplicationStep3Form, 
-    ApplicationDocumentForm
-)
-
 class AdmissionRegistrationView(CreateView):
     """Step 1: Registration & Personal Information"""
     model = OnlineApplication
@@ -396,3 +400,58 @@ class AdmissionReviewView(DetailView):
             return redirect('admission:apply_success', application_number=application.application_number)
             
         return redirect('admission:apply_success', application_number=application.application_number)
+
+
+class AdmissionAnalyticsView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    """View for admission analytics and trends"""
+    template_name = 'admission/staff/analytics.html'
+    permission_required = 'admission.view_onlineapplication'
+
+    def get_quick_actions(self):
+        return [
+            {'name': 'All Applications', 'url': reverse_lazy('admission:staff_list'), 'icon': 'list-ul', 'color': 'purple'},
+            {'name': 'Admission Cycles', 'url': reverse_lazy('admission:cycle_list'), 'icon': 'refresh', 'color': 'ocean'},
+            {'name': 'Programs', 'url': reverse_lazy('admission:program_list'), 'icon': 'graduation-cap', 'color': 'forest'},
+            {'name': 'New Application', 'url': reverse_lazy('admission:apply_step1'), 'icon': 'plus-circle', 'color': 'sunset'},
+        ]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['quick_actions'] = self.get_quick_actions()
+        tenant = getattr(self.request, 'tenant', None)
+        
+        # Base queryset filtered by tenant
+        base_qs = OnlineApplication.objects.all()
+        if tenant:
+            base_qs = base_qs.filter(tenant=tenant)
+            
+        # Overall status distribution
+        status_dist = base_qs.values('status').annotate(count=Count('id'))
+        context['status_labels'] = [dict(OnlineApplication.APPLICATION_STATUS).get(s['status'], s['status']) for s in status_dist]
+        context['status_data'] = [s['count'] for s in status_dist]
+        
+        # Monthly Trends (Last 6 Months)
+        six_months_ago = timezone.now() - datetime.timedelta(days=180)
+        trends = base_qs.filter(created_at__gte=six_months_ago)\
+            .annotate(month=TruncMonth('created_at'))\
+            .values('month')\
+            .annotate(count=Count('id'))\
+            .order_by('month')
+            
+        context['trend_labels'] = [t['month'].strftime('%b %Y') for t in trends]
+        context['trend_data'] = [t['count'] for t in trends]
+        
+        # Program Distribution
+        program_dist = base_qs.values('program__program_name').annotate(count=Count('id')).order_by('-count')
+        context['program_labels'] = [p['program__program_name'] or 'Unknown' for p in program_dist]
+        context['program_data'] = [p['count'] for p in program_dist]
+        
+        # Key Metrics
+        context['total_applications'] = base_qs.count()
+        context['submitted_today'] = base_qs.filter(created_at__date=timezone.now().date()).count()
+        context['pending_review'] = base_qs.filter(status='SUBMITTED').count()
+        context['conversion_rate'] = 0
+        if context['total_applications'] > 0:
+            context['conversion_rate'] = round((base_qs.filter(status='ADMITTED').count() / context['total_applications']) * 100, 1)
+
+        return context

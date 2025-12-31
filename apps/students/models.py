@@ -26,6 +26,7 @@ class Student(BaseModel):
     Enhanced Student model with multi-tenant support and comprehensive features
     """
     STATUS_CHOICES = (
+        ("INCOMPLETE", _("Incomplete")),
         ("ACTIVE", _("Active")),
         ("INACTIVE", _("Inactive")),
         ("ALUMNI", _("Alumni")),
@@ -229,7 +230,7 @@ class Student(BaseModel):
     status = models.CharField(
         max_length=20, 
         choices=STATUS_CHOICES, 
-        default="ACTIVE",
+        default="INCOMPLETE",
         db_index=True,
         verbose_name=_("Status")
     )

@@ -23,6 +23,7 @@ urlpatterns = [
     
     # Configurations
     path('<uuid:pk>/configuration/', views.TenantConfigurationUpdateView.as_view(), name='tenant_config'),
+    path('<uuid:pk>/address/', views.TenantAddressUpdateView.as_view(), name='address_config'),
     path('<uuid:pk>/payment-config/', views.PaymentConfigurationUpdateView.as_view(), name='payment_config'),
     path('<uuid:pk>/analytics-config/', views.AnalyticsConfigurationUpdateView.as_view(), name='analytics_config'),
     

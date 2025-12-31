@@ -17,7 +17,8 @@ from .views import (
     PortalThreadDetailView,
     PortalInvoicePrintView,
     PortalInvoiceDownloadView,
-    PortalDirectPaymentInitiateView
+    PortalDirectPaymentInitiateView,
+    PortalSyllabusListView
 )
 
 app_name = 'student_portal'
@@ -39,6 +40,7 @@ urlpatterns = [
     path('academics/assignments/', PortalAssignmentListView.as_view(), name='assignments'),
     path('academics/assignments/<uuid:pk>/', PortalAssignmentDetailView.as_view(), name='assignment_detail'),
     path('academics/assignments/<uuid:pk>/submit/', PortalAssignmentSubmitView.as_view(), name='assignment_submit'),
+    path('academics/syllabus/', PortalSyllabusListView.as_view(), name='syllabus_list'),
     
     # Games
     path('games/', PortalGamesView.as_view(), name='games'),

@@ -106,6 +106,8 @@ class Tenant(TenantMixin, BaseSharedModel):
         verbose_name='Contact Phone',
         help_text='Primary contact phone number'
     )
+
+
     
     # Security & Compliance
     is_active = models.BooleanField(
@@ -447,6 +449,22 @@ class TenantConfiguration(UUIDModel, TimeStampedModel):
     )
     
     # Academic Configuration
+    affiliation_number = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='Affiliation Number',
+        help_text='Board affiliation number (e.g., CBSE/state board)'
+    )
+    
+    school_code = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name='School Code',
+        help_text='Official school code'
+    )
+
     academic_year = models.CharField(
         max_length=20,
         default='2024-2025',
@@ -508,6 +526,46 @@ class TenantConfiguration(UUIDModel, TimeStampedModel):
     enable_inventory = models.BooleanField(
         default=True,
         verbose_name='Enable Inventory Module'
+    )
+
+    enable_admission = models.BooleanField(
+        default=True,
+        verbose_name='Enable Admission Module'
+    )
+    
+    enable_hr = models.BooleanField(
+        default=True,
+        verbose_name='Enable HR Module'
+    )
+    
+    enable_transportation = models.BooleanField(
+        default=True,
+        verbose_name='Enable Transportation Module'
+    )
+    
+    enable_hostel = models.BooleanField(
+        default=True,
+        verbose_name='Enable Hostel Module'
+    )
+    
+    enable_exams = models.BooleanField(
+        default=True,
+        verbose_name='Enable Exams Module'
+    )
+    
+    enable_assignments = models.BooleanField(
+        default=True,
+        verbose_name='Enable Assignments Module'
+    )
+    
+    enable_communications = models.BooleanField(
+        default=True,
+        verbose_name='Enable Communications Module'
+    )
+
+    enable_events = models.BooleanField(
+        default=True,
+        verbose_name='Enable Events/Calendar Module'
     )
     
     # Custom Branding
@@ -1237,3 +1295,65 @@ class AIAPIKey(TenantAPIKey):
             APIService.SERVICE_AZURE_AI,
         ]
 
+
+class TenantAddress(UUIDModel, TimeStampedModel):
+    """
+    Physical address for the tenant organization
+    """
+    tenant = models.OneToOneField(
+        Tenant,
+        on_delete=models.CASCADE,
+        related_name='address',
+        verbose_name='Tenant'
+    )
+    
+    address_line_1 = models.CharField(
+        max_length=255,
+        verbose_name='Address Line 1'
+    )
+    
+    address_line_2 = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name='Address Line 2'
+    )
+    
+    city = models.CharField(
+        max_length=100,
+        verbose_name='City'
+    )
+    
+    state = models.CharField(
+        max_length=100,
+        verbose_name='State/Province'
+    )
+    
+    postal_code = models.CharField(
+        max_length=20,
+        verbose_name='Postal/Zip Code'
+    )
+    
+    country = models.CharField(
+        max_length=100,
+        default='India',
+        verbose_name='Country'
+    )
+
+    class Meta:
+        db_table = 'tenant_addresses'
+        verbose_name = 'Tenant Address'
+        verbose_name_plural = 'Tenant Addresses'
+
+    def __str__(self):
+        return f"Address - {self.tenant.name}"
+    
+    @property
+    def full_address(self):
+        """Format full address string"""
+        parts = [self.address_line_1]
+        if self.address_line_2:
+            parts.append(self.address_line_2)
+        parts.append(f"{self.city}, {self.state} - {self.postal_code}")
+        parts.append(self.country)
+        return ", ".join(parts)

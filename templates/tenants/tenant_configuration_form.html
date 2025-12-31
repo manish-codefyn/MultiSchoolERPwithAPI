@@ -5,91 +5,221 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-xl-9 mx-auto">
-        <div class="card border-top border-0 border-4 border-primary">
-            <div class="card-body p-5">
-                <div class="card-title d-flex align-items-center mb-4">
-                    <div><i class="bx bx-cog me-1 font-22 text-primary"></i></div>
-                    <h5 class="mb-0 text-primary">Tenant Configuration: {{ tenant.name }}</h5>
+    <div class="col-xl-10 mx-auto">
+        <div class="card border-top border-0 border-4 border-primary shadow-lg">
+            <div class="card-body p-4 p-md-5">
+                <div class="card-title d-flex align-items-center mb-4 pb-3 border-bottom">
+                    <div class="bg-light-primary text-primary p-2 rounded-3 me-3">
+                        <i class="bx bx-cog font-24"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 text-primary">Tenant Configuration</h5>
+                        <small class="text-muted">{{ tenant.name }} ({{ tenant.schema_name }})</small>
+                    </div>
                 </div>
-                <hr>
+                
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     
-                    <h6 class="mb-3">Branding</h6>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            {% if form.instance.logo %}
-                                <div class="mb-2">
-                                    <label class="form-label d-block">Current Logo</label>
-                                    <img src="{{ form.instance.logo.url }}" alt="Logo" style="max-height: 80px;" class="border rounded p-1">
-                                </div>
-                            {% endif %}
-                            {{ form.logo|as_crispy_field }}
-                        </div>
-                        <div class="col-md-6">
-                            {% if form.instance.square_logo %}
-                                <div class="mb-2">
-                                    <label class="form-label d-block">Current Square Logo</label>
-                                    <img src="{{ form.instance.square_logo.url }}" alt="Square Logo" style="max-height: 80px; width: 80px; object-fit: cover;" class="border rounded p-1">
-                                </div>
-                            {% endif %}
-                            {{ form.square_logo|as_crispy_field }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Primary Color</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class='bx bxs-color-fill'></i></span>
-                                <input type="color" class="form-control form-control-color" value="{{ form.primary_color.value|default:'#3B82F6' }}" onchange="document.getElementById('id_primary_color').value = this.value">
-                                {{ form.primary_color|as_crispy_field }}
+                    <!-- Academic Identity Section -->
+                    <div class="bg-light rounded-3 p-4 mb-4">
+                        <h6 class="mb-3 text-uppercase fw-bold text-secondary text-xs"><i class="bx bxs-school me-2"></i>Academic Identity</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form.affiliation_number|as_crispy_field }}
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Secondary Color</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class='bx bxs-color-fill'></i></span>
-                                <input type="color" class="form-control form-control-color" value="{{ form.secondary_color.value|default:'#1E40AF' }}" onchange="document.getElementById('id_secondary_color').value = this.value">
-                                {{ form.secondary_color|as_crispy_field }}
+                            <div class="col-md-6">
+                                {{ form.school_code|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.academic_year|as_crispy_field }}
                             </div>
                         </div>
                     </div>
 
-                    <hr class="my-4">
+                    <!-- Branding Section -->
+                     <div class="bg-light rounded-3 p-4 mb-4">
+                        <h6 class="mb-3 text-uppercase fw-bold text-secondary text-xs"><i class="bx bxs-paint me-2"></i>Brand Identity</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card border shadow-none mb-3">
+                                    <div class="card-body text-center">
+                                        <div class="mb-2" style="height: 60px; display: flex; align-items: center; justify-content: center;">
+                                            <img id="logo-preview" src="{% if form.instance.logo %}{{ form.instance.logo.url }}{% else %}{% static 'images/placeholder.png' %}{% endif %}" 
+                                                 alt="Logo" style="max-height: 100%; max-width: 100%; {% if not form.instance.logo %}display: none;{% endif %}" class="mb-2">
+                                            <div id="logo-placeholder" class="text-muted" {% if form.instance.logo %}style="display: none;"{% endif %}><i class="bx bx-image font-30"></i></div>
+                                        </div>
+                                        {{ form.logo|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border shadow-none mb-3">
+                                    <div class="card-body text-center">
+                                        <div class="mb-2" style="height: 60px; display: flex; align-items: center; justify-content: center;">
+                                            <img id="square-logo-preview" src="{% if form.instance.square_logo %}{{ form.instance.square_logo.url }}{% else %}{% static 'images/placeholder.png' %}{% endif %}" 
+                                                 alt="Square Logo" style="max-height: 100%; max-width: 100%; object-fit: cover; {% if not form.instance.square_logo %}display: none;{% endif %}" class="mb-2 rounded">
+                                            <div id="square-logo-placeholder" class="text-muted" {% if form.instance.square_logo %}style="display: none;"{% endif %}><i class="bx bx-image-alt font-30"></i></div>
+                                        </div>
+                                        {{ form.square_logo|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.primary_color.label_tag }}
+                                <div class="input-group">
+                                    <input type="color" class="form-control form-control-color" id="{{ form.primary_color.id_for_label }}_picker" value="{{ form.primary_color.value|default:'#3B82F6' }}" oninput="document.getElementById('{{ form.primary_color.id_for_label }}').value = this.value" title="Choose color">
+                                    <input type="text" class="form-control" name="{{ form.primary_color.name }}" id="{{ form.primary_color.id_for_label }}" value="{{ form.primary_color.value|default:'#3B82F6' }}" oninput="document.getElementById('{{ form.primary_color.id_for_label }}_picker').value = this.value">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.secondary_color.label_tag }}
+                                <div class="input-group">
+                                    <input type="color" class="form-control form-control-color" id="{{ form.secondary_color.id_for_label }}_picker" value="{{ form.secondary_color.value|default:'#1E40AF' }}" oninput="document.getElementById('{{ form.secondary_color.id_for_label }}').value = this.value" title="Choose color">
+                                    <input type="text" class="form-control" name="{{ form.secondary_color.name }}" id="{{ form.secondary_color.id_for_label }}" value="{{ form.secondary_color.value|default:'#1E40AF' }}" oninput="document.getElementById('{{ form.secondary_color.id_for_label }}_picker').value = this.value">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-lg-6">
+                             <!-- Localization -->
+                             <div class="bg-light rounded-3 p-4 mb-4 h-100">
+                                <h6 class="mb-3 text-uppercase fw-bold text-secondary text-xs"><i class="bx bx-world me-2"></i>Localization</h6>
+                                <div class="row g-3">
+                                    <div class="col-12">{{ form.timezone|as_crispy_field }}</div>
+                                    <div class="col-md-6">{{ form.language|as_crispy_field }}</div>
+                                    <div class="col-md-6">{{ form.currency|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form.date_format|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column -->
+                         <div class="col-lg-6">
+                            <!-- Security -->
+                             <div class="bg-light rounded-3 p-4 mb-4">
+                                <h6 class="mb-3 text-uppercase fw-bold text-secondary text-xs"><i class="bx bx-shield-quarter me-2"></i>Security</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">{{ form.session_timeout|as_crispy_field }}</div>
+                                    <div class="col-md-6">{{ form.max_login_attempts|as_crispy_field }}</div>
+                                    <div class="col-12">{{ form.password_expiry_days|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Modules -->
+                             <div class="bg-light rounded-3 p-4 mb-4">
+                                <h6 class="mb-3 text-uppercase fw-bold text-secondary text-xs"><i class="bx bx-grid-alt me-2"></i>Modules</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_library }}
+                                            <label class="form-check-label" for="{{ form.enable_library.id_for_label }}">Library</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_finance }}
+                                            <label class="form-check-label" for="{{ form.enable_finance.id_for_label }}">Finance & Fees</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_inventory }}
+                                            <label class="form-check-label" for="{{ form.enable_inventory.id_for_label }}">Inventory</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_admission }}
+                                            <label class="form-check-label" for="{{ form.enable_admission.id_for_label }}">Admission</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_hr }}
+                                            <label class="form-check-label" for="{{ form.enable_hr.id_for_label }}">Human Resources</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_transportation }}
+                                            <label class="form-check-label" for="{{ form.enable_transportation.id_for_label }}">Transportation</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_hostel }}
+                                            <label class="form-check-label" for="{{ form.enable_hostel.id_for_label }}">Hostel</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_exams }}
+                                            <label class="form-check-label" for="{{ form.enable_exams.id_for_label }}">Exams & Results</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_assignments }}
+                                            <label class="form-check-label" for="{{ form.enable_assignments.id_for_label }}">Assignments</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_communications }}
+                                            <label class="form-check-label" for="{{ form.enable_communications.id_for_label }}">Communications</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            {{ form.enable_events }}
+                                            <label class="form-check-label" for="{{ form.enable_events.id_for_label }}">Events & Calendar</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     
-                    <h6 class="mb-3">Localization & Settings</h6>
-                    <div class="row g-3">
-                        <div class="col-md-4">{{ form.academic_year|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.timezone|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.language|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.currency|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.date_format|as_crispy_field }}</div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <h6 class="mb-3">Security Policies</h6>
-                    <div class="row g-3">
-                        <div class="col-md-4">{{ form.session_timeout|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.max_login_attempts|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.password_expiry_days|as_crispy_field }}</div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <h6 class="mb-3">Module Settings</h6>
-                    <div class="row g-3">
-                        <div class="col-md-4">{{ form.enable_library|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.enable_finance|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.enable_inventory|as_crispy_field }}</div>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <a href="{% url 'tenants:tenant_list' %}" class="btn btn-secondary px-4">Cancel</a>
-                        <button type="submit" class="btn btn-primary px-4">Save Configuration</button>
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{% url 'tenants:tenant_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 shadow"><i class="bx bx-save me-1"></i> Save Changes</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function handleImagePreview(inputId, previewId, placeholderId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            const placeholder = document.getElementById(placeholderId);
+            
+            if (input && preview) {
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                            if (placeholder) placeholder.style.display = 'none';
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        }
+
+        // IDs generated by Django form (id_field_name) - assuming standard Crispy Form IDs
+        handleImagePreview('id_logo', 'logo-preview', 'logo-placeholder');
+        handleImagePreview('id_square_logo', 'square-logo-preview', 'square-logo-placeholder');
+    });
+</script>
 {% endblock %}

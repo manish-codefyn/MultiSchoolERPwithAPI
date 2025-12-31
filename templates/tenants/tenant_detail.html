@@ -96,6 +96,87 @@
 </div>
 
 <div class="row">
+    <div class="col-12 col-md-6">
+        {# Initializing configuration object if not accessible directly via related name reverse lookup default #}
+        {# Using tenant.configuration triggers query. #}
+        <div class="card radius-10 h-100">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0">System Configuration</h6>
+            </div>
+            <div class="card-body">
+                 <ul class="list-group list-group-flush">
+                     <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        <span class="text-secondary"><i class="bx bxs-school me-2"></i>Affiliation Number</span>
+                        <span class="fw-bold">{{ tenant.configuration.affiliation_number|default:"-" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        <span class="text-secondary"><i class="bx bxs-id-card me-2"></i>School Code</span>
+                        <span class="fw-bold">{{ tenant.configuration.school_code|default:"-" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        <span class="text-secondary"><i class="bx bx-calendar me-2"></i>Academic Year</span>
+                        <span class="fw-bold">{{ tenant.configuration.academic_year }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        <span class="text-secondary"><i class="bx bx-world me-2"></i>Timezone</span>
+                        <span>{{ tenant.configuration.timezone }}</span>
+                    </li>
+                     <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        <span class="text-secondary"><i class="bx bx-money me-2"></i>Currency</span>
+                        <span>{{ tenant.configuration.currency }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="card radius-10 h-100">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0">Enabled Modules & Security</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <p class="mb-2 fw-bold text-secondary">Modules</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        {% if tenant.configuration.enable_library %}
+                            <span class="badge bg-light-primary text-primary"><i class="bx bx-book me-1"></i>Library</span>
+                        {% else %}
+                             <span class="badge bg-light-secondary text-secondary opacity-50"><i class="bx bx-book me-1"></i>Library</span>
+                        {% endif %}
+                        
+                        {% if tenant.configuration.enable_finance %}
+                            <span class="badge bg-light-success text-success"><i class="bx bx-money me-1"></i>Finance</span>
+                        {% else %}
+                             <span class="badge bg-light-secondary text-secondary opacity-50"><i class="bx bx-money me-1"></i>Finance</span>
+                        {% endif %}
+                        
+                        {% if tenant.configuration.enable_inventory %}
+                             <span class="badge bg-light-warning text-warning"><i class="bx bx-package me-1"></i>Inventory</span>
+                        {% else %}
+                             <span class="badge bg-light-secondary text-secondary opacity-50"><i class="bx bx-package me-1"></i>Inventory</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <hr>
+                <div>
+                     <p class="mb-2 fw-bold text-secondary">Security Policies</p>
+                     <div class="d-flex flex-column gap-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-secondary small">Session Timeout:</span>
+                            <span class="fw-bold small">{{ tenant.configuration.session_timeout }} min</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-secondary small">Max Login Attempts:</span>
+                            <span class="fw-bold small">{{ tenant.configuration.max_login_attempts }}</span>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
     <div class="col-12">
         <div class="card radius-10">
             <div class="card-header">

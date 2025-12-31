@@ -32,4 +32,7 @@ urlpatterns = [
     path('programs/create/', views.AdmissionProgramCreateView.as_view(), name='program_create'),
     path('programs/<uuid:pk>/update/', views.AdmissionProgramUpdateView.as_view(), name='program_update'),
     path('programs/<uuid:pk>/delete/', views.AdmissionProgramDeleteView.as_view(), name='program_delete'),
+    
+    # Admission Analytics
+    path('analytics/', views.AdmissionAnalyticsView.as_view(), name='analytics'),
 ]

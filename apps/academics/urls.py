@@ -129,6 +129,7 @@ urlpatterns = [
     path('syllabus/', views.SyllabusListView.as_view(), name='syllabus_list'),
     path('syllabus/<uuid:pk>/', views.SyllabusDetailView.as_view(), name='syllabus_detail'),
     path('syllabus/create/', views.SyllabusCreateView.as_view(), name='syllabus_create'),
+    path('syllabus/auto-generate/', views.AutoGenerateSyllabusView.as_view(), name='syllabus_auto_generate'),
     path('syllabus/<uuid:pk>/update/', views.SyllabusUpdateView.as_view(), name='syllabus_update'),
     path('syllabus/<uuid:pk>/delete/', views.SyllabusDeleteView.as_view(), name='syllabus_delete'),
     

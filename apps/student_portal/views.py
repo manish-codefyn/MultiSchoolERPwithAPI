@@ -611,3 +611,19 @@ class PortalInvoiceDownloadView(PortalInvoicePrintView):
             return response
         
         return HttpResponse(f"Error generating PDF: {pisa_status.err}", status=500)
+
+
+class PortalSyllabusListView(StudentPortalBaseView, ListView):
+    """Student view for their class syllabus"""
+    template_name = 'student_portal/academics/syllabus_list.html'
+    context_object_name = 'syllabi'
+    
+    def get_queryset(self):
+        student = self.get_student()
+        if not student or not student.current_class:
+            return []
+        
+        from apps.academics.models import Syllabus
+        return Syllabus.objects.filter(
+            class_name=student.current_class
+        ).select_related('subject')

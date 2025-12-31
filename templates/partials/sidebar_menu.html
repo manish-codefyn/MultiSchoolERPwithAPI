@@ -23,8 +23,8 @@
 
 
     {% if not is_public_tenant %}
-    {% if request.user.is_staff %}
-        {% include 'analytics/partials/sub_menu.html' %}
+    {% if request.user.is_superuser %}
+        <!-- {% include 'analytics/partials/sub_menu.html' %} -->
     {% endif %}
     {% if request.user.is_staff %}
     {% include 'communications/partials/sub_menu.html' %}

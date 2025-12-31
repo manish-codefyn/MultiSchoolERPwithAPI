@@ -16,6 +16,7 @@
         <li><a href="{% url 'tenants:apikey_list' %}"><i class="bx bx-radio-circle"></i>Tenant API Keys</a></li>
         <li><a href="{% url 'tenants:secret_list' %}"><i class="bx bx-radio-circle"></i>Tenant Secrets</a></li>
         <li><a href="{% url 'tenants:tenant_list' %}"><i class="bx bx-radio-circle"></i>Tenant Configuration</a></li>
+        <li><a href="{% url 'tenants:address_config' request.tenant.pk %}"><i class="bx bx-radio-circle"></i>Address Configuration</a></li>
         <li><a href="{% url 'tenants:payment_config' request.tenant.pk %}"><i class="bx bx-radio-circle"></i>Payment Configuration</a></li>
         <li><a href="{% url 'tenants:audit_log_list' %}"><i class="bx bx-radio-circle"></i>System Audit Logs</a></li>
     </ul>

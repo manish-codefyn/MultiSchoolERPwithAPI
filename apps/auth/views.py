@@ -23,6 +23,9 @@ import pyotp
 import qrcode
 import base64
 from io import BytesIO
+from django.db.models import Sum, Q, Avg
+from django.views import View
+from apps.core.utils.reporting import ReportGenerator
 
 from apps.core.utils.tenant import get_current_tenant
 from apps.core.utils.dashboard_utils import DashboardRouter
@@ -73,11 +76,11 @@ class CustomLoginView(LoginView):
             tenant_branding = tenant.branding_info
         else:
             tenant_branding = {
-                'name': settings.TENANT_BRANDING.get('name', 'ERP System'),
-                'logo': settings.TENANT_BRANDING.get('logo', '/static/images/logo.png'),
-                'primary_color': settings.TENANT_BRANDING.get('primary_color', '#4e73df'),
-                'secondary_color': settings.TENANT_BRANDING.get('secondary_color', '#858796'),
-                'mfa_required': settings.TENANT_BRANDING.get('mfa_required', False),
+                'name': getattr(settings, 'TENANT_BRANDING', {}).get('name', 'ERP System'),
+                'logo': getattr(settings, 'TENANT_BRANDING', {}).get('logo', '/static/images/logo.png'),
+                'primary_color': getattr(settings, 'TENANT_BRANDING', {}).get('primary_color', '#4e73df'),
+                'secondary_color': getattr(settings, 'TENANT_BRANDING', {}).get('secondary_color', '#858796'),
+                'mfa_required': getattr(settings, 'TENANT_BRANDING', {}).get('mfa_required', False),
             }
         
         context.update({
@@ -184,10 +187,10 @@ class SignupView(CreateView):
             tenant_branding = tenant.branding_info
         else:
             tenant_branding = {
-                'name': settings.TENANT_BRANDING.get('name', 'ERP System'),
-                'logo': settings.TENANT_BRANDING.get('logo', '/static/images/logo.png'),
-                'primary_color': settings.TENANT_BRANDING.get('primary_color', '#4e73df'),
-                'secondary_color': settings.TENANT_BRANDING.get('secondary_color', '#858796'),
+                'name': getattr(settings, 'TENANT_BRANDING', {}).get('name', 'ERP System'),
+                'logo': getattr(settings, 'TENANT_BRANDING', {}).get('logo', '/static/images/logo.png'),
+                'primary_color': getattr(settings, 'TENANT_BRANDING', {}).get('primary_color', '#4e73df'),
+                'secondary_color': getattr(settings, 'TENANT_BRANDING', {}).get('secondary_color', '#858796'),
             }
             
         context.update({
@@ -580,10 +583,18 @@ class SystemAdminDashboardView(BaseDashboardView):
     
     def get_quick_actions(self):
         return [
-            {'name': 'Manage Users', 'url': reverse_lazy('admin:users_user_changelist'), 'icon': 'users'},
-            {'name': 'System Settings', 'url': reverse_lazy('admin:app_list', args=('configuration',)), 'icon': 'settings'},
-            {'name': 'View Reports', 'url': reverse_lazy('analytics:dashboard'), 'icon': 'bar-chart'},
-            {'name': 'Audit Logs', 'url': reverse_lazy('admin:apps_auth_securityevent_changelist'), 'icon': 'shield'},
+            {'name': 'Students', 'url': reverse_lazy('students:student_list'), 'icon': 'group', 'color': 'purple'},
+            {'name': 'Admissions', 'url': reverse_lazy('admission:staff_list'), 'icon': 'user-plus', 'color': 'ocean'},
+            {'name': 'Academics', 'url': reverse_lazy('academics:dashboard'), 'icon': 'book-open', 'color': 'forest'},
+            {'name': 'Attendance', 'url': reverse_lazy('attendance:dashboard'), 'icon': 'check-square', 'color': 'sunset'},
+            {'name': 'HR & Staff', 'url': reverse_lazy('hr:dashboard'), 'icon': 'briefcase', 'color': 'royal'},
+            {'name': 'Finance', 'url': reverse_lazy('finance:dashboard'), 'icon': 'dollar', 'color': 'berry'},
+            {'name': 'Exams', 'url': reverse_lazy('exams:dashboard'), 'icon': 'pencil', 'color': 'mango'},
+            {'name': 'Communication', 'url': reverse_lazy('communications:dashboard'), 'icon': 'message-square', 'color': 'steel'},
+            {'name': 'Transport', 'url': reverse_lazy('attendance:transport_attendance_list'), 'icon': 'bus', 'color': 'purple'},
+            {'name': 'Hostel', 'url': reverse_lazy('attendance:hostel_attendance_list'), 'icon': 'bed', 'color': 'ocean'},
+            {'name': 'Configurations', 'url': reverse_lazy('admin:index'), 'icon': 'cog', 'color': 'forest'},
+            {'name': 'Security Logs', 'url': reverse_lazy('admin:apps_auth_securityevent_changelist'), 'icon': 'shield', 'color': 'sunset'},
         ]
     
     def get_context_data(self, **kwargs):
@@ -604,6 +615,13 @@ class SystemAdminDashboardView(BaseDashboardView):
             # Audit Logs
             audit_logs = SecurityEvent.objects.select_related('user').order_by('-created_at')[:7]
             
+            # Growth Data (Either Global for Superusers or Local for Tenants)
+            from django.db.models.functions import TruncMonth
+            from django.utils import timezone
+            import datetime
+            
+            last_12_months = timezone.now() - datetime.timedelta(days=365)
+            
             if is_public:
                 # GLOBAL STATS (Public Tenant View)
                 total_tenants = Tenant.objects.count()
@@ -614,23 +632,11 @@ class SystemAdminDashboardView(BaseDashboardView):
                 recent_tenants = Tenant.objects.order_by('-created_at')[:5]
                 
                 # Tenant Growth Chart Data (Last 12 Months)
-                from django.db.models.functions import TruncMonth
-                from django.utils import timezone
-                import datetime
-                
-                last_12_months = timezone.now() - datetime.timedelta(days=365)
                 tenant_growth = Tenant.objects.filter(created_at__gte=last_12_months)\
                     .annotate(month=TruncMonth('created_at'))\
                     .values('month')\
                     .annotate(count=Count('id'))\
                     .order_by('month')
-                    
-                growth_labels = []
-                growth_data = []
-                
-                for entry in tenant_growth:
-                    growth_labels.append(entry['month'].strftime('%b %Y'))
-                    growth_data.append(entry['count'])
             else:
                 # LOCAL STATS (Specific Tenant View)
                 total_tenants = 1
@@ -638,8 +644,19 @@ class SystemAdminDashboardView(BaseDashboardView):
                 suspended_tenants = 0
                 recent_tenants = []  # Hide other tenants
                 
-                growth_labels = []
-                growth_data = []
+                # Use Global Tenant Growth for Super Admins even on local domain
+                # or fallback to local user growth if they prefer
+                tenant_growth = Tenant.objects.filter(created_at__gte=last_12_months)\
+                    .annotate(month=TruncMonth('created_at'))\
+                    .values('month')\
+                    .annotate(count=Count('id'))\
+                    .order_by('month')
+                    
+            growth_labels = []
+            growth_data = []
+            for entry in tenant_growth:
+                growth_labels.append(entry['month'].strftime('%b %Y'))
+                growth_data.append(entry['count'])
                 
         except ImportError:
             total_tenants = 0
@@ -672,6 +689,32 @@ class SystemAdminDashboardView(BaseDashboardView):
             role_labels.append(role_name)
             role_data.append(entry['count'])
             
+        # Attendance Trend (Last 30 Days)
+        from apps.academics.models import StudentAttendance
+        from apps.finance.models import Invoice
+        
+        thirty_days_ago = timezone.now() - datetime.timedelta(days=30)
+        attendance_trend = StudentAttendance.objects.filter(date__gte=thirty_days_ago)\
+            .values('date')\
+            .annotate(present=Count('id', filter=Q(status='PRESENT')),
+                     absent=Count('id', filter=Q(status='ABSENT')))\
+            .order_by('date')
+            
+        attendance_labels = []
+        attendance_present = []
+        attendance_absent = []
+        for entry in attendance_trend:
+            attendance_labels.append(entry['date'].strftime('%d %b'))
+            attendance_present.append(entry['present'])
+            attendance_absent.append(entry['absent'])
+            
+        # Financial Overview
+        financial_summary = Invoice.objects.aggregate(
+            total_billed=Sum('total_amount'),
+            total_paid=Sum('paid_amount'),
+            total_due=Sum('due_amount')
+        )
+            
         context.update({
             # Stats
             'total_users': total_users,
@@ -679,6 +722,9 @@ class SystemAdminDashboardView(BaseDashboardView):
             'active_tenants': active_tenants,
             'suspended_tenants': suspended_tenants,
             'is_public_view': is_public,
+            
+            # Finance Stats
+            'financial_summary': financial_summary,
             
             # Tables
             'recent_tenants': recent_tenants,
@@ -689,6 +735,9 @@ class SystemAdminDashboardView(BaseDashboardView):
             'tenant_growth_data': growth_data,
             'user_role_labels': role_labels,
             'user_role_data': role_data,
+            'attendance_labels': attendance_labels,
+            'attendance_present': attendance_present,
+            'attendance_absent': attendance_absent,
             
             # System
             'system_stats': self.get_system_stats(),
@@ -721,38 +770,41 @@ class StaffDashboardView(BaseDashboardView):
         
         # Common staff actions
         common_actions = [
-            {'name': 'My Schedule', 'url': reverse_lazy('academics:timetable_list'), 'icon': 'calendar'},
-            {'name': 'Attendance', 'url': reverse_lazy('academics:attendance_list'), 'icon': 'check-circle'},
-            {'name': 'Messages', 'url': reverse_lazy('communications:communication_list'), 'icon': 'message-square'},
+            {'name': 'My Schedule', 'url': reverse_lazy('academics:timetable_list'), 'icon': 'calendar', 'color': 'purple'},
+            {'name': 'Attendance', 'url': reverse_lazy('attendance:dashboard'), 'icon': 'check-circle', 'color': 'ocean'},
+            {'name': 'Messages', 'url': reverse_lazy('communications:communication_list'), 'icon': 'message-square', 'color': 'forest'},
         ]
         
         # Role-specific actions
-        if user.role in ['teacher', 'principal', 'headmaster']:
+        if user.role in ['teacher', 'principal', 'headmaster', 'vice_principal', 'department_head']:
             actions.extend([
-                {'name': 'Grade Students', 'url': reverse_lazy('academics:grade_list'), 'icon': 'edit-3'},
-                {'name': 'Assignments', 'url': '#', 'icon': 'file-text'}, # TODO: Implement assignments
-                {'name': 'Lesson Plans', 'url': '#', 'icon': 'book-open'}, # TODO: Implement lesson plans
+                {'name': 'Grade Students', 'url': reverse_lazy('academics:dashboard'), 'icon': 'edit-3', 'color': 'sunset'},
+                {'name': 'Syllabus', 'url': reverse_lazy('academics:syllabus_list'), 'icon': 'book-open', 'color': 'royal'},
+                {'name': 'Class List', 'url': reverse_lazy('academics:class_list'), 'icon': 'building', 'color': 'berry'},
             ])
         
-        if user.role in ['accountant', 'finance_staff']:
+        if user.role in ['accountant', 'finance_staff', 'principal']:
             actions.extend([
-                {'name': 'Process Payments', 'url': reverse_lazy('finance:payment_list'), 'icon': 'credit-card'},
-                {'name': 'Generate Reports', 'url': reverse_lazy('finance:financial_report_list'), 'icon': 'file-text'},
-                {'name': 'Fee Management', 'url': reverse_lazy('finance:fee_structure_list'), 'icon': 'dollar-sign'},
+                {'name': 'Process Payments', 'url': reverse_lazy('finance:payment_list'), 'icon': 'credit-card', 'color': 'mango'},
+                {'name': 'Fee Structure', 'url': reverse_lazy('finance:fee_structure_list'), 'icon': 'dollar-sign', 'color': 'steel'},
             ])
         
         if user.role in ['librarian']:
             actions.extend([
-                {'name': 'Manage Books', 'url': reverse_lazy('library:book_list'), 'icon': 'book'},
-                {'name': 'Issue Books', 'url': reverse_lazy('library:issue_list'), 'icon': 'book-open'},
-                {'name': 'Catalog', 'url': reverse_lazy('library:book_list'), 'icon': 'list'},
+                {'name': 'Manage Books', 'url': reverse_lazy('library:book_list'), 'icon': 'book', 'color': 'purple'},
+                {'name': 'Issue Books', 'url': reverse_lazy('library:issue_list'), 'icon': 'list-check', 'color': 'ocean'},
             ])
         
-        if user.role in ['admin', 'administrator']:
+        if user.role in ['admin', 'administrator', 'principal', 'headmaster']:
             actions.extend([
-                {'name': 'Manage Staff', 'url': reverse_lazy('hr:staff_list') if 'hr' in str(reverse_lazy('hr:dashboard')) else '#', 'icon': 'users'}, # Check if HR app is installed/mapped
-                {'name': 'System Settings', 'url': reverse_lazy('configuration:setting_list'), 'icon': 'settings'},
-                {'name': 'Reports', 'url': reverse_lazy('analytics:dashboard'), 'icon': 'bar-chart'},
+                {'name': 'Manage Staff', 'url': reverse_lazy('hr:staff_list'), 'icon': 'users', 'color': 'forest'},
+                {'name': 'Admission', 'url': reverse_lazy('admission:staff_list'), 'icon': 'user-plus', 'color': 'sunset'},
+            ])
+
+        if user.role in ['clerk', 'staff', 'hr']:
+            actions.extend([
+                {'name': 'Admission', 'url': reverse_lazy('admission:staff_list'), 'icon': 'user-plus', 'color': 'ocean'},
+                {'name': 'Students', 'url': reverse_lazy('students:student_list'), 'icon': 'group', 'color': 'forest'},
             ])
         
         return common_actions + actions
@@ -1315,5 +1367,78 @@ class MaintenanceModeView(TemplateView):
             'contact_email': getattr(settings, 'CONTACT_EMAIL', 'support@example.com'),
         })
         return context
+
+class ExportReportView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """View to handle PDF/Excel/CSV exports from the dashboard."""
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.is_staff
+
+    def get(self, request, *args, **kwargs):
+        report_type = request.GET.get('type', 'csv')
+        data_source = request.GET.get('source', 'users')
+        
+        User = get_user_model()
+        from apps.finance.models import Invoice
+        from apps.academics.models import StudentAttendance
+        
+        if data_source == 'users':
+            queryset = User.objects.all().values('first_name', 'last_name', 'email', 'role', 'date_joined')
+            columns = ['first_name', 'last_name', 'email', 'role', 'date_joined']
+            title = "User Directory Report"
+        elif data_source == 'finance':
+            queryset = Invoice.objects.all().values('invoice_number', 'student__first_name', 'student__last_name', 'total_amount', 'paid_amount', 'status', 'due_date')
+            columns = ['invoice_number', 'student__first_name', 'student__last_name', 'total_amount', 'paid_amount', 'status', 'due_date']
+            title = "Financial Collections Report"
+        elif data_source == 'attendance':
+            queryset = StudentAttendance.objects.all()[:1000].values('student__first_name', 'student__last_name', 'date', 'status')
+            columns = ['student__first_name', 'student__last_name', 'date', 'status']
+            title = "Attendance Summary Report"
+        else:
+            return HttpResponse("Invalid data source", status=400)
+
+        if report_type == 'csv':
+            return ReportGenerator.generate_csv(queryset, columns)
+        elif report_type == 'excel':
+            return ReportGenerator.generate_excel(list(queryset), columns)
+        elif report_type == 'pdf':
+            return ReportGenerator.generate_pdf(list(queryset), columns, title=title)
+        
+        return HttpResponse("Invalid report type", status=400)
+
+class AnnualReportView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """Generates a comprehensive annual report for the current academic year."""
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.is_staff
+
+    def get(self, request, *args, **kwargs):
+        from apps.academics.models import AcademicYear
+        from apps.finance.models import Invoice
+        from apps.students.models import Student
+        from django.http import HttpResponse
+        
+        year_pk = request.GET.get('year')
+        if year_pk:
+            year = AcademicYear.objects.get(pk=year_pk)
+        else:
+            year = AcademicYear.objects.filter(is_active=True).first()
+            
+        if not year:
+            return HttpResponse("No active academic year found", status=404)
+
+        # Gather summary data
+        student_count = Student.objects.count()
+        finance_summary = Invoice.objects.filter(academic_year=year).aggregate(
+            total=Sum('total_amount'), paid=Sum('paid_amount')
+        )
+        
+        report_data = [
+            {'Metric': 'Academic Year', 'Value': str(year)},
+            {'Metric': 'Total Students', 'Value': student_count},
+            {'Metric': 'Total Billed', 'Value': finance_summary['total'] or 0},
+            {'Metric': 'Total Collected', 'Value': finance_summary['paid'] or 0},
+        ]
+        columns = ['Metric', 'Value']
+        
+        return ReportGenerator.generate_pdf(report_data, columns, title=f"Annual Report {year}")
 
 

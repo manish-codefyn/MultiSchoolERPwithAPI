@@ -1,0 +1,80 @@
+{% extends 'student_portal/layouts/base.html' %}
+{% load static %}
+
+{% block title %}My Syllabus | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-0">My Syllabus</h5>
+                        <p class="mb-0 text-muted">Syllabus for Class {{ request.user.student_profile.current_class }}</p>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Subject</th>
+                                <th>Syllabus Details</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for syllabus in syllabi %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="ms-2">
+                                            <h6 class="mb-0 font-14">{{ syllabus.subject.name }}</h6>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>Topics:</strong>
+                                    <pre class="text-wrap" style="font-family: inherit;">{{ syllabus.topics }}</pre>
+                                    
+                                    {% if syllabus.recommended_books %}
+                                    <div class="mt-2">
+                                        <small class="text-muted d-block">Recommended Books:</small>
+                                        {{ syllabus.recommended_books }}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if syllabus.assessment_pattern %}
+                                    <div class="mt-2">
+                                        <small class="text-muted d-block">Assessment:</small>
+                                        {{ syllabus.assessment_pattern }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if syllabus.file %}
+                                    <a href="{{ syllabus.file.url }}" class="btn btn-sm btn-primary" target="_blank"><i class="bx bx-download"></i> Download</a>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="bx bx-book-open font-50 text-muted mb-3"></i>
+                                        <h6 class="text-muted">No syllabus uploaded yet.</h6>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

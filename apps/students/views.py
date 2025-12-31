@@ -201,45 +201,74 @@ class StudentDashboardView(BaseTemplateView):
     template_name = 'students/dashboard.html'
     permission_required = 'students.view_student_dashboard'
     
+    def get_quick_actions(self):
+        return [
+            {'name': 'Add Student', 'url': reverse_lazy('students:student_create_basic'), 'icon': 'user-plus', 'color': 'primary'},
+            {'name': 'Student List', 'url': reverse_lazy('students:student_list'), 'icon': 'group', 'color': 'success'},
+            {'name': 'Bulk Upload', 'url': reverse_lazy('students:bulk_upload'), 'icon': 'info-circle', 'color': 'info'},
+            {'name': 'Attendance', 'url': reverse_lazy('attendance:dashboard'), 'icon': 'calendar-check', 'color': 'warning'},
+            {'name': 'Promotions', 'url': reverse_lazy('students:student_list'), 'icon': 'trending-up', 'color': 'danger'},
+            {'name': 'ID Cards', 'url': reverse_lazy('students:student_list'), 'icon': 'id-card', 'color': 'secondary'},
+        ]
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tenant = self.request.tenant
+        today = timezone.now().date()
         
         # Get statistics with audit logging
         students = Student.get_secure_queryset(self.request.user)
         
         context['total_students'] = students.count()
-        context['active_students'] = students.filter(status='ACTIVE').count()
+        context['active_students'] = students.filter(status='ACTIVE', is_active=True).count()
         context['inactive_students'] = students.filter(status='INACTIVE').count()
         context['graduated_students'] = students.filter(status='GRADUATED').count()
+        context['alumni'] = context['graduated_students'] # For compatibility
+        context['suspended_students'] = students.filter(status='SUSPENDED').count()
+        context['suspended'] = context['suspended_students'] # For compatibility
         
-        # Class distribution with audit
+        # Class distribution
         class_stats = []
-        for school_class in SchoolClass.objects.filter(tenant=tenant):
+        for school_class in SchoolClass.objects.filter(tenant=tenant, is_active=True):
             count = students.filter(current_class=school_class).count()
-            class_stats.append({
-                'name': school_class.name,
-                'count': count,
-                'percentage': (count / context['total_students'] * 100) if context['total_students'] > 0 else 0
-            })
+            if count > 0:
+                class_stats.append({
+                    'name': school_class.name,
+                    'count': count,
+                    'percentage': (count / context['total_students'] * 100) if context['total_students'] > 0 else 0
+                })
         context['class_stats'] = class_stats
         
+        # Growth Trend (Last 6 Months)
+        from django.db.models.functions import TruncMonth
+        from django.db.models import Count
+        growth_data = students.annotate(month=TruncMonth('created_at'))\
+            .values('month')\
+            .annotate(count=Count('id'))\
+            .order_by('month')[:6]
+        
+        context['growth_labels'] = [entry['month'].strftime('%b %Y') for entry in growth_data if entry['month']]
+        context['growth_values'] = [entry['count'] for entry in growth_data if entry['month']]
+
         # Gender distribution
         gender_stats = students.values('gender').annotate(count=models.Count('id'))
         context['gender_stats'] = list(gender_stats)
         
-        # Recent activities (from audit logs)
+        # Filters for Report Center
+        context['classes'] = SchoolClass.objects.filter(tenant=tenant)
+        context['sections'] = Section.objects.filter(tenant=tenant)
+        context['academic_years'] = AcademicYear.objects.filter(tenant=tenant)
+        context['months'] = [
+            (1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
+            (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'),
+            (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December')
+        ]
+        context['years'] = range(today.year - 5, today.year + 1)
+        context['now'] = timezone.now()
+
+        # Quick actions & recent
+        context['quick_actions'] = self.get_quick_actions()
         context['recent_activities'] = self.get_recent_activities()
-        
-        # Audit the dashboard access
-        AuditService.create_audit_entry(
-            action='READ',
-            resource_type='StudentDashboard',
-            user=self.request.user,
-            request=self.request,
-            severity='INFO',
-            extra_data={'dashboard_type': 'student_overview'}
-        )
         
         return context
     
@@ -1566,13 +1595,24 @@ class StudentExportView(BaseView):
     permission_required = 'students.export_student_data'
     
     def get(self, request, *args, **kwargs):
+        from apps.core.utils.reporting import ReportGenerator
         format_type = request.GET.get('format', 'csv')
         queryset = self.get_filtered_queryset(request)
         
+        data = queryset.values(
+            'admission_number', 'first_name', 'last_name', 
+            'current_class__name', 'section__name', 'academic_year__name', 'status', 'created_at'
+        )
+        columns = ['Admission No', 'First Name', 'Last Name', 'Class', 'Section', 'Academic Year', 'Status', 'Admission Date']
+        filename = f"student_report_{timezone.now().strftime('%Y%m%d')}"
+        title = "Student Progress & Enrollment Report"
+
         if format_type == 'excel':
-            return self.export_excel(queryset)
+            return ReportGenerator.generate_excel(list(data), columns, filename=filename)
+        elif format_type == 'pdf':
+            return ReportGenerator.generate_pdf(list(data), columns, filename=filename, title=title)
         else:
-            return self.export_csv(queryset)
+            return ReportGenerator.generate_csv(list(data), columns, filename=filename)
     
     def get_filtered_queryset(self, request):
         queryset = Student.get_secure_queryset(request.user)
@@ -1586,20 +1626,22 @@ class StudentExportView(BaseView):
         if class_id:
             queryset = queryset.filter(current_class_id=class_id)
         
-        # Log the export
-        AuditService.create_audit_entry(
-            action='EXPORT',
-            resource_type='Student',
-            user=request.user,
-            request=request,
-            severity='INFO',
-            extra_data={
-                'export_format': request.GET.get('format', 'csv'),
-                'record_count': queryset.count(),
-                'filters': dict(request.GET)
-            }
-        )
-        
+        section_id = request.GET.get('section_id')
+        if section_id:
+            queryset = queryset.filter(section_id=section_id)
+            
+        academic_year = request.GET.get('academic_year')
+        if academic_year:
+            queryset = queryset.filter(academic_year_id=academic_year)
+            
+        month = request.GET.get('month')
+        if month:
+            queryset = queryset.filter(created_at__month=month)
+            
+        year = request.GET.get('year')
+        if year:
+            queryset = queryset.filter(created_at__year=year)
+            
         return queryset
     
     def export_csv(self, queryset):
@@ -1823,3 +1865,27 @@ class StudentIdCardView(BaseDetailView):
         generator = StudentIDCardGenerator(student)
         return generator.get_id_card_response()
 
+
+class StudentActivateView(BaseView):
+    """Activate a student profile"""
+    permission_required = 'students.change_student'
+
+    def post(self, request, *args, **kwargs):
+        student = get_object_or_404(
+            Student.get_secure_queryset(request.user),
+            pk=kwargs.get('pk')
+        )
+        
+        student.status = 'ACTIVE'
+        student.save()
+        
+        messages.success(request, _(f"Student {student.first_name} has been activated successfully!"))
+        
+        AuditService.log_update(
+            user=request.user,
+            instance=student,
+            request=request,
+            extra_data={'action': 'activated_profile'}
+        )
+        
+        return redirect('students:student_detail', pk=student.pk)

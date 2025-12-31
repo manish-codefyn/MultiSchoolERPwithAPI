@@ -28,7 +28,7 @@ class DashboardRouter:
         },
         'admin': {
             'name': 'Admin Dashboard',
-            'url_name': 'admin_dashboard',
+            'url_name': 'system_admin_dashboard',
             'app': 'admin_panel',
             'permission_required': 'admin_panel.access_admin_dashboard',
             'fallback': '/admin/'

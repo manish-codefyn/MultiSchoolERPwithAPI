@@ -191,6 +191,7 @@ class MarkQRAttendanceAPIView(APIView):
             else:
                 msg = f"Check-in marked for {staff.full_name}"
 
+            return Response({
                 "message": msg,
                 "student_name": staff.full_name,  # reuse key for frontend compat
                 "status": "PRESENT",

@@ -2,215 +2,252 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Mark Sheet - {{ result.student }}</title>
+    <title>Mark Sheet</title>
     <style>
         @page {
             size: A4;
-            margin: 1cm;
+            margin: 0.5cm; /* Reduced margin */
+            @frame content_frame {
+                left: 0.5cm; right: 0.5cm; top: 0.5cm; bottom: 0.5cm;
+            }
         }
         body {
-            font-family: Arial, sans-serif;
-            font-size: 10pt;
-            color: #333;
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 9pt; /* Reduced font size */
+            color: #000;
         }
-        .header {
-            text-align: center;
-            border-bottom: 2px solid #6a11cb;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+        /* Main Container Table */
+        .main-container {
+            width: 100%;
+            border: 3px double #000;
+            padding: 5px; /* Reduced padding */
         }
-        .school-name {
-            font-size: 22pt;
+        
+        /* Header */
+        .header-table {
+            width: 100%;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+        }
+        .school-title {
+            font-size: 20pt; /* Slightly smaller */
             font-weight: bold;
-            color: #6a11cb;
-            margin: 0;
+            color: #1a237e;
             text-transform: uppercase;
         }
-        .school-info {
-            color: #666;
-            margin: 5px 0;
+        .school-addr {
+            font-size: 8pt;
+            color: #444;
         }
-        .document-title {
-            text-align: center;
-            font-size: 16pt;
-            font-weight: bold;
-            margin: 20px 0;
-            text-transform: uppercase;
-            text-decoration: underline;
-        }
+        
+        /* Student Info */
         .info-table {
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            border-collapse: collapse;
         }
         .info-table td {
-            padding: 5px;
-            vertical-align: top;
+            padding: 4px; /* Reduced padding */
+            border: 1px solid #ccc;
         }
         .label {
+            background-color: #f5f5f5;
             font-weight: bold;
-            color: #555;
-            width: 150px;
+            width: 130px;
         }
+        
+        /* Marks Table */
         .marks-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
-        }
-        .marks-table th, .marks-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
+            margin-bottom: 20px;
         }
         .marks-table th {
-            background-color: #f2f2f2;
+            background-color: #1a237e;
+            color: #fff;
+            padding: 6px; /* Reduced padding */
+            border: 1px solid #000;
             font-weight: bold;
+            font-size: 9pt;
         }
-        .marks-table td.subject-name {
-            text-align: left;
-            font-weight: bold;
+        .marks-table td {
+            padding: 6px;
+            border: 1px solid #000;
+            text-align: center;
         }
-        .total-row {
-            background-color: #f9f9f9;
-            font-weight: bold;
-        }
-        .summary-box {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-top: 20px;
-        }
-        .summary-table {
+        .sub-name { text-align: left !important; padding-left: 8px; }
+        
+        /* Footer */
+        .footer-table {
             width: 100%;
-        }
-        .summary-table td {
-            padding: 5px 0;
-        }
-        .status-pass {
-            color: green;
-            font-weight: bold;
-        }
-        .status-fail {
-            color: red;
-            font-weight: bold;
-        }
-        .footer {
-            margin-top: 50px;
-        }
-        .signature-box {
-            float: right;
-            width: 200px;
-            text-align: center;
-            border-top: 1px solid #333;
-            padding-top: 5px;
-        }
-        .qrcode {
-            float: left;
-            width: 100px;
-        }
-        .verification {
-            clear: both;
-            text-align: center;
-            font-size: 8pt;
-            color: #888;
             margin-top: 30px;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
+        }
+        .sig-line {
+            border-top: 1px solid #000;
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+            padding-top: 3px;
+            font-weight: bold;
+            font-size: 8pt;
+        }
+        .result-box {
+            text-align: center;
+            border: 2px solid #000;
+            padding: 8px;
+            margin-bottom: 15px;
+            font-size: 11pt;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1 class="school-name">{{ tenant.name }}</h1>
-        <p class="school-info">{{ tenant.address|default:"" }}</p>
-        <p class="school-info">Academic Session: {{ result.exam.academic_year.name }}</p>
-    </div>
 
-    <div class="document-title">Progress Report / Mark Sheet</div>
+    <!-- Outer Table for Border -->
+    <table class="main-container" cellspacing="0" cellpadding="0">
+        <tr>
+            <td>
+                
+                <!-- Header Table -->
+                <table class="header-table" cellspacing="0" cellpadding="2">
+                    <tr>
+                        <td width="15%" valign="top" align="center">
+                            {% if logo_path %}
+                                <img src="{{ logo_path }}" width="70" height="70">
+                            {% elif tenant_config.logo %}
+                                <img src="{{ tenant_config.logo.url }}" width="70" height="70">
+                            {% else %}
+                                <div style="width:70px; height:70px; background:#eee;"></div>
+                            {% endif %}
+                        </td>
+                        <td width="60%" align="center" valign="middle">
+                            <div class="school-title">{{ tenant.name }}</div>
+                            <div class="school-addr">
+                                {% if tenant_address %}
+                                    {{ tenant_address.full_address }}
+                                {% else %}
+                                    {{ tenant.address|default:"-" }}
+                                {% endif %}
+                            </div>
+                            <div style="margin-top: 5px; font-weight: bold; font-size: 10pt;">
+                                Affiliation No: {{ tenant_config.affiliation_number|default:"-" }} | 
+                                School Code: {{ tenant_config.school_code|default:"-" }}
+                            </div>
+                        </td>
+                        <td width="25%" align="center" valign="top">
+                            <div style="border:1px solid #000; padding:4px; font-size:8pt;">
+                                <strong>S.NO</strong><br>
+                                {{ mark_sheet.mark_sheet_number }}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
 
-    <table class="info-table">
-        <tr>
-            <td class="label">Student Name:</td>
-            <td>{{ result.student.first_name }} {{ result.student.last_name }}</td>
-            <td class="label">Exam Name:</td>
-            <td>{{ result.exam.name }}</td>
-        </tr>
-        <tr>
-            <td class="label">Roll Number:</td>
-            <td>{{ result.student.roll_number }}</td>
-            <td class="label">Exam Type:</td>
-            <td>{{ result.exam.exam_type.name }}</td>
-        </tr>
-        <tr>
-            <td class="label">Class & Section:</td>
-            <td>{{ result.student.current_class.name }} - {{ result.student.current_section.name }}</td>
-            <td class="label">Date of Issue:</td>
-            <td>{{ result.updated_at|date:"d M Y" }}</td>
+                <!-- Title -->
+                <div style="text-align: center; margin: 15px 0;">
+                    <u style="font-size: 16pt; font-weight: bold;">MARKS SHEET</u><br>
+                    <span style="font-size: 12pt; font-weight: bold; color: #555;">{{ result.exam.name }} ({{ result.exam.academic_year.name }})</span>
+                </div>
+
+                <!-- Student Info Table -->
+                <table class="info-table">
+                    <tr>
+                        <td class="label">Student Name</td>
+                        <td colspan="3"><strong>{{ result.student.full_name|upper }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="label">Roll Number</td>
+                        <td width="35%">{{ result.student.roll_number }}</td>
+                        <td class="label">Class/Sec</td>
+                        <td>{{ result.student.current_class.name }} - {{ result.student.current_section.name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Father's Name</td>
+                        <td>{{ father_name }}</td>
+                        <td class="label">Mother's Name</td>
+                        <td>{{ mother_name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Date of Birth</td>
+                        <td>{{ result.student.date_of_birth|date:"d-m-Y" }}</td>
+                        <td class="label">Admission No</td>
+                        <td>{{ result.student.admission_number|default:"-" }}</td>
+                    </tr>
+                </table>
+
+                <!-- Marks Table -->
+                <table class="marks-table">
+                    <thead>
+                        <tr>
+                            <th width="10%">CODE</th>
+                            <th width="40%">SUBJECT</th>
+                            <th width="10%">TH</th>
+                            <th width="10%">PR</th>
+                            <th width="15%">TOTAL</th>
+                            <th width="15%">GRADE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subject in subject_results %}
+                        <tr>
+                            <td>{{ subject.exam_subject.subject.code|default:"-"|slice:":3" }}</td>
+                            <td class="sub-name">{{ subject.exam_subject.subject.name }}</td>
+                            <td>{{ subject.theory_marks|default:"-" }}</td>
+                            <td>{{ subject.practical_marks|default:"-" }}</td>
+                            <td><strong>{{ subject.total_marks_obtained }}</strong></td>
+                            <td>{{ subject.grade.name|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr style="background-color: #eee; font-weight: bold;">
+                            <td colspan="4" align="right" style="padding-right: 10px;">GRAND TOTAL</td>
+                            <td>{{ result.total_marks_obtained }} / {{ result.total_max_marks }}</td>
+                            <td>{{ result.overall_grade.name|default:"-" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Result Box -->
+                <div class="result-box">
+                    RESULT: <span style="{% if result.is_pass %}color:green{% else %}color:red{% endif %}">
+                        {% if result.is_pass %}PASSED{% else %}FAILED{% endif %}
+                    </span> 
+                    &nbsp;&nbsp;|&nbsp;&nbsp; 
+                    PERCENTAGE: {{ result.percentage }}%
+                </div>
+
+                {% if result.remarks %}
+                <div style="margin-bottom: 20px; font-style: italic;">
+                    <strong>Remarks:</strong> {{ result.remarks }}
+                </div>
+                {% endif %}
+
+                <!-- Footer Signatures -->
+                <table class="footer-table">
+                    <tr>
+                        <td width="33%" align="center">
+                            <div class="sig-line">Class Teacher</div>
+                        </td>
+                        <td width="33%" align="center">
+                            <div class="sig-line">Exam Controller</div>
+                        </td>
+                        <td width="33%" align="center">
+                            <div class="sig-line">Principal</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div style="text-align: center; margin-top: 10px;">
+                    <img src="{{ qr_code_base64 }}" width="70" height="70">
+                </div>
+
+                <div style="margin-top: 10px; font-size: 8pt; text-align: center; color: #666; border-top: 1px solid #ccc; padding-top: 5px;">
+                    Date: {{ mark_sheet.issue_date|date:"d-m-Y" }} | Verification: {{ mark_sheet.verification_code }}
+                </div>
+
+            </td>
         </tr>
     </table>
 
-    <table class="marks-table">
-        <thead>
-            <tr>
-                <th>Subject</th>
-                <th>Max Marks</th>
-                <th>Theory</th>
-                <th>Practical</th>
-                <th>Total Obtained</th>
-                <th>Grade</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for subject in subject_results %}
-            <tr>
-                <td class="subject-name">{{ subject.exam_subject.subject.name }}</td>
-                <td>{{ subject.exam_subject.max_marks }}</td>
-                <td>{{ subject.theory_marks|default:"-" }}</td>
-                <td>{{ subject.practical_marks|default:"-" }}</td>
-                <td>{{ subject.total_marks_obtained }}</td>
-                <td>{{ subject.grade.name|default:"-" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr class="total-row">
-                <td style="text-align: right;">GRAND TOTAL</td>
-                <td>{{ result.total_max_marks }}</td>
-                <td colspan="2"></td>
-                <td>{{ result.total_marks_obtained }}</td>
-                <td>{{ result.overall_grade.name|default:"-" }}</td>
-            </tr>
-        </tfoot>
-    </table>
-
-    <div class="summary-box">
-        <table class="summary-table">
-            <tr>
-                <td width="30%"><strong>Final Percentage:</strong></td>
-                <td>{{ result.percentage }}%</td>
-            </tr>
-            <tr>
-                <td><strong>Class Rank:</strong></td>
-                <td>#{{ result.rank }} of {{ result.total_students }} students</td>
-            </tr>
-            <tr>
-                <td><strong>Result Status:</strong></td>
-                <td class="{% if result.is_pass %}status-pass{% else %}status-fail{% endif %}">
-                    {% if result.is_pass %}PASSED / PROMOTED{% else %}FAILED{% endif %}
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="footer">
-        <div class="signature-box">
-            Authorized Signature<br>
-            <small>(Principal/Examination Head)</small>
-        </div>
-    </div>
-
-    <div class="verification">
-        Mark Sheet No: {{ result.mark_sheet.mark_sheet_number|default:"N/A" }} | 
-        Verification Code: {{ result.mark_sheet.verification_code|default:"N/A" }}<br>
-        Digitally generated by {{ tenant.name }} Management System
-    </div>
 </body>
 </html>

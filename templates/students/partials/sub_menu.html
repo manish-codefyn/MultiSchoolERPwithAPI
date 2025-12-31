@@ -6,6 +6,7 @@
     <ul>
         <li><a href="{% url 'students:dashboard' %}"><i class="bx bx-radio-circle"></i>Dashboard</a></li>
         <li><a href="{% url 'students:student_list' %}"><i class="bx bx-radio-circle"></i>All Students</a></li>
+        <li><a href="{% url 'students:student_list' %}?status=INCOMPLETE"><i class="bx bx-radio-circle"></i>Incomplete Profiles</a></li>
         <li><a href="{% url 'students:bulk_upload' %}"><i class="bx bx-radio-circle"></i>Bulk Upload</a></li>
     </ul>
 </li>

@@ -11,6 +11,7 @@ from django.views.generic import ListView,View, CreateView, UpdateView, DeleteVi
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.utils.translation import gettext_lazy as _
 from apps.core.views import (
     BaseListView, BaseDetailView, BaseCreateView, 
@@ -1312,6 +1313,32 @@ class SyllabusDeleteView(BaseDeleteView):
     
     def get_success_url(self):
         return reverse_lazy('academics:syllabus_list')
+
+
+class AutoGenerateSyllabusView(PermissionRequiredMixin, View):
+    """
+    Auto-generate syllabus content based on simplified logic.
+    """
+    permission_required = 'academics.add_syllabus'
+    
+    def get(self, request):
+        class_id = request.GET.get('class_id')
+        subject_id = request.GET.get('subject_id')
+        
+        if not class_id or not subject_id:
+            return JsonResponse({'error': 'Class and Subject are required'}, status=400)
+            
+        try:
+            school_class = SchoolClass.objects.get(pk=class_id)
+            subject = Subject.objects.get(pk=subject_id)
+            
+            from apps.academics.services.syllabus_generator import SyllabusGenerator
+            data = SyllabusGenerator.generate(school_class, subject.name)
+            
+            return JsonResponse(data)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
 
 
 # ============================================================================

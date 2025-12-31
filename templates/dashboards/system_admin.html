@@ -3,6 +3,9 @@
 
 {% block title %}{{ page_title }} | {{ block.super }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
 {% block content %}
 
 
@@ -13,12 +16,26 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div>
-                                <h4 class="mb-1">Welcome back, {{ user.get_full_name }}!</h4>
-                                <p class="mb-0">System Administration Dashboard</p>
+                                <h4 class="mb-1">Welcome back, {{ user.get_full_name|default:user.username }}!</h4>
+                                <p class="mb-0">{% if not is_public_view %}{{ tenant.name }} - {% endif %}System Administration Dashboard</p>
                             </div>
+                            {% if not is_public_view %}
+                            <div class="ms-auto d-flex align-items-center">
+                                <div class="text-end me-3 d-none d-md-block">
+                                    <h6 class="mb-0 text-white">{{ tenant.name }}</h6>
+                                    <small class="text-white-50">Plan: {{ tenant.plan|title }}</small>
+                                </div>
+                                {% if tenant.logo %}
+                                    <img src="{{ tenant.logo.url }}" width="50" height="50" class="rounded-circle border border-2 border-white" alt="logo">
+                                {% else %}
+                                    <i class="bx bx-buildings font-50"></i>
+                                {% endif %}
+                            </div>
+                            {% else %}
                             <div class="ms-auto">
                                 <i class="bx bx-server font-50"></i>
                             </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -92,6 +109,55 @@
             </div>
         </div>
 
+        <!-- Financial Overview (NEW) -->
+        <div class="row row-cols-1 row-cols-md-3">
+            <div class="col">
+                <div class="card radius-10">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <p class="mb-0 text-secondary">Total Billed</p>
+                                <h4 class="my-1">₹{{ financial_summary.total_billed|default:0 }}</h4>
+                            </div>
+                            <div class="widgets-icons-2 rounded-circle bg-light-primary text-primary ms-auto">
+                                <i class='bx bxs-wallet'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card radius-10">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <p class="mb-0 text-secondary">Total Collected</p>
+                                <h4 class="my-1 text-success">₹{{ financial_summary.total_paid|default:0 }}</h4>
+                            </div>
+                            <div class="widgets-icons-2 rounded-circle bg-light-success text-success ms-auto">
+                                <i class='bx bxs-check-shield'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card radius-10">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <p class="mb-0 text-secondary">Outstanding Due</p>
+                                <h4 class="my-1 text-danger">₹{{ financial_summary.total_due|default:0 }}</h4>
+                            </div>
+                            <div class="widgets-icons-2 rounded-circle bg-light-danger text-danger ms-auto">
+                                <i class='bx bxs-error-circle'></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Charts Row -->
         <div class="row">
             {% if is_public_view %}
@@ -105,13 +171,39 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        {% if tenant_growth_labels %}
                         <div class="chart-container-1">
                             <canvas id="tenantGrowthChart"></canvas>
                         </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class='bx bx-line-chart font-50 text-secondary mb-3'></i>
+                            <p class="text-secondary">No tenant growth data available yet.</p>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-            {% endif %}
+        {% endif %}
+        <h6 class="mb-0 text-uppercase p-2">System Quick Access</h6>
+        <hr/>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-6 g-3 py-2">
+            {% for action in quick_actions %}
+            <div class="col">
+                <a href="{{ action.url }}" class="text-decoration-none">
+                    <div class="card quick-action-card h-100">
+                        <div class="card-body text-center p-3">
+                            <div class="icon-box bg-gradient-{{ action.color|default:'purple' }}">
+                                <i class='bx bx-{{ action.icon }}'></i>
+                            </div>
+                            <div class="action-label">{{ action.name }}</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
             <div class="col-12 {% if is_public_view %}col-lg-4{% else %}col-lg-12{% endif %}">
                 <div class="card radius-10">
                     <div class="card-header">
@@ -122,8 +214,95 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        {% if user_role_labels %}
                         <div class="chart-container-2">
                             <canvas id="userRoleChart"></canvas>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class='bx bx-pie-chart-alt font-50 text-secondary mb-3'></i>
+                            <p class="text-secondary">No user role data available yet.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Trend (NEW) -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card radius-10">
+                    <div class="card-header">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">Attendance Trend (Last 30 Days)</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if attendance_labels %}
+                        <div class="chart-container-1">
+                            <canvas id="attendanceChart"></canvas>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class='bx bx-calendar-check font-50 text-secondary mb-3'></i>
+                            <p class="text-secondary">No attendance data available for the last 30 days.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Reports Section (NEW) -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-top border-0 border-4 border-primary">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-center">
+                            <div><i class="bx bxs-file-pdf me-1 font-22 text-primary"></i>
+                            </div>
+                            <h5 class="mb-0 text-primary">Quick Reports & Exports</h5>
+                            <div class="ms-auto">
+                                <a href="{% url 'annual_report' %}" class="btn btn-outline-primary radius-30 px-4">
+                                    <i class="bx bxs-report"></i> Generate Annual Report
+                                </a>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded">
+                                    <h6>User Directory</h6>
+                                    <div class="btn-group w-100 mt-2">
+                                        <a href="{% url 'dashboard_export' %}?source=users&type=pdf" class="btn btn-sm btn-outline-danger"><i class="bx bxs-file-pdf"></i> PDF</a>
+                                        <a href="{% url 'dashboard_export' %}?source=users&type=excel" class="btn btn-sm btn-outline-success"><i class="bx bxs-spreadsheet"></i> Excel</a>
+                                        <a href="{% url 'dashboard_export' %}?source=users&type=csv" class="btn btn-sm btn-outline-info"><i class="bx bx-file"></i> CSV</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded">
+                                    <h6>Financial Summary</h6>
+                                    <div class="btn-group w-100 mt-2">
+                                        <a href="{% url 'dashboard_export' %}?source=finance&type=pdf" class="btn btn-sm btn-outline-danger"><i class="bx bxs-file-pdf"></i> PDF</a>
+                                        <a href="{% url 'dashboard_export' %}?source=finance&type=excel" class="btn btn-sm btn-outline-success"><i class="bx bxs-spreadsheet"></i> Excel</a>
+                                        <a href="{% url 'dashboard_export' %}?source=finance&type=csv" class="btn btn-sm btn-outline-info"><i class="bx bx-file"></i> CSV</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 border rounded">
+                                    <h6>Attendance Records</h6>
+                                    <div class="btn-group w-100 mt-2">
+                                        <a href="{% url 'dashboard_export' %}?source=attendance&type=pdf" class="btn btn-sm btn-outline-danger"><i class="bx bxs-file-pdf"></i> PDF</a>
+                                        <a href="{% url 'dashboard_export' %}?source=attendance&type=excel" class="btn btn-sm btn-outline-success"><i class="bx bxs-spreadsheet"></i> Excel</a>
+                                        <a href="{% url 'dashboard_export' %}?source=attendance&type=csv" class="btn btn-sm btn-outline-info"><i class="bx bx-file"></i> CSV</a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -311,24 +490,7 @@
             </div>
         </div>
 
-        <h6 class="mb-0 text-uppercase">Quick Actions</h6>
-        <hr/>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
-            {% for action in quick_actions %}
-            <div class="col">
-                <a href="" class="text-decoration-none">
-                    <div class="card radius-10">
-                        <div class="card-body text-center">
-                            <div class="widgets-icons rounded-circle mx-auto bg-light-primary text-primary mb-3">
-                                <i class='bx bx-{{ action.icon }}'></i>
-                            </div>
-                            <h5 class="my-3">{{ action.name }}</h5>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            {% endfor %}
-        </div>
+ 
  
 {% endblock %}
 
@@ -344,10 +506,10 @@
     var tenantGrowthChart = new Chart(ctx1, {
         type: 'bar',
         data: {
-            labels: {{ tenant_growth_labels|safe }},
+            labels: {{ tenant_growth_labels|safe|default:"[]" }},
             datasets: [{
                 label: 'New Tenants',
-                data: {{ tenant_growth_data|safe }},
+                data: {{ tenant_growth_data|safe|default:"[]" }},
                 borderColor: gradientStroke1,
                 backgroundColor: gradientStroke1,
                 hoverBackgroundColor: gradientStroke1,
@@ -385,9 +547,9 @@
     var userRoleChart = new Chart(ctx2, {
         type: 'doughnut',
         data: {
-            labels: {{ user_role_labels|safe }},
+            labels: {{ user_role_labels|safe|default:"[]" }},
             datasets: [{
-                data: {{ user_role_data|safe }},
+                data: {{ user_role_data|safe|default:"[]" }},
                 backgroundColor: [
                     '#ff6a00',
                     '#ee0979',
@@ -415,5 +577,45 @@
             }
         }
     });
+
+    // Attendance Trend Chart (Line Chart)
+    {% if attendance_labels %}
+    var ctx3 = document.getElementById("attendanceChart").getContext('2d');
+    var attendanceChart = new Chart(ctx3, {
+        type: 'line',
+        data: {
+            labels: {{ attendance_labels|safe|default:"[]" }},
+            datasets: [{
+                label: 'Present',
+                data: {{ attendance_present|safe|default:"[]" }},
+                borderColor: '#15ca20',
+                backgroundColor: 'rgba(21, 202, 32, 0.1)',
+                fill: true,
+                tension: 0.3
+            }, {
+                label: 'Absent',
+                data: {{ attendance_absent|safe|default:"[]" }},
+                borderColor: '#fd3550',
+                backgroundColor: 'rgba(253, 53, 80, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            legend: {
+                position: 'bottom',
+                display: true
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+    {% endif %}
 </script>
 {% endblock %}

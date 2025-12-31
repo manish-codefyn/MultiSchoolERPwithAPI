@@ -176,6 +176,226 @@
     </div>
 </div>
 
+<!-- Report Center Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card radius-10 shadow-sm border-0">
+            <div class="card-header bg-transparent border-0">
+                <div class="d-flex align-items-center">
+                    <div>
+                        <h6 class="mb-0 text-primary fw-bold"><i class="bx bx-file-find me-2"></i>Attendance Report Center</h6>
+                        <small class="text-muted">Generate and export comprehensive attendance reports</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-pills nav-pills-primary mb-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" data-bs-toggle="pill" href="#student_report" role="tab">
+                            <i class='bx bx-user me-1'></i>Students
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" data-bs-toggle="pill" href="#staff_report" role="tab">
+                            <i class='bx bx-user-badge me-1'></i>Staff
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" data-bs-toggle="pill" href="#hostel_report" role="tab">
+                            <i class='bx bx-home-heart me-1'></i>Hostel
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" data-bs-toggle="pill" href="#transport_report" role="tab">
+                            <i class='bx bx-bus me-1'></i>Transport
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <!-- Student Tab -->
+                    <div class="tab-pane fade show active" id="student_report" role="tabpanel">
+                        <form action="{% url 'attendance:report_export' %}" method="get" class="row g-3">
+                            <input type="hidden" name="source" value="student">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Class</label>
+                                <select name="class_id" class="form-select form-select-sm">
+                                    <option value="">All Classes</option>
+                                    {% for cls in classes %}
+                                    <option value="{{ cls.id }}">{{ cls.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Section</label>
+                                <select name="section_id" class="form-select form-select-sm">
+                                    <option value="">All Sections</option>
+                                    {% for sec in sections %}
+                                    <option value="{{ sec.id }}">{{ sec.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Month</label>
+                                <select name="month" class="form-select form-select-sm" required>
+                                    {% for m_id, m_name in months %}
+                                    <option value="{{ m_id }}" {% if m_id == now.month %}selected{% endif %}>{{ m_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Year</label>
+                                <select name="year" class="form-select form-select-sm" required>
+                                    {% for y in years %}
+                                    <option value="{{ y }}" {% if y == now.year %}selected{% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="btn-group btn-group-sm w-100">
+                                    <button type="submit" name="format" value="pdf" class="btn btn-outline-danger"><i class="bx bxs-file-pdf"></i></button>
+                                    <button type="submit" name="format" value="excel" class="btn btn-outline-success"><i class="bx bxs-file-export"></i></button>
+                                    <button type="submit" name="format" value="csv" class="btn btn-outline-info"><i class="bx bx-file"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Staff Tab -->
+                    <div class="tab-pane fade" id="staff_report" role="tabpanel">
+                        <form action="{% url 'attendance:report_export' %}" method="get" class="row g-3">
+                            <input type="hidden" name="source" value="staff">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Department</label>
+                                <select name="dept_id" class="form-select form-select-sm">
+                                    <option value="">All Departments</option>
+                                    {% for dept in departments %}
+                                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Designation</label>
+                                <select name="desig_id" class="form-select form-select-sm">
+                                    <option value="">All Designations</option>
+                                    {% for desig in designations %}
+                                    <option value="{{ desig.id }}">{{ desig.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Month</label>
+                                <select name="month" class="form-select form-select-sm" required>
+                                    {% for m_id, m_name in months %}
+                                    <option value="{{ m_id }}" {% if m_id == now.month %}selected{% endif %}>{{ m_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Year</label>
+                                <select name="year" class="form-select form-select-sm" required>
+                                    {% for y in years %}
+                                    <option value="{{ y }}" {% if y == now.year %}selected{% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="btn-group btn-group-sm w-100">
+                                    <button type="submit" name="format" value="pdf" class="btn btn-outline-danger"><i class="bx bxs-file-pdf"></i></button>
+                                    <button type="submit" name="format" value="excel" class="btn btn-outline-success"><i class="bx bxs-file-export"></i></button>
+                                    <button type="submit" name="format" value="csv" class="btn btn-outline-info"><i class="bx bx-file"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Hostel Tab -->
+                    <div class="tab-pane fade" id="hostel_report" role="tabpanel">
+                        <form action="{% url 'attendance:report_export' %}" method="get" class="row g-3">
+                            <input type="hidden" name="source" value="hostel">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Hostel</label>
+                                <select name="hostel_id" class="form-select form-select-sm">
+                                    <option value="">All Hostels</option>
+                                    {% for hostel in hostels %}
+                                    <option value="{{ hostel.id }}">{{ hostel.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Month</label>
+                                <select name="month" class="form-select form-select-sm" required>
+                                    {% for m_id, m_name in months %}
+                                    <option value="{{ m_id }}" {% if m_id == now.month %}selected{% endif %}>{{ m_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Year</label>
+                                <select name="year" class="form-select form-select-sm" required>
+                                    {% for y in years %}
+                                    <option value="{{ y }}" {% if y == now.year %}selected{% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="btn-group btn-group-sm w-100">
+                                    <button type="submit" name="format" value="pdf" class="btn btn-outline-danger"><i class="bx bxs-file-pdf"></i></button>
+                                    <button type="submit" name="format" value="excel" class="btn btn-outline-success"><i class="bx bxs-file-export"></i></button>
+                                    <button type="submit" name="format" value="csv" class="btn btn-outline-info"><i class="bx bx-file"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Transport Tab -->
+                    <div class="tab-pane fade" id="transport_report" role="tabpanel">
+                        <form action="{% url 'attendance:report_export' %}" method="get" class="row g-3">
+                            <input type="hidden" name="source" value="transport">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Route</label>
+                                <select name="route_id" class="form-select form-select-sm">
+                                    <option value="">All Routes</option>
+                                    {% for route in routes %}
+                                    <option value="{{ route.id }}">{{ route.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Trip Type</label>
+                                <select name="trip_type" class="form-select form-select-sm">
+                                    <option value="">All Trips</option>
+                                    <option value="PICKUP">Pickup</option>
+                                    <option value="DROP">Drop</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Month</label>
+                                <select name="month" class="form-select form-select-sm" required>
+                                    {% for m_id, m_name in months %}
+                                    <option value="{{ m_id }}" {% if m_id == now.month %}selected{% endif %}>{{ m_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Year</label>
+                                <select name="year" class="form-select form-select-sm" required>
+                                    {% for y in years %}
+                                    <option value="{{ y }}" {% if y == now.year %}selected{% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="btn-group btn-group-sm w-100">
+                                    <button type="submit" name="format" value="pdf" class="btn btn-outline-danger"><i class="bx bxs-file-pdf"></i></button>
+                                    <button type="submit" name="format" value="excel" class="btn btn-outline-success"><i class="bx bxs-file-export"></i></button>
+                                    <button type="submit" name="format" value="csv" class="btn btn-outline-info"><i class="bx bx-file"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Recent List Section -->
 <div class="card radius-10">
     <div class="card-header bg-transparent">

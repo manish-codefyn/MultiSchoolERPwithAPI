@@ -52,4 +52,7 @@ urlpatterns = [
     path('transport/create/', views.TransportAttendanceCreateView.as_view(), name='transport_attendance_create'),
     path('transport/<uuid:pk>/update/', views.TransportAttendanceUpdateView.as_view(), name='transport_attendance_update'),
     path('transport/<uuid:pk>/delete/', views.TransportAttendanceDeleteView.as_view(), name='transport_attendance_delete'),
+
+    # Reports
+    path('report/export/', views.AttendanceReportExportView.as_view(), name='report_export'),
 ]

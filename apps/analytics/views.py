@@ -697,6 +697,7 @@ class ReportGenerateView(BaseView):
     permission_required = 'analytics.generate_report'
     
     def post(self, request, pk):
+        from apps.core.utils.reporting import ReportGenerator
         report = get_object_or_404(Report, pk=pk, tenant=get_current_tenant())
         
         # Create execution record
@@ -708,15 +709,27 @@ class ReportGenerateView(BaseView):
         )
         
         try:
-            # Generate report (simplified - implement actual logic)
+            # 1. Gather data based on report configuration (Mocked for now)
+            # In a real scenario, this would execute the report's query
+            data = [{'Metric': 'Sample', 'Value': 100}] 
+            columns = ['Metric', 'Value']
+            
+            # 2. Generate file using common utility
+            if report.format == 'CSV':
+                response = ReportGenerator.generate_csv(data, columns)
+            elif report.format == 'EXCEL':
+                response = ReportGenerator.generate_excel(data, columns)
+            else:
+                response = ReportGenerator.generate_pdf(data, columns, title=report.title)
+                
+            # 3. Complete execution
             execution.complete_execution({
                 'status': 'success',
                 'message': 'Report generated successfully',
-                'generated_at': timezone.now().isoformat()
+                'format': report.format
             })
             
-            messages.success(request, f"Report '{report.title}' generated successfully.")
-            return redirect('analytics:report_detail', pk=report.pk)
+            return response
             
         except Exception as e:
             logger.error(f"Failed to generate report {report.pk}: {str(e)}")

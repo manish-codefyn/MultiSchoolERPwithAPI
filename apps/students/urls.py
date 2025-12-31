@@ -62,6 +62,7 @@ urlpatterns = [
 
     # Special Actions
     path('promote/<uuid:pk>/', views.StudentPromoteView.as_view(), name='student_promote'),
+    path('activate/<uuid:pk>/', views.StudentActivateView.as_view(), name='student_activate'),
     path('report/<uuid:pk>/', views.StudentReportView.as_view(), name='student_report'),
     path('id-card/<uuid:pk>/', views.StudentIdCardView.as_view(), name='student_id_card'),
 ]

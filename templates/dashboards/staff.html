@@ -3,6 +3,10 @@
 
 {% block title %}{{ page_title }} | {{ block.super }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
 
         <!-- Welcome Banner -->
@@ -28,22 +32,23 @@
         <!-- Quick Actions -->
         <h6 class="mb-0 text-uppercase">Quick Actions</h6>
         <hr/>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3">
             {% for action in quick_actions %}
             <div class="col">
                 <a href="{{ action.url }}" class="text-decoration-none">
-                    <div class="card radius-10 hover-shadow border-start border-0 border-4 border-{{ action.color|default:'primary' }}">
-                        <div class="card-body text-center">
-                            <div class="widgets-icons rounded-circle mx-auto bg-light-{{ action.color|default:'primary' }} text-{{ action.color|default:'primary' }} mb-3">
+                    <div class="card quick-action-card h-100 mb-0">
+                        <div class="card-body text-center p-3">
+                            <div class="icon-box bg-gradient-{{ action.color|default:'purple' }}">
                                 <i class='bx bx-{{ action.icon }}'></i>
                             </div>
-                            <h5 class="my-3 text-dark">{{ action.name }}</h5>
+                            <div class="action-label">{{ action.name }}</div>
                         </div>
                     </div>
                 </a>
             </div>
             {% endfor %}
         </div>
+        <div class="mb-4"></div>
 
         <div class="row">
             <!-- Schedule/Calendar -->

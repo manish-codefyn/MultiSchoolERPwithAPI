@@ -1,6 +1,6 @@
 import logging
 from django.db import transaction
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
 from django.contrib import messages
@@ -20,6 +20,10 @@ from apps.attendance.forms import (
     StudentAttendanceForm, StaffAttendanceForm, 
     HostelAttendanceForm, TransportAttendanceForm
 )
+
+from django.http import HttpResponse
+from django.views import View
+from apps.core.utils.reporting import ReportGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -53,12 +57,9 @@ class AttendanceDashboardView(BaseTemplateView):
         }
 
         # 2. Charts Data (Last 7 Days Trend)
-        # We need a list of dates and counts for Present/Absent
         trend_data = []
         for i in range(7):
             day = last_7_days + timedelta(days=i)
-            day_str = day.strftime("%Y-%m-%d")
-            
             s_present = StudentAttendance.objects.filter(date=day, status='PRESENT').count()
             s_absent = StudentAttendance.objects.filter(date=day, status='ABSENT').count()
             
@@ -69,10 +70,29 @@ class AttendanceDashboardView(BaseTemplateView):
             })
         
         context['trend_data'] = trend_data
-
-        # 3. Recent Activity (Last 5 records across types)
-        # Just fetching latest 5 students for now as a sample
         context['recent_attendance'] = StudentAttendance.objects.select_related('student', 'class_name').order_by('-created_at')[:5]
+
+        # 4. Filter Options for Reporting
+        from apps.academics.models import SchoolClass, Section, AcademicYear
+        from apps.hr.models import Department, Designation
+        from apps.hostel.models import Hostel
+        from apps.transportation.models import Route
+        
+        context['classes'] = SchoolClass.objects.filter(is_active=True)
+        context['sections'] = Section.objects.filter(is_active=True)
+        context['departments'] = Department.objects.all()
+        context['designations'] = Designation.objects.all()
+        context['hostels'] = Hostel.objects.filter(is_active=True)
+        context['routes'] = Route.objects.filter(is_active=True)
+        context['academic_years'] = AcademicYear.objects.filter(is_active=True)
+        
+        context['months'] = [
+            (1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
+            (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'),
+            (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December')
+        ]
+        context['years'] = range(today.year - 2, today.year + 1)
+        context['now'] = timezone.now()
 
         return context
 
@@ -292,3 +312,78 @@ class TransportAttendanceDeleteView(BaseDeleteView):
     template_name = 'attendance/transport_attendance_confirm_delete.html'
     success_url = reverse_lazy('attendance:transport_attendance_list')
     roles_required = ['admin', 'transport_manager']
+
+
+# ============================================================================
+# REPORTING
+# ============================================================================
+
+class AttendanceReportExportView(View):
+    """
+    Universal export view for Student, Staff, Hostel, and Transport attendance.
+    """
+    def get(self, request):
+        source = request.GET.get('source', 'student')
+        format_type = request.GET.get('format', 'pdf')
+        month = request.GET.get('month')
+        year = request.GET.get('year')
+        
+        # Base Querysets
+        if source == 'student':
+            class_id = request.GET.get('class_id')
+            section_id = request.GET.get('section_id')
+            queryset = StudentAttendance.objects.all()
+            if class_id: queryset = queryset.filter(class_name_id=class_id)
+            if section_id: queryset = queryset.filter(section_id=section_id)
+            if month and year: queryset = queryset.filter(date__month=month, date__year=year)
+            
+            data = queryset.values('student__first_name', 'student__last_name', 'student__admission_number', 'class_name__name', 'section__name', 'date', 'status')
+            columns = ['First Name', 'Last Name', 'Admission No', 'Class', 'Section', 'Date', 'Status']
+            title = "Student Attendance Report"
+            
+        elif source == 'staff':
+            dept_id = request.GET.get('dept_id')
+            desig_id = request.GET.get('desig_id')
+            queryset = StaffAttendance.objects.all()
+            if dept_id: queryset = queryset.filter(staff__department_id=dept_id)
+            if desig_id: queryset = queryset.filter(staff__designation_id=desig_id)
+            if month and year: queryset = queryset.filter(date__month=month, date__year=year)
+            
+            data = queryset.values('staff__user__first_name', 'staff__user__last_name', 'staff__employee_id', 'staff__department__name', 'date', 'status', 'check_in', 'check_out')
+            columns = ['First Name', 'Last Name', 'Employee ID', 'Department', 'Date', 'Status', 'In', 'Out']
+            title = "Staff Attendance Report"
+
+        elif source == 'hostel':
+            hostel_id = request.GET.get('hostel_id')
+            queryset = HostelAttendance.objects.all()
+            if hostel_id: queryset = queryset.filter(student__hostel_allocation__hostel_id=hostel_id)
+            if month and year: queryset = queryset.filter(date__month=month, date__year=year)
+            
+            data = queryset.values('student__first_name', 'student__last_name', 'student__hostel_allocation__hostel__name', 'date', 'status')
+            columns = ['First Name', 'Last Name', 'Hostel', 'Date', 'Status']
+            title = "Hostel Attendance Report"
+
+        elif source == 'transport':
+            route_id = request.GET.get('route_id')
+            trip_type = request.GET.get('trip_type')
+            queryset = TransportAttendance.objects.all()
+            if route_id: queryset = queryset.filter(student__transport_allocation__route_id=route_id)
+            if trip_type: queryset = queryset.filter(trip_type=trip_type)
+            if month and year: queryset = queryset.filter(date__month=month, date__year=year)
+            
+            data = queryset.values('student__first_name', 'student__last_name', 'trip_type', 'date', 'status')
+            columns = ['First Name', 'Last Name', 'Trip', 'Date', 'Status']
+            title = "Transport Attendance Report"
+        
+        else:
+            return HttpResponse("Invalid source", status=400)
+
+        # Generate report
+        filename = f"{source}_attendance_{timezone.now().strftime('%Y%m%d')}"
+        
+        if format_type == 'csv':
+            return ReportGenerator.generate_csv(list(data), columns, filename=filename)
+        elif format_type == 'excel':
+            return ReportGenerator.generate_excel(list(data), columns, filename=filename)
+        else:
+            return ReportGenerator.generate_pdf(list(data), columns, filename=filename, title=title)

@@ -19,7 +19,7 @@
         {% if user.is_authenticated and user.role in 'student,parent,guardian'|make_list or not user.is_authenticated %}
         <li class="menu-label">For Applicants</li>
         <li> 
-            <a href="{% url 'admission:apply' %}">
+            <a href="{% url 'admission:apply_step1' %}">
                 <div class="parent-icon"><i class="bx bx-edit"></i></div>
                 <div class="menu-title">Apply Online</div>
             </a>
@@ -73,19 +73,19 @@
             </a>
             <ul>
                 <li> 
-                    <a href="#">
+                    <a href="{% url 'admission:cycle_list' %}">
                         <div class="parent-icon"><i class="bx bx-slider-alt"></i></div>
                         <div class="menu-title">Configure Admission</div>
                     </a>
                 </li>
                 <li> 
-                    <a href="#">
+                    <a href="{% url 'admission:cycle_list' %}">
                         <div class="parent-icon"><i class="bx bx-calendar"></i></div>
                         <div class="menu-title">Set Deadlines</div>
                     </a>
                 </li>
                 <li> 
-                    <a href="#">
+                    <a href="{% url 'admission:program_list' %}">
                         <div class="parent-icon"><i class="bx bx-dollar-circle"></i></div>
                         <div class="menu-title">Fee Structure</div>
                     </a>
@@ -100,19 +100,19 @@
             </a>
             <ul>
                 <li> 
-                    <a href="#">
+                    <a href="{% url 'admission:analytics' %}">
                         <div class="parent-icon"><i class="bx bx-trending-up"></i></div>
                         <div class="menu-title">Admission Trends</div>
                     </a>
                 </li>
                 <li> 
-                    <a href="#">
+                    <a href="{% url 'admission:analytics' %}">
                         <div class="parent-icon"><i class="bx bx-pie-chart-alt"></i></div>
                         <div class="menu-title">Demographics</div>
                     </a>
                 </li>
                 <li> 
-                    <a href="#">
+                    <a href="{% url 'admission:analytics' %}">
                         <div class="parent-icon"><i class="bx bx-bar-chart-alt"></i></div>
                         <div class="menu-title">Performance</div>
                     </a>
@@ -131,7 +131,7 @@
             </a>
         </li>
         <li> 
-            <a href="#">
+            <a href="{% url 'users:user_list' %}">
                 <div class="parent-icon"><i class="bx bx-key"></i></div>
                 <div class="menu-title">Permission Management</div>
             </a>

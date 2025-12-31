@@ -1,0 +1,46 @@
+/* Dashboards Quick Actions Styling */
+.quick-action-card {
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.quick-action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.icon-box {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    margin: 0 auto 10px;
+}
+
+.icon-box i {
+    font-size: 24px;
+    color: #fff;
+}
+
+.action-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    margin-top: 5px;
+}
+
+/* Background Gradients */
+.bg-gradient-purple { background: linear-gradient(135deg, #8E2DE2, #4A00E0); }
+.bg-gradient-ocean { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+.bg-gradient-forest { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.bg-gradient-sunset { background: linear-gradient(135deg, #ff9966, #ff5e62); }
+.bg-gradient-royal { background: linear-gradient(135deg, #141E30, #243B55); }
+.bg-gradient-berry { background: linear-gradient(135deg, #ec008c, #6721ab); }
+.bg-gradient-mango { background: linear-gradient(135deg, #f7971e, #ffd200); }
+.bg-gradient-steel { background: linear-gradient(135deg, #556270, #4ECDC4); }
+.bg-gradient-cosmic { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); }
+.bg-gradient-moonlit { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); }

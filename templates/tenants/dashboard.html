@@ -116,6 +116,16 @@
             </div>
         </a>
     </div>
+    <div class="col">
+        <a href="{% url 'tenants:tenant_config' request.tenant.pk %}" class="card radius-10 border shadow-none mb-0 text-decoration-none h-100 hover-shadow">
+            <div class="card-body text-center p-3">
+                <div class="widgets-icons rounded-circle bg-light-secondary text-secondary mx-auto mb-2 font-24 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class='bx bx-slider-alt'></i>
+                </div>
+                <h6 class="mb-0 text-dark font-14">Configuration</h6>
+            </div>
+        </a>
+    </div>
 </div>
 
 <div class="row mt-4">
@@ -163,6 +173,8 @@
                                 <td><span class="badge bg-light-danger text-danger">{{ stat.student_count }}</span></td>
                                 <td>
                                     <a href="{% url 'tenants:tenant_detail' stat.pk %}" class="btn btn-sm btn-outline-primary radius-30">Details</a>
+                                    <a href="{% url 'tenants:tenant_config' stat.pk %}" class="btn btn-sm btn-outline-secondary radius-30">Config</a>
+                                    <a href="{% url 'tenants:address_config' stat.pk %}" class="btn btn-sm btn-outline-info radius-30">Addr</a>
                                 </td>
                             </tr>
                             {% empty %}

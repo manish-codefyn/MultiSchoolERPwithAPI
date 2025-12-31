@@ -4,8 +4,24 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db.models import Count, Q
 from django_tenants.utils import schema_context
+from django.shortcuts import get_object_or_404
+
 from apps.core.permissions.mixins import PermissionRequiredMixin
-from .models import Tenant, Domain, TenantConfiguration, PaymentConfiguration, AnalyticsConfiguration, SystemNotification, APIService, APIServiceCategory, TenantAPIKey, TenantSecret, APIUsageLog
+from .models import (
+    Tenant,
+    Domain,
+    TenantConfiguration,
+    PaymentConfiguration,
+    AnalyticsConfiguration,
+    SystemNotification,
+    APIService,
+    APIServiceCategory,
+    TenantAPIKey,
+    TenantSecret,
+    APIUsageLog,
+    TenantAddress, # Added
+)
+from .forms import TenantAddressForm
 from apps.security.models import AuditLog
 from apps.users.models import User
 from apps.students.models import Student
@@ -402,8 +418,12 @@ class TenantConfigurationUpdateView(SuperuserRequiredMixin, UpdateView):
     model = TenantConfiguration
     fields = ['academic_year', 'timezone', 'language', 'currency', 'date_format',
               'session_timeout', 'max_login_attempts', 'password_expiry_days',
-              'enable_library', 'enable_finance', 'enable_inventory',
-              'logo', 'square_logo', 'primary_color', 'secondary_color']
+              'enable_library', 'enable_finance', 'enable_inventory', 
+              'enable_admission', 'enable_hr', 'enable_transportation', 
+              'enable_hostel', 'enable_exams', 'enable_assignments', 
+              'enable_communications', 'enable_events',
+              'logo', 'square_logo', 'primary_color', 'secondary_color',
+              'affiliation_number', 'school_code']
     template_name = 'tenants/tenant_configuration_form.html'
     
     def get_object(self, queryset=None):
@@ -413,6 +433,30 @@ class TenantConfigurationUpdateView(SuperuserRequiredMixin, UpdateView):
         
     def get_success_url(self):
         messages.success(self.request, "Tenant configuration updated successfully.")
+        return reverse_lazy('tenants:tenant_list')
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tenant'] = self.object.tenant
+        return context
+
+
+class TenantAddressUpdateView(SuperuserRequiredMixin, UpdateView):
+    model = TenantAddress
+    form_class = TenantAddressForm
+    template_name = 'tenants/tenant_address_form.html'
+    
+    def get_object(self, queryset=None):
+        # Get address for the specific tenant
+        tenant_id = self.kwargs.get('pk')
+        tenant = get_object_or_404(Tenant, pk=tenant_id)
+        # Create address object if it doesn't exist
+        address, created = TenantAddress.objects.get_or_create(tenant=tenant)
+        return address
+        
+    def get_success_url(self):
+        messages.success(self.request, "Tenant address updated successfully.")
         return reverse_lazy('tenants:tenant_list')
 
     def get_context_data(self, **kwargs):

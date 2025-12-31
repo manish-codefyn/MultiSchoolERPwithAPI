@@ -17,6 +17,8 @@ urlpatterns = [
     path('staff/dashboard/', views.StaffDashboardView.as_view(), name='staff_dashboard'),
     path('student/dashboard/', views.StudentPortalDashboardView.as_view(), name='student_portal_dashboard'),
     path('admin/dashboard/', views.SystemAdminDashboardView.as_view(), name='system_admin_dashboard'),
+    path('admin/export/', views.ExportReportView.as_view(), name='dashboard_export'),
+    path('admin/report/annual/', views.AnnualReportView.as_view(), name='annual_report'),
     
     # Password Management
     path('password/change/', views.CustomPasswordChangeView.as_view(), name='password_change'),

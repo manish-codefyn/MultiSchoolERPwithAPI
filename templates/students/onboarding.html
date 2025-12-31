@@ -142,9 +142,19 @@
                     <div class="animate-pulse">
                         <i class='bx bxs-check-circle fs-1 mb-2'></i>
                         <h5 class="mb-3">{% trans "You're All Set!" %}</h5>
+                        
+                        {% if student.status == 'INCOMPLETE' %}
+                        <form action="{% url 'students:student_activate' pk=student.pk %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 py-2 hover-lift">
+                                <i class="bx bx-check-double me-2"></i>{% trans "Activate Profile" %}
+                            </button>
+                        </form>
+                        {% else %}
                         <a href="{% url 'students:student_detail' pk=student.pk %}" class="btn btn-light text-primary fw-bold rounded-pill px-4 py-2 hover-lift">
                             <i class="bx bx-rocket me-2"></i>{% trans "View Full Profile" %}
                         </a>
+                        {% endif %}
                     </div>
                 {% else %}
                     <div class="opacity-75">

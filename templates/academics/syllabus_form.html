@@ -1,0 +1,101 @@
+{% extends 'layouts/dashboard.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}Edit Syllabus{% else %}Create Syllabus{% endif %} | {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-xl-9 mx-auto">
+        <div class="card border-top border-0 border-4 border-primary">
+            <div class="card-body p-5">
+                <div class="card-title d-flex align-items-center">
+                    <div><i class="bx bx-book-content me-1 font-22 text-primary"></i></div>
+                    <h5 class="mb-0 text-primary">{% if form.instance.pk %}Edit Syllabus{% else %}Add New Syllabus{% endif %}</h5>
+                </div>
+                <hr>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.academic_year|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.class_name|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.subject|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    {{ form.topics|as_crispy_field }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.recommended_books|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.reference_materials|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    {{ form.assessment_pattern|as_crispy_field }}
+
+                    {% if 'file' in form.fields %}
+                    {{ form.file|as_crispy_field }}
+                    {% endif %}
+
+                    <div class="col-12 mt-3">
+                        <button type="button" class="btn btn-outline-success px-4 me-2" id="btnAutoGenerate">
+                            <i class="bx bx-magic-wand me-1"></i> AI Generate
+                        </button>
+                        <button type="submit" class="btn btn-primary px-5">Save Syllabus</button>
+                        <a href="{% url 'academics:syllabus_list' %}" class="btn btn-secondary px-5">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('btnAutoGenerate').addEventListener('click', function() {
+        const classSelect = document.getElementById('id_class_name');
+        const subjectSelect = document.getElementById('id_subject');
+        
+        if (!classSelect.value || !subjectSelect.value) {
+            alert('Please select Class and Subject first.');
+            return;
+        }
+
+        const btn = this;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+        btn.disabled = true;
+
+        fetch(`{% url 'academics:syllabus_auto_generate' %}?class_id=${classSelect.value}&subject_id=${subjectSelect.value}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    // Stringify JSON fields for the text area input
+                    document.getElementById('id_topics').value = data.topics ? JSON.stringify(data.topics, null, 2) : '';
+                    document.getElementById('id_recommended_books').value = data.recommended_books || '';
+                    document.getElementById('id_reference_materials').value = data.reference_materials || '';
+                    document.getElementById('id_assessment_pattern').value = data.assessment_pattern ? JSON.stringify(data.assessment_pattern, null, 2) : '';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while generating syllabus.');
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+    });
+</script>
+{% endblock %}

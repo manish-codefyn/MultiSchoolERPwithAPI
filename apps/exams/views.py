@@ -210,30 +210,7 @@ class MarkSheetPDFView(PermissionRequiredMixin, View):
     def get(self, request, pk):
         result = get_object_or_404(ExamResult, pk=pk)
         
-        # Prepare context
-        context = {
-            'result': result,
-            'subject_results': SubjectResult.objects.filter(exam_result=result),
-            'tenant': get_current_tenant(),
-            'request': request,
-        }
-        
-        # Render HTML to string
-        html = render_to_string('exams/pdf/mark_sheet_pdf.html', context)
-        
-        # Create a file-like object to receive PDF data
-        result_pdf = io.BytesIO()
-        
-        # Create PDF
-        pisa_status = pisa.CreatePDF(html, dest=result_pdf)
-        
-        # Return error if something went wrong
-        if pisa_status.err:
-            return HttpResponse('Error generating PDF', status=500)
-        
-        # Set response headers
-        response = HttpResponse(result_pdf.getvalue(), content_type='application/pdf')
-        filename = f"Mark_Sheet_{result.student.roll_number}_{result.exam.name}.pdf"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        
-        return response
+        # Use generator
+        from apps.exams.marksheet_generator import MarksheetGenerator
+        generator = MarksheetGenerator(result, request)
+        return generator.get_response()

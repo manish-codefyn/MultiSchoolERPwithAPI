@@ -85,11 +85,15 @@
         <!-- Header -->
         <div class="row align-items-center border-bottom pb-4 mb-4">
             <div class="col-md-2 text-center text-md-start">
-                 <i class="bx bxs-graduation text-primary" style="font-size: 64px;"></i>
+                 {% if tenant.configuration.logo %}
+                    <img src="{{ tenant.configuration.logo.url }}" class="school-logo" alt="{{ tenant.name }}">
+                 {% else %}
+                    <i class="bx bxs-graduation text-primary" style="font-size: 64px;"></i>
+                 {% endif %}
             </div>
             <div class="col-md-7 text-center text-md-start">
                 <h2 class="fw-bold mb-1">{{ tenant.name|upper }}</h2>
-                <p class="text-muted mb-0">{{ tenant.address|default:"Institution Address Not Set" }}</p>
+                <p class="text-muted mb-0">{{ tenant.address.full_address|default:"Institution Address Not Set" }}</p>
                 <p class="text-muted small">{% trans "Session" %}: {{ result.exam.academic_year.name }}</p>
             </div>
             <div class="col-md-3 text-center text-md-end mt-3 mt-md-0">
