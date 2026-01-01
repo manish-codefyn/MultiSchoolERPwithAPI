@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 from django.urls import reverse_lazy
 from .models import Library, Author, Publisher, BookCategory, Book, BookCopy, BookIssue
 from .forms import (
@@ -23,12 +24,29 @@ class LibraryDashboardView(BaseTemplateView):
         context = super().get_context_data(**kwargs)
         tenant = get_current_tenant()
         
+        # Stats
         context['total_books'] = Book.objects.filter(tenant=tenant, is_active=True).count()
         context['issued_books'] = BookIssue.objects.filter(tenant=tenant, status='ISSUED').count()
-        context['overdue_books'] = BookIssue.objects.filter(tenant=tenant, status='ISSUED', due_date__lt=self.request.user.date_joined.date()).count() # Mocking overdue check date
-        # Note: Actual overdue check should compare with verification date, simplified here.
+        # Mocking overdue check date. Actual overdue check should compare with verification date.
+        context['overdue_books'] = BookIssue.objects.filter(
+            tenant=tenant, 
+            status='ISSUED', 
+            due_date__lt=timezone.now().date()
+        ).count()
         
-        context['recent_issues'] = BookIssue.objects.filter(tenant=tenant).order_by('-issue_date')[:5]
+        # Charts Data
+        # Books by Category
+        context['books_by_category'] = list(Book.objects.filter(tenant=tenant, is_active=True)
+            .values('category__name')
+            .annotate(count=Count('id'))
+            .order_by('-count')[:5])
+            
+        # Issue Status Distribution
+        context['issue_status_distribution'] = list(BookIssue.objects.filter(tenant=tenant)
+            .values('status')
+            .annotate(count=Count('id')))
+
+        context['recent_issues'] = BookIssue.objects.filter(tenant=tenant).select_related('book_copy__book', 'member').order_by('-issue_date')[:5]
         return context
 
 # ==================== AUTHORS ====================

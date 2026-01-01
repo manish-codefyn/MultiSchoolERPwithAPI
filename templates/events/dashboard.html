@@ -1,107 +1,288 @@
-{% extends 'base.html' %}
+{% extends 'layouts/dashboard.html' %}
 {% load i18n static %}
 
 {% block title %}{% trans "Events Dashboard" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Modern Dashboard Styling */
+    .dashboard-header { margin-bottom: 2rem; }
+
+    /* Summary Cards */
+    .stat-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+        background: #fff;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .stat-card .card-body { padding: 1.5rem; }
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.5rem;
+    }
+
+    /* Gradients & Backgrounds */
+    .bg-light-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; }
+    .bg-light-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .bg-light-warning { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .bg-light-info { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+    .bg-light-danger { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .bg-light-secondary { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; }
+    .bg-light-purple { background-color: rgba(111, 66, 193, 0.1); color: #6f42c1; }
+
+    /* Quick Actions */
+    .quick-actions-section { margin-bottom: 2rem; }
+    .action-icon-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+    .action-icon-btn:hover {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+        transform: translateY(-2px);
+    }
+    .action-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        background: #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .action-icon-btn:hover .action-icon-wrapper {
+        box-shadow: 0 6px 15px rgba(13, 110, 253, 0.15);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+    .action-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    /* Charts Section */
+    .chart-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.01);
+        background: #fff;
+        height: 100%;
+    }
+    .chart-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .chart-body {
+        padding: 1.5rem;
+        height: 300px;
+        position: relative;
+    }
+
+    /* Recent Lists */
+    .recent-list-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .table-modern th {
+        border-top: none;
+        border-bottom: 2px solid #f0f0f0;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #adb5bd;
+    }
+    .table-modern td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+        padding: 1rem 0.75rem;
+    }
+    .table-modern tr:last-child td { border-bottom: none; }
+    
+    .status-badge {
+        padding: 0.35em 0.8em;
+        font-size: 0.75em;
+        font-weight: 600;
+        border-radius: 50rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid p-0">
-    <div class="row mb-4">
+    <!-- Breadcrumb -->
+    <div class="mb-4">
+        {% include 'partials/breadcrumb.html' with page_title=_("Events Dashboard") current_text=_("Overview") %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-section">
+        <h6 class="text-uppercase text-muted mb-3 font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">{% trans "Quick Actions" %}</h6>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 justify-content-center">
+                    <div class="col">
+                        <a href="{% url 'events:event_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-primary">
+                                <i class='bx bx-plus'></i>
+                            </div>
+                            <span class="action-label">{% trans "Add Event" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'events:category_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-info">
+                                <i class='bx bx-category'></i>
+                            </div>
+                            <span class="action-label">{% trans "Categories" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'events:event_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-success">
+                                <i class='bx bx-calendar'></i>
+                            </div>
+                            <span class="action-label">{% trans "All Events" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'events:registration_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-warning">
+                                <i class='bx bx-group'></i>
+                            </div>
+                            <span class="action-label">{% trans "Registrations" %}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-primary">
+                            <i class='bx bx-calendar'></i>
+                        </div>
+                        <span class="badge bg-light-primary rounded-pill">Total</span>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Total Events" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_events|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-success">
+                            <i class='bx bx-time-five'></i>
+                        </div>
+                         <span class="badge bg-light-success rounded-pill">Future</span>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Upcoming" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ upcoming_events|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-warning">
+                            <i class='bx bx-play-circle'></i>
+                        </div>
+                        <span class="badge bg-light-warning rounded-pill">Active</span>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Ongoing" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ ongoing_events|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+             <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-info">
+                            <i class='bx bx-check-circle'></i>
+                        </div>
+                         <span class="badge bg-light-info rounded-pill">Done</span>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Completed" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ completed_events|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+             <div class="chart-card">
+                <div class="chart-header">
+                     <h5 class="card-title mb-0">{% trans "Events by Category" %}</h5>
+                </div>
+                <div class="chart-body">
+                    <canvas id="eventsByTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="card-title mb-0">{% trans "Event Status" %}</h5>
+                </div>
+                 <div class="chart-body d-flex justify-content-center align-items-center">
+                    <div style="width: 100%; max-width: 250px;">
+                        <canvas id="eventStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Events -->
+    <div class="row">
         <div class="col-12">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <h4 class="mb-1">{% trans "Events Management" %}</h4>
-                    <p class="text-muted mb-0">{% trans "Track and manage your institutional events and registrations." %}</p>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'events:event_create' %}" class="btn btn-primary">
-                        <i class="bx bx-plus me-1"></i> {% trans "Add Event" %}
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="avatar avatar-md bg-primary-subtle text-primary rounded">
-                            <i class="bx bx-calendar fs-3"></i>
-                        </div>
-                        <div class="ms-3">
-                            <h6 class="mb-0 text-muted">{% trans "Total Events" %}</h6>
-                            <h3 class="mb-0 fw-bold">{{ total_events }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="avatar avatar-md bg-success-subtle text-success rounded">
-                            <i class="bx bx-time-five fs-3"></i>
-                        </div>
-                        <div class="ms-3">
-                            <h6 class="mb-0 text-muted">{% trans "Upcoming" %}</h6>
-                            <h3 class="mb-0 fw-bold">{{ upcoming_events }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="avatar avatar-md bg-warning-subtle text-warning rounded">
-                            <i class="bx bx-play-circle fs-3"></i>
-                        </div>
-                        <div class="ms-3">
-                            <h6 class="mb-0 text-muted">{% trans "Ongoing" %}</h6>
-                            <h3 class="mb-0 fw-bold">{{ ongoing_events }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-3 mb-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="avatar avatar-md bg-info-subtle text-info rounded">
-                            <i class="bx bx-check-circle fs-3"></i>
-                        </div>
-                        <div class="ms-3">
-                            <h6 class="mb-0 text-muted">{% trans "Completed" %}</h6>
-                            <h3 class="mb-0 fw-bold">{{ completed_events }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Recent Events -->
-        <div class="col-md-8 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-transparent border-0 d-flex align-items-center justify-content-between p-4">
-                    <h5 class="mb-0 fw-bold">{% trans "Recent Events" %}</h5>
-                    <a href="{% url 'events:event_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+            <div class="card recent-list-card">
+                <div class="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">{% trans "Recent Events" %}</h5>
+                    <a href="{% url 'events:event_list' %}" class="btn btn-sm btn-light text-primary fw-medium">{% trans "View All"%}</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-modern table-hover mb-0">
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4">{% trans "Event" %}</th>
                                     <th>{% trans "Date" %}</th>
                                     <th>{% trans "Type" %}</th>
                                     <th>{% trans "Status" %}</th>
-                                    <th class="pe-4">{% trans "Action" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -112,49 +293,38 @@
                                             {% if event.featured_image %}
                                                 <img src="{{ event.featured_image.url }}" class="rounded me-3" width="40" height="40" style="object-fit: cover;">
                                             {% else %}
-                                                <div class="avatar avatar-sm bg-light text-primary rounded me-3">
+                                                <div class="avatar avatar-sm bg-light-primary text-primary rounded me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                                     <i class="bx bx-calendar"></i>
                                                 </div>
                                             {% endif %}
                                             <div>
-                                                <h6 class="mb-0 fw-semibold">{{ event.title }}</h6>
-                                                <small class="text-muted">{{ event.venue }}</small>
+                                                <h6 class="mb-0 fw-bold text-dark">{{ event.title }}</h6>
+                                                <small class="text-muted">{{ event.venue|default:"-" }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="text-nowrap">{{ event.start_date|date:"d M Y" }}</div>
+                                        <div class="text-nowrap text-dark">{{ event.start_date|date:"d M, Y" }}</div>
                                     </td>
-                                    <td>{{ event.get_event_type_display }}</td>
                                     <td>
-                                        <span class="badge 
-                                            {% if event.status == 'SCHEDULED' %}bg-primary
-                                            {% elif event.status == 'ONGOING' %}bg-warning
-                                            {% elif event.status == 'COMPLETED' %}bg-success
-                                            {% elif event.status == 'CANCELLED' %}bg-danger
-                                            {% else %}bg-secondary{% endif %} bg-opacity-10 
-                                            {% if event.status == 'SCHEDULED' %}text-primary
-                                            {% elif event.status == 'ONGOING' %}text-warning
-                                            {% elif event.status == 'COMPLETED' %}text-success
-                                            {% elif event.status == 'CANCELLED' %}text-danger
-                                            {% else %}text-secondary{% endif %}">
+                                        <span class="badge bg-light text-dark border">{{ event.get_event_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge 
+                                            {% if event.status == 'SCHEDULED' %}bg-primary-subtle text-primary
+                                            {% elif event.status == 'ONGOING' %}bg-warning-subtle text-warning
+                                            {% elif event.status == 'COMPLETED' %}bg-success-subtle text-success
+                                            {% elif event.status == 'CANCELLED' %}bg-danger-subtle text-danger
+                                            {% else %}bg-secondary-subtle text-secondary{% endif %}">
                                             {{ event.get_status_display }}
                                         </span>
-                                    </td>
-                                    <td class="pe-4 text-nowrap">
-                                        <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-icon btn-sm btn-outline-primary">
-                                            <i class="bx bx-show"></i>
-                                        </a>
-                                        <a href="{% url 'events:event_update' event.pk %}" class="btn btn-icon btn-sm btn-outline-success">
-                                            <i class="bx bx-edit-alt"></i>
-                                        </a>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="5" class="text-center p-5 text-muted">
-                                        <i class="bx bx-info-circle mb-2 fs-2"></i>
-                                        <p class="mb-0">{% trans "No events found." %}</p>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <i class='bx bx-calendar-event bx-lg mb-3'></i>
+                                        <p>{% trans "No recently added events." %}</p>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -164,35 +334,94 @@
                 </div>
             </div>
         </div>
-
-        <!-- Category Distribution -->
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-transparent border-0 p-4">
-                    <h5 class="mb-0 fw-bold">{% trans "Categories" %}</h5>
-                </div>
-                <div class="card-body p-4 pt-0">
-                    <ul class="list-group list-group-flush">
-                        {% for cat in categories %}
-                        <li class="list-group-item d-flex align-items-center justify-content-between px-0 py-3">
-                            <div class="d-flex align-items-center">
-                                <div class="p-2 rounded-circle me-3" style="background-color: {{ cat.color }}20;">
-                                    <i class="bx {{ cat.icon|default:'bx-tag' }}" style="color: {{ cat.color }};"></i>
-                                </div>
-                                <span class="fw-medium">{{ cat.name }}</span>
-                            </div>
-                            <span class="badge bg-light text-dark rounded-pill">{{ cat.event_count }}</span>
-                        </li>
-                        {% empty %}
-                        <li class="list-group-item text-center text-muted">{% trans "No categories." %}</li>
-                        {% endfor %}
-                    </ul>
-                    <div class="mt-4">
-                        <a href="{% url 'events:category_list' %}" class="btn btn-outline-primary w-100">{% trans "Manage Categories" %}</a>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
-</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Events by Type Chart (Bar)
+        var typeData = {{ events_by_type|safe }};
+        var typeLabels = typeData.map(function(item) { return item.name || 'Uncategorized'; });
+        var typeCounts = typeData.map(function(item) { return item.count; });
+        
+        var ctxType = document.getElementById('eventsByTypeChart').getContext('2d');
+        var eventsByTypeChart = new Chart(ctxType, {
+            type: 'bar',
+            data: {
+                labels: typeLabels,
+                datasets: [{
+                    label: '{% trans "Events" %}',
+                    data: typeCounts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    barThickness: 40,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                        ticks: { precision: 0 }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Event Status Chart (Doughnut)
+        var statusData = {{ events_by_status|safe }};
+        
+        // Define colors for statuses
+        var statusColors = {
+            'SCHEDULED': '#007bff',
+            'ONGOING': '#ffc107',
+            'COMPLETED': '#28a745',
+            'CANCELLED': '#dc3545'
+        };
+        
+        var statusLabels = statusData.map(function(item) { return item.status; });
+        var statusCounts = statusData.map(function(item) { return item.count; });
+        var bgColors = statusData.map(function(item) { return statusColors[item.status] || '#6f42c1'; });
+
+        var ctxStatus = document.getElementById('eventStatusChart').getContext('2d');
+        var eventStatusChart = new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusCounts,
+                    backgroundColor: bgColors,
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

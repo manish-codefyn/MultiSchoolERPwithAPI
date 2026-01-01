@@ -25,12 +25,27 @@ class ExamDashboardView(LoginRequiredMixin, PermissionRequiredMixin, TemplateVie
         context = super().get_context_data(**kwargs)
         tenant = get_current_tenant()
         
+        # Stats
         context['total_exams'] = Exam.objects.filter(tenant=tenant).count()
         context['ongoing_exams'] = Exam.objects.filter(tenant=tenant, status='ONGOING').count()
         context['upcoming_exams'] = Exam.objects.filter(tenant=tenant, status='SCHEDULED').count()
         context['draft_exams'] = Exam.objects.filter(tenant=tenant, status='DRAFT').count()
         context['completed_exams'] = Exam.objects.filter(tenant=tenant, status='COMPLETED').count()
         context['exam_types'] = ExamType.objects.filter(tenant=tenant, is_active=True).count()
+        
+        # Charts Data
+        # Exam Status Distribution
+        context['exam_status_distribution'] = list(Exam.objects.filter(tenant=tenant)
+            .values('status')
+            .annotate(count=Count('id')))
+            
+        # Exams by Type
+        context['exams_by_type'] = list(Exam.objects.filter(tenant=tenant)
+            .values('exam_type__name')
+            .annotate(count=Count('id'))
+            .order_by('-count')[:5])
+
+        context['recent_exams'] = Exam.objects.filter(tenant=tenant).select_related('exam_type').order_by('-start_date')[:5]
         
         return context
 

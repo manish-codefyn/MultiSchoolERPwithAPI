@@ -1,44 +1,195 @@
 {% extends 'layouts/dashboard.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Inventory Dashboard" %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .inventory-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* Modern Dashboard Styling */
+    .dashboard-header { margin-bottom: 2rem; }
+
+    /* Summary Cards */
+    .stat-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+        background: #fff;
     }
-    .inventory-card:hover {
+    .stat-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
-    .icon-box {
+    .stat-card .card-body { padding: 1.5rem; }
+    .stat-icon {
         width: 48px;
         height: 48px;
-        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
+        border-radius: 12px;
+        font-size: 1.5rem;
+    }
+
+    /* Gradients & Backgrounds */
+    .bg-light-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; }
+    .bg-light-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .bg-light-warning { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .bg-light-info { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+    .bg-light-danger { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .bg-light-secondary { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; }
+    .bg-light-purple { background-color: rgba(111, 66, 193, 0.1); color: #6f42c1; }
+
+    /* Quick Actions */
+    .quick-actions-section { margin-bottom: 2rem; }
+    .action-icon-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+    .action-icon-btn:hover {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+        transform: translateY(-2px);
+    }
+    .action-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        background: #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .action-icon-btn:hover .action-icon-wrapper {
+        box-shadow: 0 6px 15px rgba(13, 110, 253, 0.15);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+    .action-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    /* Charts Section */
+    .chart-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.01);
+        background: #fff;
+        height: 100%;
+    }
+    .chart-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .chart-body {
+        padding: 1.5rem;
+        height: 300px;
+        position: relative;
+    }
+
+    /* Recent Lists */
+    .recent-list-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .table-modern th {
+        border-top: none;
+        border-bottom: 2px solid #f0f0f0;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #adb5bd;
+    }
+    .table-modern td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+        padding: 1rem 0.75rem;
+    }
+    .table-modern tr:last-child td { border-bottom: none; }
+    
+    .status-badge {
+        padding: 0.35em 0.8em;
+        font-size: 0.75em;
+        font-weight: 600;
+        border-radius: 50rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
+    <!-- Breadcrumb -->
+    <div class="mb-4">
+        {% include 'partials/breadcrumb.html' with page_title=_("Inventory Dashboard") current_text=_("Overview") %}
+    </div>
 
-    <!-- Welcome Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-gradient-cosmic text-white border-0 shadow-sm overflow-hidden position-relative">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center">
-                        <div>
-                            <h4 class="text-white mb-2">{% trans "Inventory Overview" %}</h4>
-                            <p class="mb-0 text-white-50">{% trans "Track stock levels, manage suppliers, and process orders." %}</p>
-                        </div>
-                        <div class="ms-auto d-none d-lg-block">
-                            <i class="bx bx-store-alt fs-1 text-white-50"></i>
-                        </div>
+    <!-- Quick Actions -->
+    <div class="quick-actions-section">
+        <h6 class="text-uppercase text-muted mb-3 font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">{% trans "Quick Actions" %}</h6>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 justify-content-center">
+                    <div class="col">
+                        <a href="{% url 'inventory:item_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-primary">
+                                <i class='bx bx-box'></i>
+                            </div>
+                            <span class="action-label">{% trans "Add Item" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'inventory:stock_movement_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-success">
+                                <i class='bx bx-transfer'></i>
+                            </div>
+                            <span class="action-label">{% trans "Stock Move" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'inventory:purchase_order_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-warning">
+                                <i class='bx bx-cart-add'></i>
+                            </div>
+                            <span class="action-label">{% trans "Purchase Order" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'inventory:supplier_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-info">
+                                <i class='bx bx-buildings'></i>
+                            </div>
+                            <span class="action-label">{% trans "Add Supplier" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'inventory:category_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-purple">
+                                <i class='bx bx-category'></i>
+                            </div>
+                            <span class="action-label">{% trans "Category" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'inventory:item_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-secondary">
+                                <i class='bx bx-list-ul'></i>
+                            </div>
+                            <span class="action-label">{% trans "All Items" %}</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -47,97 +198,110 @@
 
     <!-- Stats Cards -->
     <div class="row g-4 mb-4">
-        <div class="col-xl-3 col-md-6">
-             <div class="card inventory-card border-0 shadow-sm h-100">
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                         <div>
-                            <p class="text-uppercase text-muted fw-bold mb-1 font-size-12">{% trans "Total Items" %}</p>
-                            <h3 class="mb-0 fw-bold text-primary">{{ total_items }}</h3>
-                         </div>
-                         <div class="icon-box bg-primary bg-opacity-10 text-white">
-                            <i class="bx bx-box"></i>
-                         </div>
+                        <div class="stat-icon bg-light-primary">
+                            <i class='bx bx-box'></i>
+                        </div>
+                         <span class="badge bg-light-primary rounded-pill">Catalog</span>
                     </div>
-                    <div class="d-flex align-items-center text-muted font-size-13">
-                        <span class="text-primary me-2"><i class="bx bx-category"></i> {{ total_categories }} Categories</span>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Total Items" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_items|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-danger">
+                            <i class='bx bx-trending-down'></i>
+                        </div>
+                        <span class="badge bg-light-danger rounded-pill">Alert</span>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Low Stock" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ low_stock_items|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-info">
+                            <i class='bx bx-buildings'></i>
+                        </div>
+                         <span class="badge bg-light-info rounded-pill">Network</span>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Suppliers" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_suppliers|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+             <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-warning">
+                            <i class='bx bx-time'></i>
+                        </div>
+                         <span class="badge bg-light-warning rounded-pill">Procurement</span>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Pending POs" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ pending_orders|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+             <div class="chart-card">
+                <div class="chart-header">
+                     <h5 class="card-title mb-0">{% trans "Value by Category" %} <small class="text-muted ms-2">({% trans "Top 5" %})</small></h5>
+                </div>
+                <div class="chart-body d-flex justify-content-center align-items-center">
+                    <div style="width: 100%; max-width: 350px;">
+                        <canvas id="valueByCategoryChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
-         <div class="col-xl-3 col-md-6">
-             <div class="card inventory-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                         <div>
-                            <p class="text-uppercase text-muted fw-bold mb-1 font-size-12">{% trans "Low Stock" %}</p>
-                            <h3 class="mb-0 fw-bold text-danger">{{ low_stock_items }}</h3>
-                         </div>
-                         <div class="icon-box bg-danger bg-opacity-10 text-white">
-                            <i class="bx bx-trending-down"></i>
-                         </div>
-                    </div>
-                    <div class="d-flex align-items-center text-muted font-size-13">
-                        <span class="text-danger me-2"><i class="bx bx-error-circle"></i> Needs Reorder</span>
-                    </div>
+        <div class="col-md-6">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="card-title mb-0">{% trans "Stock Health Status" %}</h5>
                 </div>
-            </div>
-        </div>
-         <div class="col-xl-3 col-md-6">
-             <div class="card inventory-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                         <div>
-                            <p class="text-uppercase text-muted fw-bold mb-1 font-size-12">{% trans "Suppliers" %}</p>
-                            <h3 class="mb-0 fw-bold text-info">{{ total_suppliers }}</h3>
-                         </div>
-                         <div class="icon-box bg-info bg-opacity-10 text-info">
-                            <i class="bx bx-buildings"></i>
-                         </div>
-                    </div>
-                    <div class="d-flex align-items-center text-muted font-size-13">
-                        <span class="text-info me-2"><i class="bx bx-check-circle"></i> Active Partners</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-         <div class="col-xl-3 col-md-6">
-             <div class="card inventory-card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                         <div>
-                            <p class="text-uppercase text-muted fw-bold mb-1 font-size-12">{% trans "Pending POs" %}</p>
-                            <h3 class="mb-0 fw-bold text-warning">{{ pending_orders }}</h3>
-                         </div>
-                         <div class="icon-box bg-warning bg-opacity-10 text-warning">
-                            <i class="bx bx-time"></i>
-                         </div>
-                    </div>
-                    <div class="d-flex align-items-center text-muted font-size-13">
-                        <span class="text-warning me-2"><i class="bx bx-file"></i> Awaiting Approval</span>
+                 <div class="chart-body d-flex justify-content-center align-items-center">
+                    <div style="width: 100%; max-width: 350px;">
+                        <canvas id="stockStatusChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="row">
+    <!-- Recent Stock Movements -->
+    <div class="row g-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent border-bottom py-3">
-                    <h5 class="card-title mb-0">{% trans "Recent Stock Movements" %}</h5>
+            <div class="card recent-list-card h-100">
+                <div class="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">{% trans "Recent Stock Movements" %}</h5>
+                    <a href="{% url 'inventory:stock_movement_list' %}" class="btn btn-sm btn-light text-primary fw-medium">{% trans "View All"%}</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-modern table-hover mb-0">
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4">{% trans "Item" %}</th>
                                     <th>{% trans "Type" %}</th>
                                     <th>{% trans "Quantity" %}</th>
                                     <th>{% trans "Date" %}</th>
-                                    <th>{% trans "Performed By" %}</th>
+                                    <th>{% trans "User" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -149,7 +313,7 @@
                                                 <i class="bx bx-box text-primary"></i>
                                             </div>
                                             <div>
-                                                <h6 class="mb-0 font-size-14">{{ movement.item.name }}</h6>
+                                                <h6 class="mb-0 font-size-14 text-dark">{{ movement.item.name }}</h6>
                                                 <small class="text-muted">{{ movement.item.code }}</small>
                                             </div>
                                         </div>
@@ -168,8 +332,12 @@
                                             {% if movement.is_incoming %}+{% endif %}{{ movement.quantity|floatformat:0 }}
                                         </span>
                                     </td>
-                                    <td>{{ movement.movement_date|date:"M d, Y H:i" }}</td>
-                                    <td>{{ movement.performed_by.get_full_name|default:movement.performed_by.username }}</td>
+                                    <td>
+                                        <span class="text-secondary">{{ movement.movement_date|date:"d M H:i" }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted small">{{ movement.performed_by.get_full_name|default:movement.performed_by.username }}</span>
+                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
@@ -183,4 +351,78 @@
             </div>
         </div>
     </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Stock Value by Category Chart (Doughnut)
+        var categoryData = {{ stock_value_by_category|safe }};
+        var categoryLabels = categoryData.map(function(item) { return item.name; });
+        var categoryValues = categoryData.map(function(item) { return item.total_value; });
+        
+        // Dynamic colors
+        var bgColors = [
+            'rgba(54, 162, 235, 0.8)',
+            'rgba(255, 99, 132, 0.8)',
+            'rgba(255, 206, 86, 0.8)',
+            'rgba(75, 192, 192, 0.8)',
+            'rgba(153, 102, 255, 0.8)'
+        ];
+
+        var ctxCategory = document.getElementById('valueByCategoryChart').getContext('2d');
+        var valueByCategoryChart = new Chart(ctxCategory, {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryValues,
+                    backgroundColor: bgColors,
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 15 }
+                    }
+                }
+            }
+        });
+
+        // Stock Status Chart (Pie)
+        var statusData = {{ stock_status_distribution|safe }};
+        var statusLabels = statusData.map(function(item) { return item.status; });
+        var statusCounts = statusData.map(function(item) { return item.count; });
+        
+        var ctxStatus = document.getElementById('stockStatusChart').getContext('2d');
+        var stockStatusChart = new Chart(ctxStatus, {
+            type: 'pie', // Using Pie for variation, or stick to Doughnut
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusCounts,
+                    backgroundColor: ['#dc3545', '#28a745'], // Low Stock (Red), Healthy (Green)
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 15 }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

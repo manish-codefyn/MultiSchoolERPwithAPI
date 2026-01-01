@@ -8,7 +8,8 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from apps.core.views import BaseListView, BaseCreateView, BaseUpdateView, BaseDeleteView
+from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView
+from django.db.models import Count, Q
 from apps.core.utils.tenant import get_current_tenant
 from apps.students.models import Student
 from .models import Vehicle, Route, RouteStop, TransportAllocation, TransportAttendance, MaintenanceRecord, FuelRecord
@@ -16,6 +17,8 @@ from .forms import (
     VehicleForm, RouteForm, RouteStopForm, TransportAllocationForm, 
     TransportAttendanceForm, MaintenanceRecordForm, FuelRecordForm
 )
+
+from apps.core.views import BaseListView, BaseCreateView, BaseUpdateView, BaseDeleteView
 
 class TransportationDashboardView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'transportation/dashboard.html'
@@ -39,6 +42,21 @@ class TransportationDashboardView(LoginRequiredMixin, PermissionRequiredMixin, T
         context['recent_maintenance'] = MaintenanceRecord.objects.filter(tenant=tenant).select_related('vehicle').order_by('-maintenance_date')[:5]
         context['recent_fuel'] = FuelRecord.objects.filter(tenant=tenant).select_related('vehicle').order_by('-date')[:5]
         
+        # Charts Data
+        # Vehicle Status
+        active_vehicles = Vehicle.objects.filter(tenant=tenant, is_active=True).count()
+        maintenance_vehicles = Vehicle.objects.filter(tenant=tenant, under_maintenance=True).count()
+        context['vehicle_status_distribution'] = [
+            {'status': 'Active', 'count': active_vehicles},
+            {'status': 'Maintenance', 'count': maintenance_vehicles}
+        ]
+        
+        # Route Allocations (Top 5 Routes by student count)
+        context['route_allocations'] = list(Route.objects.filter(tenant=tenant, is_active=True)
+            .annotate(student_count=Count('students', filter=Q(students__is_active=True)))
+            .values('name', 'student_count')
+            .order_by('-student_count')[:5])
+
         return context
 
 # ==================== VEHICLE ====================

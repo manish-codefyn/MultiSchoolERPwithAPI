@@ -1,6 +1,6 @@
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
-from django.db.models import Count, Sum, F
+from django.db.models import Count, Sum, F, Q
 from django.db import models
 from apps.core.views import BaseListView, BaseCreateView, BaseUpdateView, BaseDeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -8,6 +8,7 @@ from apps.core.utils.tenant import get_current_tenant
 from .models import Category, Supplier, Item, StockMovement, PurchaseOrder
 from .forms import CategoryForm, SupplierForm, ItemForm, StockMovementForm, PurchaseOrderForm
 
+# ==================== DASHBOARD ====================
 class InventoryDashboardView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     template_name = 'inventory/dashboard.html'
     permission_required = 'inventory.view_item'
@@ -25,6 +26,31 @@ class InventoryDashboardView(LoginRequiredMixin, PermissionRequiredMixin, Templa
         # Recent
         context['recent_movements'] = StockMovement.objects.filter(tenant=tenant).select_related('item').order_by('-movement_date')[:5]
         
+        # Charts Data
+        # Stock Value by Category
+        context['stock_value_by_category'] = list(Category.objects.filter(tenant=tenant, is_active=True)
+            .annotate(
+                total_value=Sum(
+                    F('items__current_stock') * F('items__average_price'),
+                    filter=Q(items__is_active=True)
+                )
+            )
+            .order_by('-total_value')
+            .values('name', 'total_value')[:5]) # Top 5 categories by value
+
+        # Stock Status Distribution
+        total_active_items = Item.objects.filter(tenant=tenant, is_active=True).count()
+        low_stock_count = Item.objects.filter(
+            tenant=tenant, 
+            is_active=True, 
+            current_stock__lte=F('low_stock_threshold')
+        ).count()
+        
+        context['stock_status_distribution'] = [
+            {'status': 'Low Stock', 'count': low_stock_count},
+            {'status': 'Healthy', 'count': total_active_items - low_stock_count}
+        ]
+
         return context
 
 # ==================== CATEGORY ====================

@@ -3,87 +3,281 @@
 
 {% block title %}{% trans "HR Dashboard" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Modern Dashboard Styling */
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    /* Summary Cards */
+    .stat-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+        background: #fff;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .stat-card .card-body {
+        padding: 1.5rem;
+    }
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.5rem;
+    }
+    .text-gradient-primary { background: linear-gradient(45deg, #007bff, #6610f2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; }
+
+    .text-gradient-success { background: linear-gradient(45deg, #28a745, #20c997); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; }
+
+    .text-gradient-warning { background: linear-gradient(45deg, #ffc107, #fd7e14); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-warning { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+
+    .text-gradient-info { background: linear-gradient(45deg, #17a2b8, #20c997); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-info { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+
+    /* Quick Actions */
+    .quick-actions-section {
+        margin-bottom: 2rem;
+    }
+    .action-icon-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+    .action-icon-btn:hover {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+        transform: translateY(-2px);
+    }
+    .action-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        background: #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .action-icon-btn:hover .action-icon-wrapper {
+        box-shadow: 0 6px 15px rgba(13, 110, 253, 0.15);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+    .action-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    /* Charts Section */
+    .chart-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.01);
+        background: #fff;
+        height: 100%;
+    }
+    .chart-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .chart-body {
+        padding: 1.5rem;
+        height: 300px;
+        position: relative;
+    }
+
+    /* Recent Lists */
+    .recent-list-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .table-modern th {
+        border-top: none;
+        border-bottom: 2px solid #f0f0f0;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #adb5bd;
+    }
+    .table-modern td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+        padding: 1rem 0.75rem;
+    }
+    .table-modern tr:last-child td {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">{% trans "HR Overview" %}</h1>
-            <p class="text-muted mb-0">{% trans "Welcome back," %} {{ request.user.get_full_name }}</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{% url 'hr:staff_import' %}" class="btn btn-outline-primary shadow-sm">
-                <i class="bx bx-file-import me-2"></i>{% trans "Import Staff" %}
-            </a>
-            <a href="{% url 'hr:staff_create' %}" class="btn btn-primary shadow-sm">
-                <i class="bx bx-plus me-2"></i>{% trans "Add Staff" %}
-            </a>
+    <!-- Breadcrumb -->
+    {% include 'partials/breadcrumb.html' with page_title=_("HR Overview") current_text=_("Dashboard") %}
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-section">
+        <h6 class="text-uppercase text-muted mb-3 font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">{% trans "Quick Actions" %}</h6>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 justify-content-center">
+                    <div class="col">
+                        <a href="{% url 'hr:staff_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-primary">
+                                <i class='bx bx-user-plus'></i>
+                            </div>
+                            <span class="action-label">{% trans "Add Staff" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'hr:attendance_mark' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-success">
+                                <i class='bx bx-check-circle'></i>
+                            </div>
+                            <span class="action-label">{% trans "Mark Attendance" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'hr:leave_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-warning">
+                                <i class='bx bx-calendar-minus'></i>
+                            </div>
+                            <span class="action-label">{% trans "Leave Requests" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'hr:payroll_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-info">
+                                <i class='bx bx-money'></i>
+                            </div>
+                            <span class="action-label">{% trans "Payroll" %}</span>
+                        </a>
+                    </div>
+                     <div class="col">
+                        <a href="{% url 'hr:performancereview_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-danger">
+                                <i class='bx bx-line-chart'></i>
+                            </div>
+                            <span class="action-label">{% trans "Performance" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'hr:department_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-secondary">
+                                <i class='bx bx-building'></i>
+                            </div>
+                            <span class="action-label">{% trans "Departments" %}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="row g-4 mb-4">
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 border-start border-primary border-4">
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{% trans "Total Staff" %}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_staff }}</div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-primary">
+                            <i class='bx bx-users'></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="bx bx-users fa-2x text-gray-300"></i>
-                        </div>
+                        <span class="badge bg-light-primary rounded-pill">Total</span>
                     </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Total Staff" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_staff }}</h2>
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{% trans "Present Today" %}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ present_today }}</div>
-                            <div class="text-muted small mt-1">{% trans "Absent:" %} {{ absent_today }}</div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-success">
+                            <i class='bx bx-user-check'></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="bx bx-user-check fa-2x text-gray-300"></i>
-                        </div>
+                        <span class="badge bg-light-success rounded-pill">Today</span>
                     </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Present Today" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ present_today }}</h2>
+                    <small class="text-muted">{% trans "Absent" %}: {{ absent_today }}</small>
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 border-start border-warning border-4">
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">{% trans "On Leave" %}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ on_leave_today }}</div>
-                            <div class="text-muted small mt-1">{% trans "Pending:" %} {{ pending_leaves }}</div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-warning">
+                            <i class='bx bx-calendar-event'></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="bx bx-calendar-minus fa-2x text-gray-300"></i>
-                        </div>
+                        <span class="badge bg-light-warning rounded-pill">Active</span>
                     </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "On Leave" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ on_leave_today }}</h2>
+                    <small class="text-muted">{% trans "Pending" %}: {{ pending_leaves }}</small>
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 border-start border-info border-4">
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">{% trans "Departments" %}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_departments }}</div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-info">
+                            <i class='bx bx-building'></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="bx bx-building fa-2x text-gray-300"></i>
-                        </div>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Departments" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_departments }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+             <div class="chart-card">
+                <div class="chart-header">
+                     <h5 class="card-title mb-0">{% trans "Attendance Overview" %}</h5>
+                </div>
+                <div class="chart-body">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="card-title mb-0">{% trans "Staff Distribution" %}</h5>
+                </div>
+                 <div class="chart-body d-flex justify-content-center align-items-center">
+                    <div style="width: 100%; max-width: 250px;">
+                        <canvas id="staffDistributionChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -93,14 +287,14 @@
     <div class="row g-4">
         <!-- Recent Staff -->
         <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Recently Joined Staff" %}</h6>
-                    <a href="{% url 'hr:staff_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View All"%}</a>
+            <div class="card recent-list-card h-100">
+                <div class="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">{% trans "Recently Joined" %}</h5>
+                    <a href="{% url 'hr:staff_list' %}" class="btn btn-sm btn-light text-primary fw-medium">{% trans "View All"%}</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-modern table-hover mb-0">
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4">{% trans "Name" %}</th>
@@ -118,24 +312,23 @@
                                                 {{ staff.user.first_name|first }}
                                             </div>
                                             <div>
-                                                <div class="fw-bold">{{ staff.full_name }}</div>
+                                                <div class="fw-bold text-dark">{{ staff.full_name }}</div>
                                                 <div class="small text-muted">{{ staff.designation.title }}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         {% if staff.department %}
-                                        <span class="badge bg-light text-dark">{{ staff.department.name }}</span>
+                                        <span class="badge bg-light text-dark border">{{ staff.department.name }}</span>
                                         {% else %}
                                         <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ staff.joining_date|date:"M d, Y" }}</td>
+                                    <td class="text-secondary">{{ staff.joining_date|date:"M d, Y" }}</td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="3" class="text-center py-4 text-muted">{% trans "No recent joinings" %}
-                                    </td>
+                                    <td colspan="3" class="text-center py-4 text-muted">{% trans "No recent joinings" %}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -147,35 +340,35 @@
 
         <!-- Department Overview -->
         <div class="col-lg-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Department Overview" %}</h6>
-                    <a href="{% url 'hr:department_list' %}" class="btn btn-sm btn-outline-primary">{% trans "Manage"%}</a>
+            <div class="card recent-list-card h-100">
+                <div class="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">{% trans "Departments" %}</h5>
+                    <a href="{% url 'hr:department_list' %}" class="btn btn-sm btn-light text-primary fw-medium">{% trans "Manage"%}</a>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if departments %}
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead>
+                        <table class="table table-modern table-hover mb-0">
+                            <thead class="bg-light">
                                 <tr>
-                                    <th>{% trans "Department" %}</th>
+                                    <th class="ps-4">{% trans "Department" %}</th>
                                     <th class="text-center">{% trans "Staff Count" %}</th>
-                                    <th class="text-end">{% trans "Actions" %}</th>
+                                    <th class="text-end pe-4">{% trans "Actions" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for dept in departments|slice:":6" %}
                                 <tr>
-                                    <td>
-                                        <div class="fw-bold">{{ dept.name }}</div>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">{{ dept.name }}</div>
                                         <div class="small text-muted">{{ dept.code }}</div>
                                     </td>
                                     <td class="text-center">
                                         <span class="badge bg-primary-subtle text-primary rounded-pill px-3">{{ dept.staff_members_count }}</span>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end pe-4">
                                         <a href="{% url 'hr:department_detail' dept.pk %}"
-                                            class="btn btn-icon btn-sm btn-light">
+                                            class="btn btn-icon btn-sm btn-light text-secondary">
                                             <i class="bx bx-chevron-right"></i>
                                         </a>
                                     </td>
@@ -186,7 +379,7 @@
                     </div>
                     {% else %}
                     <div class="text-center py-5">
-                        <i class="bx bx-building fa-3x text-muted mb-3"></i>
+                        <i class="bx bx-building fs-1 text-muted mb-3 opacity-25"></i>
                         <p class="text-muted">{% trans "No departments found." %}</p>
                         <a href="{% url 'hr:department_create' %}" class="btn btn-primary btn-sm">{% trans "Create Department" %}</a>
                     </div>
@@ -195,5 +388,95 @@
             </div>
         </div>
     </div>
-</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Attendance Overview (Bar)
+        var ctxAttendance = document.getElementById('attendanceChart').getContext('2d');
+        var attendanceChart = new Chart(ctxAttendance, {
+            type: 'bar',
+            data: {
+                labels: ['{% trans "Present" %}', '{% trans "Absent" %}', '{% trans "On Leave" %}'],
+                datasets: [{
+                    label: '{% trans "Staff Count" %}',
+                    data: [{{ present_today }}, {{ absent_today }}, {{ on_leave_today }}],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.7)',
+                        'rgba(220, 53, 69, 0.7)',
+                        'rgba(255, 193, 7, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(220, 53, 69, 1)',
+                        'rgba(255, 193, 7, 1)'
+                    ],
+                    borderWidth: 1,
+                    barThickness: 50,
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Staff Distribution (Doughnut)
+        var ctxDistribution = document.getElementById('staffDistributionChart').getContext('2d');
+        var staffDistributionChart = new Chart(ctxDistribution, {
+            type: 'doughnut',
+            data: {
+                labels: ['{% trans "Teaching" %}', '{% trans "Non-Teaching" %}', '{% trans "Administrative" %}'],
+                datasets: [{
+                    data: [{{ teaching_staff }}, {{ non_teaching_staff }}, {{ administrative_staff }}],
+                    backgroundColor: [
+                        '#007bff', // Primary
+                        '#17a2b8', // Info
+                        '#6610f2'  // Indigo
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

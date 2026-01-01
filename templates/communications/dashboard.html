@@ -3,102 +3,306 @@
 
 {% block title %}{% trans "Communications Dashboard" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Modern Dashboard Styling */
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    /* Summary Cards */
+    .stat-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+        background: #fff;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .stat-card .card-body {
+        padding: 1.5rem;
+    }
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.5rem;
+    }
+    
+    /* Gradient & Background Utilities */
+    .text-gradient-primary { background: linear-gradient(45deg, #007bff, #6610f2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; }
+
+    .text-gradient-success { background: linear-gradient(45deg, #28a745, #20c997); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; }
+
+    .text-gradient-warning { background: linear-gradient(45deg, #ffc107, #fd7e14); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-warning { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+
+    .text-gradient-info { background: linear-gradient(45deg, #17a2b8, #20c997); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-info { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+    
+    .text-gradient-danger { background: linear-gradient(45deg, #dc3545, #e7515e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-danger { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+
+    .text-gradient-secondary { background: linear-gradient(45deg, #6c757d, #868e96); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-secondary { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; }
+
+    /* Quick Actions */
+    .quick-actions-section {
+        margin-bottom: 2rem;
+    }
+    .action-icon-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+    .action-icon-btn:hover {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+        transform: translateY(-2px);
+    }
+    .action-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        background: #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .action-icon-btn:hover .action-icon-wrapper {
+        box-shadow: 0 6px 15px rgba(13, 110, 253, 0.15);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+    .action-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    /* Charts Section */
+    .chart-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.01);
+        background: #fff;
+        height: 100%;
+    }
+    .chart-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .chart-body {
+        padding: 1.5rem;
+        height: 300px;
+        position: relative;
+    }
+
+    /* Recent Lists */
+    .recent-list-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .table-modern th {
+        border-top: none;
+        border-bottom: 2px solid #f0f0f0;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #adb5bd;
+    }
+    .table-modern td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+        padding: 1rem 0.75rem;
+    }
+    .table-modern tr:last-child td {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0 text-gray-800">{% trans "Communications" %}</h1>
-            <p class="text-muted mb-0">{% trans "Monitor and manage school wide notifications" %}</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{% url 'communications:channel_list' %}" class="btn btn-outline-primary shadow-sm">
-                <i class="bx bx-cog me-2"></i>{% trans "Configure Channels" %}
-            </a>
-            <a href="{% url 'communications:communication_create' %}" class="btn btn-primary shadow-sm">
-                <i class="bx bx-plus me-2"></i>{% trans "Compose Message" %}
-            </a>
+    <!-- Breadcrumb -->
+    <div class="mb-4">
+        {% include 'partials/breadcrumb.html' with page_title=_("Communications Dashboard") current_text=_("Overview") %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-section">
+        <h6 class="text-uppercase text-muted mb-3 font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">{% trans "Quick Actions" %}</h6>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 justify-content-center">
+                     <div class="col">
+                        <a href="{% url 'communications:communication_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-primary">
+                                <i class='bx bx-plus'></i>
+                            </div>
+                            <span class="action-label">{% trans "Compose" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'communications:thread_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-success">
+                                <i class='bx bx-envelope'></i>
+                            </div>
+                            <span class="action-label">{% trans "Inbox" %}</span>
+                        </a>
+                    </div>
+                     <div class="col">
+                        <a href="{% url 'communications:notification_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-info">
+                                <i class='bx bx-bell'></i>
+                            </div>
+                            <span class="action-label">{% trans "Notifications" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'communications:channel_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-warning">
+                                <i class='bx bx-broadcast'></i>
+                            </div>
+                            <span class="action-label">{% trans "Channels" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'communications:campaign_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-danger">
+                                <i class='bx bx-megaphone'></i>
+                            </div>
+                            <span class="action-label">{% trans "Campaigns" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'communications:template_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-secondary">
+                                <i class='bx bx-copy-alt'></i>
+                            </div>
+                            <span class="action-label">{% trans "Templates" %}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="row g-4 mb-4">
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 border-start border-primary border-4">
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{% trans "Total Messages" %}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_communications }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bx bx-message-square-dots fa-2x text-gray-300"></i>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-primary">
+                            <i class='bx bx-message-square-dots'></i>
                         </div>
                     </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Total Messages" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_communications }}</h2>
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 border-start border-success border-4">
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{% trans "Sent Successfully" %}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_sent }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bx bx-check-double fa-2x text-gray-300"></i>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-success">
+                            <i class='bx bx-check-double'></i>
                         </div>
                     </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Sent Successfully" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_sent }}</h2>
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4">
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">{% trans "Delivery Failures" %}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_failed }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="bx bx-error-alt fa-2x text-gray-300"></i>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-danger">
+                            <i class='bx bx-error-alt'></i>
                         </div>
                     </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Delivery Failures" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_failed }}</h2>
                 </div>
             </div>
         </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 border-start border-info border-4">
+        <div class="col-md-3">
+             <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">{% trans "Active Campaigns" %}</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_campaigns }}</div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-info">
+                            <i class='bx bx-megaphone'></i>
                         </div>
-                        <div class="col-auto">
-                            <i class="bx bx-megaphone fa-2x text-gray-300"></i>
+                        <div class="text-end">
+                            <span class="badge bg-light-info rounded-pill">Active</span>
                         </div>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Active Campaigns" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ active_campaigns }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+             <div class="chart-card">
+                <div class="chart-header">
+                     <h5 class="card-title mb-0">{% trans "Channel Usage" %}</h5>
+                </div>
+                <div class="chart-body">
+                    <canvas id="channelUsageChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="card-title mb-0">{% trans "Delivery Status" %}</h5>
+                </div>
+                 <div class="chart-body d-flex justify-content-center align-items-center">
+                    <div style="width: 100%; max-width: 250px;">
+                        <canvas id="deliveryStatusChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        <!-- Recent Communications -->
-        <div class="col-lg-7">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Recent Communications" %}</h6>
-                    <a href="{% url 'communications:communication_list' %}" class="btn btn-sm btn-outline-primary">{% trans "View History"%}</a>
+    <!-- Recent Communications -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card recent-list-card">
+                <div class="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">{% trans "Recent Communications" %}</h5>
+                    <a href="{% url 'communications:communication_list' %}" class="btn btn-sm btn-light text-primary fw-medium">{% trans "View History"%}</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-modern table-hover mb-0">
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4">{% trans "Subject" %}</th>
@@ -111,17 +315,25 @@
                                 {% for comm in recent_comms %}
                                 <tr>
                                     <td class="ps-4">
-                                        <div class="fw-bold text-truncate" style="max-width: 250px;">{{ comm.subject|default:comm.title }}</div>
-                                        <div class="small text-muted">{% trans "To" %}: {{ comm.recipient_name }}</div>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar avatar-sm me-2 bg-light-secondary text-secondary rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width: 32px; height: 32px;">
+                                                <i class='bx bx-message-detail'></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark text-truncate" style="max-width: 300px;">{{ comm.subject|default:comm.title }}</div>
+                                                <div class="small text-muted">{% trans "To" %}: {{ comm.recipient_name }}</div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td>
                                         <span class="badge bg-light text-dark border">{{ comm.channel.name }}</span>
                                     </td>
                                     <td>
                                         <span class="badge 
-                                            {% if comm.status == 'SENT' %}bg-success-subtle text-success
-                                            {% elif comm.status == 'FAILED' %}bg-danger-subtle text-danger
-                                            {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                                            {% if comm.status == 'SENT' %}bg-light-success text-success
+                                            {% elif comm.status == 'FAILED' %}bg-light-danger text-danger
+                                            {% else %}bg-light-secondary text-secondary{% endif %} rounded-pill px-3">
                                             {{ comm.get_status_display }}
                                         </span>
                                     </td>
@@ -131,7 +343,10 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">{% trans "No recent communications" %}</td>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <i class='bx bx-message-x bx-lg mb-3'></i>
+                                        <p>{% trans "No recent communications found" %}</p>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -140,38 +355,97 @@
                 </div>
             </div>
         </div>
-
-        <!-- Channel Performance -->
-        <div class="col-lg-5">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">{% trans "Channel Usage" %}</h6>
-                    <a href="{% url 'communications:channel_list' %}" class="btn btn-sm btn-outline-primary">{% trans "Manage"%}</a>
-                </div>
-                <div class="card-body">
-                    {% if channels %}
-                        {% for channel in channels %}
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="small fw-bold">{{ channel.name }}</span>
-                                <span class="small text-muted">{{ channel.comm_count }} {% trans "messages" %}</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar {% if channel.is_healthy %}bg-primary{% else %}bg-danger{% endif %}" role="progressbar" 
-                                     style="width: {% if total_communications %}{% widthratio channel.comm_count total_communications 100 %}{% else %}0{% endif %}%"></div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="bx bx-cog fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">{% trans "No communication channels configured." %}</p>
-                            <a href="{% url 'communications:channel_create' %}" class="btn btn-primary btn-sm">{% trans "Setup Channel" %}</a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
     </div>
-</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Channel Usage Chart
+        var channelLabels = [{% for channel in channels %}"{{ channel.name }}",{% endfor %}];
+        var channelData = [{% for channel in channels %}{{ channel.comm_count }},{% endfor %}];
+
+        var ctxChannel = document.getElementById('channelUsageChart').getContext('2d');
+        var channelUsageChart = new Chart(ctxChannel, {
+            type: 'bar',
+            data: {
+                labels: channelLabels,
+                datasets: [{
+                    label: '{% trans "Messages" %}',
+                    data: channelData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                         ticks: {
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Delivery Status Chart
+        var sent = {{ total_sent|default:0 }};
+        var failed = {{ total_failed|default:0 }};
+        var pending = {{ total_communications|default:0 }} - sent - failed;
+        if (pending < 0) pending = 0; // Just in case stats don't perfectly align
+
+        var ctxStatus = document.getElementById('deliveryStatusChart').getContext('2d');
+        var deliveryStatusChart = new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['{% trans "Sent" %}', '{% trans "Failed" %}', '{% trans "Pending/Other" %}'],
+                datasets: [{
+                    data: [sent, failed, pending],
+                    backgroundColor: [
+                        '#28a745',
+                        '#dc3545',
+                        '#6c757d'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

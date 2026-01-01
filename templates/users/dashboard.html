@@ -1,84 +1,439 @@
 {% extends 'layouts/dashboard.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}User Management Dashboard - EduERP{% endblock %}
+{% block title %}{% trans "User Management" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Dashboard Styling */
+    .dashboard-header { margin-bottom: 2rem; }
+
+    /* Summary Cards */
+    .stat-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+        background: #fff;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .stat-card .card-body { padding: 1.5rem; }
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.5rem;
+    }
+
+    /* Gradients & Backgrounds */
+    .bg-light-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; }
+    .bg-light-success { background-color: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .bg-light-warning { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+    .bg-light-info { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+    .bg-light-danger { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+    .bg-light-secondary { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; }
+
+    /* Quick Actions */
+    .quick-actions-section { margin-bottom: 2rem; }
+    .action-icon-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+    .action-icon-btn:hover {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+        transform: translateY(-2px);
+    }
+    .action-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        background: #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .action-icon-btn:hover .action-icon-wrapper {
+        box-shadow: 0 6px 15px rgba(13, 110, 253, 0.15);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+    .action-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    /* Charts Section */
+    .chart-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.01);
+        background: #fff;
+        height: 100%;
+    }
+    .chart-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .chart-body {
+        padding: 1.5rem;
+        height: 300px;
+        position: relative;
+    }
+
+    /* Recent Lists */
+    .recent-list-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .table-modern th {
+        border-top: none;
+        border-bottom: 2px solid #f0f0f0;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #adb5bd;
+    }
+    .table-modern td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+        padding: 1rem 0.75rem;
+    }
+    .table-modern tr:last-child td { border-bottom: none; }
+    
+    .status-badge {
+        padding: 0.35em 0.8em;
+        font-size: 0.75em;
+        font-weight: 600;
+        border-radius: 50rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h4 class="mb-4">User Management</h4>
+    <!-- Breadcrumb -->
+    <div class="mb-4">
+        {% include 'partials/breadcrumb.html' with page_title=_("User Management") current_text=_("Dashboard") %}
     </div>
-</div>
 
-<div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
-    <div class="col">
-        <div class="card radius-10 bg-gradient-cosmic">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="me-auto">
-                        <p class="mb-0 text-white">Total Users</p>
-                        <h4 class="my-1 text-white">{{ total_users|default:"0" }}</h4>
+    <!-- Quick Actions -->
+    <div class="quick-actions-section">
+        <h6 class="text-uppercase text-muted mb-3 font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">{% trans "Quick Actions" %}</h6>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 justify-content-center">
+                    <div class="col">
+                        <a href="{% url 'users:user_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-primary">
+                                <i class='bx bx-user-plus'></i>
+                            </div>
+                            <span class="action-label">{% trans "Add User" %}</span>
+                        </a>
                     </div>
-                    <div class="fs-1 text-white"><i class="bx bx-user"></i></div>
+                    <div class="col">
+                        <a href="{% url 'users:user_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-info">
+                                <i class='bx bx-list-ul'></i>
+                            </div>
+                            <span class="action-label">{% trans "User List" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'users:user_list' %}?role=student" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-success">
+                                <i class='bx bx-book-reader'></i>
+                            </div>
+                            <span class="action-label">{% trans "Students" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'users:user_list' %}?role=teacher" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-warning">
+                                <i class='bx bx-chalkboard'></i>
+                            </div>
+                            <span class="action-label">{% trans "Teachers" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'users:user_list' %}?role=staff" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-secondary">
+                                <i class='bx bx-id-card'></i>
+                            </div>
+                            <span class="action-label">{% trans "Staff" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'users:user_list' %}?role=parent" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-danger">
+                                <i class='bx bx-family'></i>
+                            </div>
+                            <span class="action-label">{% trans "Parents" %}</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card radius-10 bg-gradient-ibiza">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="me-auto">
-                        <p class="mb-0 text-white">Active Users</p>
-                        <h4 class="my-1 text-white">{{ active_users|default:"0" }}</h4>
-                    </div>
-                    <div class="fs-1 text-white"><i class="bx bx-user-check"></i></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 bg-gradient-ohhappiness">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="me-auto">
-                        <p class="mb-0 text-white">Verified Users</p>
-                        <h4 class="my-1 text-white">{{ verified_users|default:"0" }}</h4>
-                    </div>
-                    <div class="fs-1 text-white"><i class="bx bx-check-shield"></i></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card radius-10 bg-gradient-kyoto">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="me-auto">
-                        <p class="mb-0 text-dark">Staff Users</p>
-                        <h4 class="my-1 text-dark">{{ staff_users|default:"0" }}</h4>
-                    </div>
-                    <div class="text-dark fs-1"><i class="bx bx-id-card"></i></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row mt-4">
-    <div class="col-12 col-lg-6">
-        <div class="card radius-10">
-            <div class="card-header bg-transparent">
-                <h6 class="mb-0">Quick Actions</h6>
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-primary">
+                            <i class='bx bx-user'></i>
+                        </div>
+                        <span class="badge bg-light-primary rounded-pill">Total</span>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Total Users" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_users|default:"0" }}</h2>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'users:user_create' %}" class="btn btn-primary"><i class="bx bx-plus-circle me-2"></i>Add New User</a>
-                    <a href="{% url 'users:user_list' %}" class="btn btn-outline-primary"><i class="bx bx-list-ul me-2"></i>View All Users</a>
-                    <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary"><i class="bx bx-user-circle me-2"></i>My Profile</a>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-success">
+                            <i class='bx bx-user-check'></i>
+                        </div>
+                         <span class="badge bg-light-success rounded-pill">Active</span>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Active Users" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ active_users|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-info">
+                            <i class='bx bx-check-shield'></i>
+                        </div>
+                        <span class="badge bg-light-info rounded-pill">Verified</span>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Verified Users" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ verified_users|default:"0" }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+             <div class="stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-warning">
+                            <i class='bx bx-id-card'></i>
+                        </div>
+                    </div>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Staff Users" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ staff_users|default:"0" }}</h2>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+             <div class="chart-card">
+                <div class="chart-header">
+                     <h5 class="card-title mb-0">{% trans "User Status Overview" %}</h5>
+                </div>
+                <div class="chart-body">
+                    <canvas id="userStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="card-title mb-0">{% trans "Role Distribution" %}</h5>
+                </div>
+                 <div class="chart-body d-flex justify-content-center align-items-center">
+                    <div style="width: 100%; max-width: 250px;">
+                        <canvas id="roleDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card recent-list-card">
+                <div class="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">{% trans "Recently Joined Users" %}</h5>
+                    <a href="{% url 'users:user_list' %}" class="btn btn-sm btn-light text-primary fw-medium">{% trans "View All"%}</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">{% trans "User" %}</th>
+                                    <th>{% trans "Role" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th class="text-end pe-4">{% trans "Joined Date" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar avatar-sm me-2 bg-light-primary text-primary rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width: 35px; height: 35px;">
+                                                <span class="fw-bold">{{ user.first_name|first }}{{ user.last_name|first }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">{{ user.get_full_name }}</div>
+                                                <div class="small text-muted">{{ user.email }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">{{ user.get_role_display|default:user.role }}</span>
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="status-badge bg-success-subtle text-success">{% trans "Active" %}</span>
+                                        {% else %}
+                                            <span class="status-badge bg-danger-subtle text-danger">{% trans "Inactive" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4 small text-secondary">
+                                        {{ user.date_joined|date:"M d, Y" }}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <i class='bx bx-user-x bx-lg mb-3'></i>
+                                        <p>{% trans "No recently joined users" %}</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // User Status Chart (Bar)
+        var activeUsers = {{ active_users|default:0 }};
+        var inactiveUsers = {{ total_users|default:0 }} - activeUsers;
+        
+        var ctxStatus = document.getElementById('userStatusChart').getContext('2d');
+        var userStatusChart = new Chart(ctxStatus, {
+            type: 'bar',
+            data: {
+                labels: ['{% trans "Active" %}', '{% trans "Inactive" %}'],
+                datasets: [{
+                    label: '{% trans "Users" %}',
+                    data: [activeUsers, inactiveUsers],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.7)',
+                        'rgba(220, 53, 69, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(220, 53, 69, 1)'
+                    ],
+                    borderWidth: 1,
+                    barThickness: 50,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                        ticks: { precision: 0 }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Role Distribution Chart (Doughnut)
+        // We need to parse the context['role_distribution']
+        // Assuming it's a list of dicts: [{'role': 'student', 'count': 10}, ...]
+        var roleData = {{ role_distribution|safe }};
+        var roleLabels = roleData.map(function(item) { 
+            // Capitalize first letter as simpler formatting
+            return item.role.charAt(0).toUpperCase() + item.role.slice(1); 
+        });
+        var roleCounts = roleData.map(function(item) { return item.count; });
+        
+        var backgroundColors = [
+            '#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6610f2', '#e83e8c'
+        ];
+
+        var ctxRole = document.getElementById('roleDistributionChart').getContext('2d');
+        var roleDistributionChart = new Chart(ctxRole, {
+            type: 'doughnut',
+            data: {
+                labels: roleLabels,
+                datasets: [{
+                    data: roleCounts,
+                    backgroundColor: backgroundColors.slice(0, roleCounts.length),
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

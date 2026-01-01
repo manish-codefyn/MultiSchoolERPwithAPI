@@ -42,6 +42,18 @@ class EventDashboardView(BaseTemplateView):
         context['recent_events'] = event_queryset.order_by('-created_at')[:5]
         context['recent_registrations'] = EventRegistration.objects.filter(tenant=tenant).order_by('-registration_date')[:5]
         
+        # Charts Data
+        # Events by Type/Category
+        context['events_by_type'] = list(EventCategory.objects.filter(tenant=tenant)
+            .annotate(count=Count('events'))
+            .values('name', 'count')
+            .order_by('-count')[:5])
+            
+        # Event Status Distribution
+        context['events_by_status'] = list(event_queryset
+            .values('status')
+            .annotate(count=Count('id')))
+
         return context
 
 # ==================== EVENT CATEGORY VIEWS ====================

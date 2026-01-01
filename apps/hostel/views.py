@@ -34,10 +34,28 @@ class HostelDashboardView(BaseTemplateView):
         context = super().get_context_data(**kwargs)
         tenant = get_current_tenant()
         
+        # Stats
         context['total_hostels'] = Hostel.objects.filter(tenant=tenant, is_active=True).count()
         context['total_rooms'] = Room.objects.filter(tenant=tenant).count()
         context['total_allocations'] = HostelAllocation.objects.filter(tenant=tenant, is_active=True).count()
         context['pending_leaves'] = LeaveApplication.objects.filter(tenant=tenant, status='PENDING').count()
+        
+        # Charts Data
+        # Hostel Occupancy (Allocations per Hostel)
+        context['hostel_occupancy'] = list(Hostel.objects.filter(tenant=tenant, is_active=True)
+            .annotate(allocation_count=Count('rooms__allocations', filter=Q(rooms__allocations__is_active=True)))
+            .values('name', 'allocation_count')
+            .order_by('-allocation_count')[:5])
+            
+        # Room Status Distribution (Simplified as we don't have direct status field, approximating via allocations)
+        # Ideally Room model should have a status or capacity check. 
+        # For now, let's show simple counts of Room Types if available, or just mock status for demo if needed.
+        # Let's try Room Type distribution instead which is more reliable.
+        context['room_type_distribution'] = list(Room.objects.filter(tenant=tenant)
+            .values('room_type')
+            .annotate(count=Count('id')))
+
+        context['recent_allocations'] = HostelAllocation.objects.filter(tenant=tenant, is_active=True).select_related('student', 'room__hostel', 'room').order_by('-allocation_date')[:5]
         
         return context
 

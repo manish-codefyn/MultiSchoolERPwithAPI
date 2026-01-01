@@ -3,65 +3,301 @@
 
 {% block title %}{% trans "Finance Dashboard" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Modern Dashboard Styling */
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    /* Summary Cards */
+    .stat-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+        background: #fff;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .stat-card .card-body {
+        padding: 1.5rem;
+    }
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.5rem;
+    }
+    .text-gradient-primary { background: linear-gradient(45deg, #007bff, #6610f2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-gradient-primary { background: linear-gradient(45deg, #007bff, #6610f2); }
+    .bg-light-primary { background-color: rgba(0, 123, 255, 0.1); color: #007bff; }
+
+    .text-gradient-danger { background: linear-gradient(45deg, #dc3545, #fd7e14); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-danger { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+
+    .text-gradient-warning { background: linear-gradient(45deg, #ffc107, #fd7e14); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-warning { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
+
+    .text-gradient-info { background: linear-gradient(45deg, #17a2b8, #20c997); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .bg-light-info { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+
+    /* Quick Actions */
+    .quick-actions-section {
+        margin-bottom: 2rem;
+    }
+    .action-icon-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+    .action-icon-btn:hover {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+        transform: translateY(-2px);
+    }
+    .action-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        background: #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .action-icon-btn:hover .action-icon-wrapper {
+        box-shadow: 0 6px 15px rgba(13, 110, 253, 0.15);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+    }
+    .action-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    /* Charts Section */
+    .chart-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.01);
+        background: #fff;
+        height: 100%;
+    }
+    .chart-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .chart-body {
+        padding: 1.5rem;
+        height: 300px;
+        position: relative;
+    }
+
+    /* Recent Lists */
+    .recent-list-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .table-modern th {
+        border-top: none;
+        border-bottom: 2px solid #f0f0f0;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #adb5bd;
+    }
+    .table-modern td {
+        vertical-align: middle;
+        border-bottom: 1px solid #f8f9fa;
+        padding: 1rem 0.75rem;
+    }
+    .table-modern tr:last-child td {
+        border-bottom: none;
+    }
+    .status-badge {
+        padding: 0.35em 0.8em;
+        font-size: 0.75em;
+        font-weight: 600;
+        border-radius: 50rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
     <!-- Breadcrumb -->
     {% include 'partials/breadcrumb.html' with page_title=_("Finance Overview") current_text=_("Dashboard") %}
 
+    <!-- Quick Actions (Mobile Style) -->
+    <div class="quick-actions-section">
+        <h6 class="text-uppercase text-muted mb-3 font-weight-bold" style="font-size: 0.75rem; letter-spacing: 1px;">{% trans "Quick Actions" %}</h6>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 justify-content-center">
+                    <div class="col">
+                        <a href="{% url 'finance:invoice_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-primary">
+                                <i class='bx bx-plus'></i>
+                            </div>
+                            <span class="action-label">{% trans "New Invoice" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'finance:payment_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-success">
+                                <i class='bx bx-rupee'></i>
+                            </div>
+                            <span class="action-label">{% trans "Record Payment" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'finance:expense_create' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-danger">
+                                <i class='bx bx-wallet'></i>
+                            </div>
+                            <span class="action-label">{% trans "Add Expense" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'finance:fee_structure_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-info">
+                                <i class='bx bx-list-ul'></i>
+                            </div>
+                            <span class="action-label">{% trans "Fee Structure" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'finance:financial_report_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-warning">
+                                <i class='bx bx-bar-chart-alt-2'></i>
+                            </div>
+                            <span class="action-label">{% trans "Reports" %}</span>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="{% url 'finance:invoice_list' %}" class="action-icon-btn">
+                            <div class="action-icon-wrapper text-secondary">
+                                <i class='bx bx-search'></i>
+                            </div>
+                            <span class="action-label">{% trans "Check Status" %}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Stats Cards -->
-    <div class="row g-3 mb-4">
+    <div class="row g-4 mb-4">
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <h6 class="card-title text-muted mb-0">{% trans "Revenue (Month)" %}</h6>
-                        <div class="avatar avatar-sm bg-primary-subtle text-primary rounded-circle">
-                            <i class='bx bx-coin-stack fs-5'></i>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-primary">
+                            <i class='bx bx-coin-stack'></i>
                         </div>
+                        <span class="badge bg-light-primary rounded-pill">+2.5%</span>
                     </div>
-                    <h3 class="fw-bold mb-1">₹{{ total_revenue_month|intcomma }}</h3>
-                    <small class="text-success"><i class='bx bx-trending-up'></i> {% trans "This Month" %}</small>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Revenue (Month)" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">₹{{ total_revenue_month|intcomma }}</h2>
+                    <small class="text-muted"><i class='bx bx-calendar'></i> {% trans "Current Month" %}</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <h6 class="card-title text-muted mb-0">{% trans "Expenses (Month)" %}</h6>
-                        <div class="avatar avatar-sm bg-danger-subtle text-danger rounded-circle">
-                            <i class='bx bx-wallet fs-5'></i>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-danger">
+                            <i class='bx bx-wallet'></i>
                         </div>
+                        <span class="badge bg-light-danger rounded-pill">-1.2%</span>
                     </div>
-                    <h3 class="fw-bold mb-1">₹{{ total_expenses_month|intcomma }}</h3>
-                    <small class="text-danger"><i class='bx bx-trending-down'></i> {% trans "This Month" %}</small>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Expenses (Month)" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">₹{{ total_expenses_month|intcomma }}</h2>
+                    <small class="text-muted"><i class='bx bx-calendar'></i> {% trans "Current Month" %}</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 border-start border-4 border-warning">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <h6 class="card-title text-muted mb-0">{% trans "Pending Invoices" %}</h6>
-                        <div class="avatar avatar-sm bg-warning-subtle text-warning rounded-circle">
-                            <i class='bx bx-receipt fs-5'></i>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-warning">
+                            <i class='bx bx-receipt'></i>
                         </div>
+                        <span class="badge bg-light-warning rounded-pill">Alert</span>
                     </div>
-                    <h3 class="fw-bold mb-1">{{ pending_invoices }}</h3>
-                    <small class="text-warning">{% trans "Require Attention" %}</small>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Pending Invoices" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ pending_invoices }}</h2>
+                    <small class="text-muted">{% trans "Require Attention" %}</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 border-start border-4 border-info">
+            <div class="stat-card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <h6 class="card-title text-muted mb-0">{% trans "Invoices Issued" %}</h6>
-                        <div class="avatar avatar-sm bg-info-subtle text-info rounded-circle">
-                            <i class='bx bx-file fs-5'></i>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon bg-light-info">
+                            <i class='bx bx-file'></i>
                         </div>
+                        <span class="badge bg-light-info rounded-pill">New</span>
                     </div>
-                    <h3 class="fw-bold mb-1">{{ total_invoices_month }}</h3>
+                    <h5 class="text-muted small text-uppercase mb-1">{% trans "Invoices Issued" %}</h5>
+                    <h2 class="fw-bold mb-0 text-dark">{{ total_invoices_month }}</h2>
                     <small class="text-muted">{% trans "This Month" %}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+            <div class="chart-card">
+                <div class="chart-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{% trans "Financial Overview" %}</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            {% trans "This Month" %}
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">{% trans "Last Month" %}</a></li>
+                            <li><a class="dropdown-item" href="#">{% trans "Last 3 Months" %}</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chart-body">
+                    <canvas id="financeOverviewChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="card-title mb-0">{% trans "Invoice Status" %}</h5>
+                </div>
+                <div class="chart-body d-flex justify-content-center align-items-center">
+                    <div style="width: 100%; max-width: 250px;">
+                         <canvas id="invoiceStatusChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -70,14 +306,14 @@
     <div class="row g-4">
         <!-- Recent Payments -->
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">{% trans "Recent Payments" %}</h5>
-                    <a href="{% url 'finance:payment_list' %}" class="btn btn-sm btn-light">{% trans "View All" %}</a>
+            <div class="card recent-list-card h-100">
+                <div class="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">{% trans "Recent Payments" %}</h5>
+                    <a href="{% url 'finance:payment_list' %}" class="btn btn-sm btn-light text-primary fw-medium">{% trans "View All" %}</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-modern table-hover mb-0">
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4">{% trans "Student" %}</th>
@@ -93,15 +329,15 @@
                                         <div class="fw-semibold text-dark">{{ payment.invoice.student.full_name }}</div>
                                         <div class="small text-muted">{{ payment.transaction_id }}</div>
                                     </td>
-                                    <td>₹{{ payment.amount|intcomma }}</td>
-                                    <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                    <td><span class="fw-bold text-dark">₹{{ payment.amount|intcomma }}</span></td>
+                                    <td class="text-secondary">{{ payment.payment_date|date:"M d, Y" }}</td>
                                     <td>
                                         {% if payment.status == 'COMPLETED' %}
-                                            <span class="badge bg-success-subtle text-success">{% trans "Paid" %}</span>
+                                            <span class="status-badge bg-success-subtle text-success">{% trans "Paid" %}</span>
                                         {% elif payment.status == 'PENDING' %}
-                                            <span class="badge bg-warning-subtle text-warning">{% trans "Pending" %}</span>
+                                            <span class="status-badge bg-warning-subtle text-warning">{% trans "Pending" %}</span>
                                         {% else %}
-                                            <span class="badge bg-secondary-subtle text-secondary">{{ payment.get_status_display }}</span>
+                                            <span class="status-badge bg-secondary-subtle text-secondary">{{ payment.get_status_display }}</span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -119,14 +355,14 @@
 
         <!-- Recent Expenses -->
         <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">{% trans "Recent Expenses" %}</h5>
-                    <a href="{% url 'finance:expense_list' %}" class="btn btn-sm btn-light">{% trans "View All" %}</a>
+            <div class="card recent-list-card h-100">
+                <div class="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">{% trans "Recent Expenses" %}</h5>
+                    <a href="{% url 'finance:expense_list' %}" class="btn btn-sm btn-light text-primary fw-medium">{% trans "View All" %}</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-modern table-hover mb-0">
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-4">{% trans "Title" %}</th>
@@ -142,17 +378,17 @@
                                         <div class="fw-semibold text-dark">{{ expense.title }}</div>
                                         <div class="small text-muted">{{ expense.category.name }}</div>
                                     </td>
-                                    <td>₹{{ expense.amount|intcomma }}</td>
-                                    <td>{{ expense.expense_date|date:"M d, Y" }}</td>
+                                    <td><span class="fw-bold text-dark">₹{{ expense.amount|intcomma }}</span></td>
+                                    <td class="text-secondary">{{ expense.expense_date|date:"M d, Y" }}</td>
                                     <td>
                                         {% if expense.status == 'APPROVED' %}
-                                            <span class="badge bg-success-subtle text-success">{% trans "Approved" %}</span>
+                                            <span class="status-badge bg-success-subtle text-success">{% trans "Approved" %}</span>
                                         {% elif expense.status == 'REJECTED' %}
-                                            <span class="badge bg-danger-subtle text-danger">{% trans "Rejected" %}</span>
+                                            <span class="status-badge bg-danger-subtle text-danger">{% trans "Rejected" %}</span>
                                         {% elif expense.status == 'PAID' %}
-                                            <span class="badge bg-info-subtle text-info">{% trans "Paid" %}</span>
+                                            <span class="status-badge bg-info-subtle text-info">{% trans "Paid" %}</span>
                                         {% else %}
-                                            <span class="badge bg-warning-subtle text-warning">{% trans "Pending" %}</span>
+                                            <span class="status-badge bg-warning-subtle text-warning">{% trans "Pending" %}</span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -168,4 +404,104 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Finance Overview Chart (Income vs Expense)
+        var ctxOverview = document.getElementById('financeOverviewChart').getContext('2d');
+        var financeOverviewChart = new Chart(ctxOverview, {
+            type: 'bar',
+            data: {
+                labels: ['Income', 'Expense'],
+                datasets: [{
+                    label: '{% trans "Data for this Month" %}',
+                    data: [{{ total_revenue_month }}, {{ total_expenses_month }}],
+                    backgroundColor: [
+                        'rgba(0, 123, 255, 0.7)',
+                        'rgba(220, 53, 69, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(0, 123, 255, 1)',
+                        'rgba(220, 53, 69, 1)'
+                    ],
+                    borderWidth: 1,
+                    barThickness: 50,
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Invoice Status Chart (Doughnut)
+        // Note: Using placeholders since context doesn't explicitly provide breakdown yet
+        // Ideally, we'd pass 'issued_count', 'paid_count', etc. from the view.
+        // For now, using derived/placeholder logic or assuming total_invoices vs pending.
+        var pendingInv = {{ pending_invoices|default:0 }};
+        var totalInv = {{ total_invoices_month|default:0 }};
+        var paidInv = totalInv - pendingInv; 
+        if(paidInv < 0) paidInv = 0; // fallback safety
+
+        var ctxStatus = document.getElementById('invoiceStatusChart').getContext('2d');
+        var invoiceStatusChart = new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+                labels: ['{% trans "Paid/Other" %}', '{% trans "Pending" %}'],
+                datasets: [{
+                    data: [paidInv, pendingInv],
+                    backgroundColor: [
+                        '#0d6efd', // Primary Blue
+                        '#ffc107'  // Warning Yellow
+                    ],
+                    hoverOffset: 4,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                             padding: 20
+                        }
+                    },
+                   tooltip: {
+                       callbacks: {
+                           label: function(tooltipItem) {
+                                return tooltipItem.label + ': ' + tooltipItem.raw;
+                           }
+                       }
+                   }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}
