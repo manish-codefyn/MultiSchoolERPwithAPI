@@ -1,0 +1,136 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Certificate Details" %}{% endblock %}
+{% block page_description %}{% trans "View and print certificate" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .print-area, .print-area * {
+            visibility: visible;
+        }
+        .print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+    .certificate-container {
+        border: 10px double #4a4a4a;
+        padding: 40px;
+        background-color: #fff;
+        position: relative;
+    }
+    .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0.1;
+        font-size: 8rem;
+        font-weight: bold;
+        color: #000;
+        z-index: 0;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <h5 class="mb-0">{% trans "Certificate Preview" %}</h5>
+            <div>
+                <a href="{% url 'certificates:certificate_update' certificate.id %}" class="btn btn-outline-primary btn-sm me-2">
+                    <i class="bx bx-edit"></i> {% trans "Edit" %}
+                </a>
+                <a href="{% url 'certificates:certificate_download' certificate.id %}" class="btn btn-outline-secondary btn-sm me-2" target="_blank">
+                    <i class="bx bx-download"></i> {% trans "Download PDF" %}
+                </a>
+                <button onclick="window.print()" class="btn btn-primary btn-sm">
+                    <i class="bx bx-printer"></i> {% trans "Print" %}
+                </button>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow print-area">
+            <div class="card-body p-5 position-relative certificate-container">
+                <!-- Watermark -->
+                <div class="watermark text-uppercase">{{ certificate.tenant.name|default:"SCHOOL" }}</div>
+
+                <!-- Header -->
+                <div class="text-center mb-5 position-relative" style="z-index: 1;">
+                    <h2 class="fw-bold mb-1">{{ certificate.tenant.name|default:"School Name" }}</h2>
+                    <p class="text-secondary mb-0">{{ certificate.tenant.address|default:"Address Line 1" }}</p>
+                    <p class="text-secondary">{{ certificate.tenant.address_2|default:"City, State, Zip" }}</p>
+                    <hr class="my-4 mx-auto" style="width: 200px; height: 3px; background-color: #333; opacity: 1;">
+                </div>
+
+                <!-- Title -->
+                <div class="text-center mb-5 position-relative" style="z-index: 1;">
+                    <h3 class="text-uppercase text-decoration-underline letter-spacing-2">{{ certificate.get_certificate_type_display }}</h3>
+                </div>
+
+                <!-- Body -->
+                <div class="mb-5 px-4 position-relative" style="font-size: 1.1rem; line-height: 2; z-index: 1;">
+                    {% if certificate.content %}
+                        {{ certificate.content|linebreaks }}
+                    {% else %}
+                        <p class="text-center">
+                            This is to certify that <strong>{{ certificate.student.full_name }}</strong> 
+                            (Admission No: <strong>{{ certificate.student.admission_number }}</strong>), 
+                            son/daughter of <strong>{{ certificate.student.father.full_name|default:"Guardian" }}</strong>,
+                            was a bona fide student of this institution from <strong>{{ certificate.student.enrollment_date|date:"F Y" }}</strong>.
+                        </p>
+                        <p class="text-center">
+                            He/She bears a good moral character and has satisfactorily completed the requirements for the academic year <strong>{{ certificate.student.academic_year }}</strong>.
+                        </p>
+                        <p class="text-center mt-4">
+                            We wish him/her success in all future endeavors.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Footer -->
+                <div class="row mt-5 pt-5 position-relative" style="z-index: 1;">
+                    <div class="col-4 text-center">
+                        <p class="mb-4"><strong>{{ certificate.issue_date|date:"d F, Y" }}</strong></p>
+                        <hr class="w-75 mx-auto">
+                        <p class="small text-muted">{% trans "Date of Issue" %}</p>
+                    </div>
+                    <div class="col-4 text-center align-self-end">
+                        <div class="mb-3">
+                            <!-- Could add a seal image here -->
+                            <div style="width: 80px; height: 80px; border: 2px solid #ccc; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                                <small class="text-muted">SEAL</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                         <p class="mb-4">&nbsp;</p> <!-- Space for signature -->
+                        <hr class="w-75 mx-auto">
+                        <p class="small text-muted">{% trans "Principal's Signature" %}</p>
+                    </div>
+                </div>
+                
+                <!-- Ref No -->
+                <div class="position-absolute bottom-0 start-0 p-4 small text-muted">
+                    Ref: {{ certificate.certificate_number }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

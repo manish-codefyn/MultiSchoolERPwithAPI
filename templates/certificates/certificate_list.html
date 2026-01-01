@@ -1,0 +1,82 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}{% trans "Certificates" %}{% endblock %}
+{% block page_description %}{% trans "Manage student certificates like Migration, Transcript, TC, etc." %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "Certificates List" %}</h5>
+                <div>
+                    <a href="{% url 'certificates:certificate_bulk_create' %}" class="btn btn-outline-primary btn-sm rounded-pill me-2">
+                        <i class="bx bx-layer"></i> {% trans "Bulk Issue" %}
+                    </a>
+                    <a href="{% url 'certificates:certificate_create' %}" class="btn btn-primary btn-sm rounded-pill">
+                        <i class="bx bx-plus"></i> {% trans "Issue Certificate" %}
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>{% trans "Issue Date" %}</th>
+                                <th>{% trans "Certificate No." %}</th>
+                                <th>{% trans "Student" %}</th>
+                                <th>{% trans "Type" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th class="text-end">{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for certificate in certificates %}
+                            <tr>
+                                <td>{{ certificate.issue_date|date:"d M, Y" }}</td>
+                                <td><span class="fw-bold text-dark">{{ certificate.certificate_number }}</span></td>
+                                <td>
+                                    <h6 class="mb-0 text-dark">{{ certificate.student.full_name }}</h6>
+                                    <small class="text-muted">{{ certificate.student.admission_number }}</small>
+                                </td>
+                                <td><span class="badge bg-light-primary text-primary">{{ certificate.get_certificate_type_display }}</span></td>
+                                <td>
+                                    {% if certificate.status == 'DRAFT' %}
+                                    <span class="badge bg-light-secondary text-secondary">{{ certificate.get_status_display }}</span>
+                                    {% elif certificate.status == 'ISSUED' %}
+                                    <span class="badge bg-light-success text-success">{{ certificate.get_status_display }}</span>
+                                    {% elif certificate.status == 'CANCELLED' %}
+                                    <span class="badge bg-light-danger text-danger">{{ certificate.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light border-0" type="button" data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                            <li><a class="dropdown-item" href="{% url 'certificates:certificate_detail' certificate.id %}"><i class="bx bx-show me-2"></i>{% trans "View" %}</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'certificates:certificate_update' certificate.id %}"><i class="bx bx-edit me-2"></i>{% trans "Edit" %}</a></li>
+                                            <li><a class="dropdown-item text-danger" href="{% url 'certificates:certificate_delete' certificate.id %}"><i class="bx bx-trash me-2"></i>{% trans "Delete" %}</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">{% trans "No certificates found." %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination could go here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

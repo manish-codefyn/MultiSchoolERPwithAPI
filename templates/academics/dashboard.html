@@ -5,6 +5,10 @@
 {% block page_title %}{% trans "Academics Dashboard" %}{% endblock %}
 {% block page_description %}{% trans "Overview of academic years, terms, and classes" %}{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/modern-dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="dashboard-hero">
     <h1>Welcome to the Academics Dashboard</h1>
@@ -164,9 +168,37 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row mb-4">
+    <!-- Charts Section -->
+    <div class="col-lg-8 mb-4 mb-lg-0">
+        <div class="card chart-card h-100">
+            <div class="chart-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "Students per Class" %}</h5>
+            </div>
+            <div class="chart-body">
+                <canvas id="classDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card chart-card h-100">
+            <div class="chart-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "Today's Attendance" %}</h5>
+            </div>
+            <div class="chart-body">
+                <canvas id="attendanceChart"></canvas>
+                <div class="text-center mt-3">
+                    <h2 class="mb-0 text-primary">{{ today_attendance.percentage }}%</h2>
+                    <p class="text-muted small">{% trans "Present Today" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
     <!-- Quick Actions -->
-    <div class="col-12 mb-4">
+    <div class="col-12">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
                 <h5 class="card-title mb-0">{% trans "Quick Actions" %}</h5>
@@ -209,7 +241,7 @@
                             <h6 class="mb-0 mt-2 text-dark">Timetable</h6>
                         </a>
                     </div>
-                    <!-- Added Links -->
+                    <!-- Additional Links -->
                     <div class="col-md-2 col-6 text-center">
                         <a href="{% url 'academics:class_subject_list' %}" class="d-block p-3 border rounded text-decoration-none hover-shadow transition quick-action-card">
                             <div class="font-35 text-primary"><i class="bx bx-book-content"></i></div>
@@ -264,14 +296,176 @@
     </div>
 </div>
 
-<style>
-    .hover-shadow:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        background-color: #f8f9fa;
-        transform: translateY(-3px);
-    }
-    .transition {
-        transition: all 0.3s ease;
-    }
-</style>
+<div class="row">
+    <!-- Upcoming Holidays -->
+    <div class="col-md-6 mb-4">
+        <div class="card recent-list-card h-100">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "Upcoming Holidays" %}</h5>
+                <a href="{% url 'academics:holiday_list' %}" class="btn btn-sm btn-outline-primary rounded-pill">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-modern mb-0">
+                        <tbody>
+                            {% for holiday in upcoming_holidays %}
+                            <tr>
+                                <td style="width: 50px;">
+                                    <div class="action-icon-wrapper bg-light-info text-info mb-0" style="width: 40px; height: 40px; font-size: 1.25rem;">
+                                        <i class="bx bx-calendar"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <h6 class="mb-0 text-dark">{{ holiday.name }}</h6>
+                                    <small class="text-muted">{{ holiday.start_date|date:"d M Y" }}</small>
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge bg-light-info text-info rounded-pill">
+                                        {{ holiday.end_date|timeuntil:holiday.start_date }} {% trans "Duration" %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">
+                                    <i class='bx bx-calendar-x bx-lg mb-3'></i>
+                                    <p>{% trans "No upcoming holidays" %}</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Study Material -->
+    <div class="col-md-6 mb-4">
+        <div class="card recent-list-card h-100">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{% trans "Recent Study Materials" %}</h5>
+                <a href="{% url 'academics:study_material_list' %}" class="btn btn-sm btn-outline-primary rounded-pill">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-modern mb-0">
+                        <tbody>
+                            {% for material in recent_materials %}
+                            <tr>
+                                <td style="width: 50px;">
+                                    <div class="action-icon-wrapper bg-light-warning text-warning mb-0" style="width: 40px; height: 40px; font-size: 1.25rem;">
+                                        <i class="bx bx-file"></i>
+                                    </div>
+                                </td>
+                                <td>
+                                    <h6 class="mb-0 text-dark">{{ material.title }}</h6>
+                                    <small class="text-secondary">{{ material.subject.name }} - {{ material.class_name.name }}</small>
+                                </td>
+                                <td class="text-end">
+                                    <span class="text-secondary small">{{ material.publish_date|date:"d M" }}</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">
+                                    <i class='bx bx-folder-open bx-lg mb-3'></i>
+                                    <p>{% trans "No recent materials" %}</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ students_by_class|json_script:"class-data" }}
+{{ today_attendance|json_script:"attendance-data" }}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Class Distribution Chart
+        var classData = JSON.parse(document.getElementById('class-data').textContent);
+        var classLabels = classData.map(function(item) { return item.name; });
+        var classCounts = classData.map(function(item) { return item.student_count; });
+
+        var ctxClass = document.getElementById('classDistributionChart').getContext('2d');
+        var classDistributionChart = new Chart(ctxClass, {
+            type: 'bar',
+            data: {
+                labels: classLabels,
+                datasets: [{
+                    label: '{% trans "Students" %}',
+                    data: classCounts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1,
+                    barThickness: 30,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                        ticks: { precision: 0 }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Attendance Chart (Doughnut)
+        var attendanceData = JSON.parse(document.getElementById('attendance-data').textContent);
+        var present = attendanceData.present || 0;
+        var absent = attendanceData.absent || 0;
+        
+        // Handle case where no data exists
+        if (present === 0 && absent === 0) {
+            absent = 1; // Show empty ring
+            var bgColors = ['#e9ecef'];
+        } else {
+             var bgColors = ['#28a745', '#dc3545'];
+        }
+
+        var ctxAttendance = document.getElementById('attendanceChart').getContext('2d');
+        var attendanceChart = new Chart(ctxAttendance, {
+            type: 'doughnut',
+            data: {
+                labels: ['{% trans "Present" %}', '{% trans "Absent" %}'],
+                datasets: [{
+                    data: [present, absent],
+                    backgroundColor: bgColors,
+                    borderWidth: 0,
+                    cutout: '75%',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 15 }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

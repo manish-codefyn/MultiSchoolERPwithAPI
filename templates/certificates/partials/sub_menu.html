@@ -1,0 +1,12 @@
+
+{% load i18n  %}
+<li>
+    <a href="javascript:;" class="has-arrow">
+        <div class="parent-icon"><i class="bx bx-certification"></i></div>
+        <div class="menu-title">{% trans "Certificates" %}</div>
+    </a>
+    <ul>
+        <li> <a href="{% url 'certificates:certificate_list' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "All Certificates" %}</a></li>
+        <li> <a href="{% url 'certificates:certificate_create' %}"><i class="bx bx-right-arrow-alt"></i>{% trans "Issue New" %}</a></li>
+    </ul>
+</li>

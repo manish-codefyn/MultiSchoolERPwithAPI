@@ -9,6 +9,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import ListView,View, CreateView, UpdateView, DeleteView
 from django.contrib import messages
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -85,6 +86,12 @@ class AcademicsDashboardView(BaseTemplateView):
         context['recent_materials'] = StudyMaterial.objects.filter(
             is_published=True
         ).order_by('-publish_date')[:5]
+
+        # Charts Data
+        from django.db.models import Count
+        context['students_by_class'] = list(SchoolClass.objects.filter(is_active=True).annotate(
+            student_count=Count('students', filter=Q(students__is_active=True))
+        ).values('name', 'student_count').order_by('order'))
         
         # Fixed variable names - should match template
         context['current_academic_year'] = current_year  # Changed from 'current_year'

@@ -101,6 +101,7 @@ TENANT_APPS = [
     "apps.transportation",
     "apps.attendance",
     "apps.assignments",
+    "apps.certificates",
     "apps.student_portal",
 ]
 

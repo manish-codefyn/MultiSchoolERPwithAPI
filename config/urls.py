@@ -40,6 +40,7 @@ urlpatterns = [
     path("analytics/", include("apps.analytics.urls", namespace="analytics")),
     path("attendance/", include("apps.attendance.urls", namespace="attendance")),
     path("assignments/", include("apps.assignments.urls", namespace="assignments")),
+    path("certificates/", include("apps.certificates.urls", namespace="certificates")),
     path("communications/", include("apps.communications.urls")),
     path("admission/", include("apps.admission.urls", namespace="admission")),
     path("exams/", include("apps.exams.urls", namespace="exams")),
