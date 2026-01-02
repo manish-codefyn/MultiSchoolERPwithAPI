@@ -69,7 +69,7 @@ var options = {
     "key": "{{ razorpay_merchant_key }}", // Enter the Key ID generated from the Dashboard
     "amount": "{{ razorpay_amount }}", // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
     "currency": "{{ currency }}",
-    "name": "{{ request.tenant.name|default:'EduERP' }}",
+    "name": "{{ request.tenant.name|default:'Acadfyn' }}",
     "description": "Fee Payment for Invoice #{{ invoice.invoice_number }}",
     "image": "{% if request.tenant.logo %}{{ request.tenant.logo.url }}{% else %}{% static 'images/logo-icon.png' %}{% endif %}",
     "order_id": "{{ razorpay_order_id }}", //This is a sample Order ID. Pass the `id` obtained in the response of Step 1

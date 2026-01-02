@@ -1,8 +1,13 @@
-{% extends 'base.html' %}
-{% load i18n %}
+{% extends 'layouts/dashboard.html' %}
+{% load i18n crispy_forms_tags %}
 
 {% block title %}
     {% if object %}{% trans "Edit Registration" %}{% else %}{% trans "Add Registration" %}{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 {% endblock %}
 
 {% block content %}
@@ -33,19 +38,15 @@
                         <!-- Event & Person Selection -->
                         <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">{% trans "1. Event & Participant Selection" %}</h6>
                         <div class="row g-3 mb-4">
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold small">{{ form.event.label }}</label>
-                                {{ form.event }}
-                                {% if form.event.errors %}<div class="text-danger small">{{ form.event.errors.0 }}</div>{% endif %}
+                            <div class="col-12">
+                                {{ form.event|as_crispy_field }}
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">{% trans "Internal Student" %} / {{ form.student.label }}</label>
-                                {{ form.student }}
+                            <div class="col-md-6">
+                                {{ form.student|as_crispy_field }}
                                 <small class="text-muted">{% trans "Select if the participant is a student." %}</small>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">{% trans "Internal User" %} / {{ form.user.label }}</label>
-                                {{ form.user }}
+                            <div class="col-md-6">
+                                {{ form.user|as_crispy_field }}
                                 <small class="text-muted">{% trans "Select if the participant is a staff or parent." %}</small>
                             </div>
                         </div>
@@ -53,59 +54,48 @@
                         <!-- External Guest Info -->
                         <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">{% trans "2. External Guest Details" %} <small class="text-muted fw-normal">({% trans "Fill if not an internal user" %})</small></h6>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">{{ form.external_name.label }}</label>
-                                {{ form.external_name }}
+                            <div class="col-md-6">
+                                {{ form.external_name|as_crispy_field }}
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">{{ form.external_email.label }}</label>
-                                {{ form.external_email }}
+                            <div class="col-md-6">
+                                {{ form.external_email|as_crispy_field }}
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">{{ form.external_phone.label }}</label>
-                                {{ form.external_phone }}
+                            <div class="col-md-6">
+                                {{ form.external_phone|as_crispy_field }}
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">{{ form.external_organization.label }}</label>
-                                {{ form.external_organization }}
+                            <div class="col-md-6">
+                                {{ form.external_organization|as_crispy_field }}
                             </div>
                         </div>
 
                         <!-- Registration Details -->
                         <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">{% trans "3. Registration Details" %}</h6>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold small">{{ form.registration_type.label }}</label>
-                                {{ form.registration_type }}
+                            <div class="col-md-4">
+                                {{ form.registration_type|as_crispy_field }}
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold small">{{ form.status.label }}</label>
-                                {{ form.status }}
+                            <div class="col-md-4">
+                                {{ form.status|as_crispy_field }}
                             </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold small">{{ form.special_requirements.label }}</label>
-                                {{ form.special_requirements }}
+                            <div class="col-12">
+                                {{ form.special_requirements|as_crispy_field }}
                             </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold small">{{ form.dietary_restrictions.label }}</label>
-                                {{ form.dietary_restrictions }}
+                            <div class="col-12">
+                                {{ form.dietary_restrictions|as_crispy_field }}
                             </div>
                         </div>
 
                         <!-- Emergency & Internal -->
                         <h6 class="fw-bold mb-3 text-primary border-bottom pb-2">{% trans "4. Emergency & Notes" %}</h6>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">{{ form.emergency_contact.label }}</label>
-                                {{ form.emergency_contact }}
+                            <div class="col-md-6">
+                                {{ form.emergency_contact|as_crispy_field }}
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">{{ form.emergency_phone.label }}</label>
-                                {{ form.emergency_phone }}
+                            <div class="col-md-6">
+                                {{ form.emergency_phone|as_crispy_field }}
                             </div>
                             <div class="col-12">
-                                <label class="form-label fw-bold small">{{ form.internal_notes.label }}</label>
-                                {{ form.internal_notes }}
+                                {{ form.internal_notes|as_crispy_field }}
                             </div>
                         </div>
                         
@@ -123,4 +113,17 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+	<script>
+		$(document).ready(function() {
+			$('.select2').select2({
+				theme: "bootstrap-5",
+				width: $( this ).data( 'width' ) ? $( this ).data( 'width' ) : $( this ).hasClass( 'w-100' ) ? '100%' : 'style',
+				placeholder: $( this ).data( 'placeholder' ),
+			});
+		});
+	</script>
 {% endblock %}

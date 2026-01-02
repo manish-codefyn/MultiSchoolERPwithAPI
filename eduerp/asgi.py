@@ -6,7 +6,7 @@ from asgiref.wsgi import WsgiToAsgi
 
 # Initialize Django ASGI application early to ensure the AppRegistry
 # is populated before importing code that may import ORM models.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'eduerp.settings')
 
 # Use WsgiToAsgi to wrap the sync WSGI app for HTTP requests.
 # This prevents SynchronousOnlyOperation errors with django-tenants middleware

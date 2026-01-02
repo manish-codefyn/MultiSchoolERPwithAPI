@@ -207,19 +207,7 @@ class RolePermission(BaseModel):
                  'tenants': ['tenants.view_tenant'], 
             },
             'principal': {
-                'auth': ['auth.view_user', 'auth.change_user', 'auth.view_group', 'users.view_user', 'users.change_user'],
-                'academics': ['academics.view_subject', 'academics.view_timetable', 'academics.view_studymaterial', 'academics.view_academics'],
-                'admission': ['admission.view_admissionapplication', 'admission.change_admissionapplication'],
-                'attendance': ['attendance.view_studentattendance', 'attendance.view_staffattendance', 'attendance.view_attendance'],
-                'events': ['events.view_event', 'events.add_event', 'events.change_event', 'events.delete_event'],
-                'exams': ['exams.view_exam', 'exams.view_examresult'],
-                'finance': ['finance.view_feestructure', 'finance.view_invoice', 'finance.view_payment', 'finance.view_budget', 'finance.view_finance'],
-                'hr': ['hr.view_staff', 'hr.view_leaveapplication', 'hr.change_leaveapplication', 'hr.view_hr'],
-                'library': ['library.view_book', 'library.view_borrowing'],
-                'students': ['students.view_student', 'students.view_studentdocument', 'students.view_student_dashboard'],
-                'reports': ['reports.view_report', 'analytics.view_dashboard'],
-                'configuration': ['configuration.view_systemsetting'],
-                'communications': ['communications.view_message', 'communications.add_message'],
+                '*': ['*'],  # Principal gets all permissions (same as Admin)
             },
             'admin': {
                 '*': ['*'],  # Admin gets all permissions via special handling in iteration

@@ -10,7 +10,7 @@ from apps.core import views as core_views
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="MultiTenant School ERP API",
+      title="EduERP API",
       default_version='v1',
       description="API documentation",
       terms_of_service="https://www.google.com/policies/terms/",
@@ -23,7 +23,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     # API URLs (Priority)
-    path("", include("config.api_urls")),
+    path("", include("eduerp.api_urls")),
     
     # Swagger / Redoc
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),

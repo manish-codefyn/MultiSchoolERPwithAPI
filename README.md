@@ -1,4 +1,2 @@
-# EduERP_V6.0
-# multi-tenants-school-erp
-# MultiTenantSchoolERPwithAPI
-# MultiSchoolERPwithAPI
+# EduERP
+Multi-Tenant School ERP with API

@@ -14,53 +14,37 @@ class TenantAwareAuthenticationBackend(ModelBackend):
         """
         Authenticate user with email and password, considering tenant context
         """
-        print(f"DEBUG: Authenticate called with email={email}")
         
         if email is None or password is None:
-            print("DEBUG: Missing email or password")
             return None
 
         email = email.lower().strip()
         
         # Get tenant from request or kwargs
         tenant = getattr(request, 'tenant', None) or kwargs.get('tenant')
-        print(f"DEBUG: Resolved tenant: {tenant}")
         
         if not tenant:
-            print("DEBUG: No tenant found in request or kwargs")
             return None
 
         # Check if account is locked
         try:
-            print(f"DEBUG: Querying user with email='{email}', tenant='{tenant}', is_active=True")
             user = User.objects.get(email=email, tenant=tenant, is_active=True)
-            print(f"DEBUG: User found: {user} (ID: {user.id})")
             
             if user.is_account_locked:
-                print("DEBUG: FAILURE - Account is locked")
                 self._log_login_attempt(
                     email, request, False, "Account locked", user
                 )
                 raise PermissionDenied("Account is temporarily locked due to multiple failed login attempts.")
                 
         except User.DoesNotExist:
-            print(f"DEBUG: FAILURE - User with email '{email}' not found for tenant '{tenant}'")
-            # Try to see if user exists at all (inactive or wrong tenant)
-            exists = User.objects.filter(email=email).exists()
-            if exists:
-                print(f"DEBUG: User '{email}' exists but didn't match filters (wrong tenant or inactive?)")
-                other_user = User.objects.filter(email=email).first()
-                print(f"DEBUG: Existing user tenant: {other_user.tenant}, is_active: {other_user.is_active}")
             
             self._log_login_attempt(email, request, False, "User not found")
             return None
 
         # Verify password
         if user.check_password(password):
-            print("DEBUG: SUCCESS - Password valid")
             # Check if password is expired
             if self._is_password_expired(user):
-                print("DEBUG: FAILURE - Password expired")
                 self._log_login_attempt(
                     email, request, False, "Password expired", user
                 )

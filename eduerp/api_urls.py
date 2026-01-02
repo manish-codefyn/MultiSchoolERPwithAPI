@@ -14,7 +14,7 @@ API_PREFIX = f"api/{settings.API_VERSION}/"
 # -----------------------------
 schema_view = get_schema_view(
     openapi.Info(
-        title="MultiTenant School ERP API",
+        title="EduERP API",
         default_version=settings.API_VERSION,
         description="API documentation",
         contact=openapi.Contact(email="contact@schoolerp.local"),

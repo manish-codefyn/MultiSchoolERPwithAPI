@@ -24,16 +24,13 @@ if not os.path.exists(env_path):
 environ.Env.read_env(env_path)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY", default="django-insecure-your-secret-key-here")
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = env.bool("DEBUG", default=False)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# Force DEBUG=True for local development environment to avoid 404s/static issues
-DEBUG = True 
-
-# Force allow all hosts for local development multi-tenancy
-ALLOWED_HOSTS = ["*"]
+# Support for local development multi-tenancy + production domains
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 # To allow all tenant subdomains, add your base domain with a leading dot.
 # Example: ALLOWED_HOSTS=.schoolerp.com,localhost
 # This allows: schoolerp.com, tenant1.schoolerp.com, tenant2.schoolerp.com, etc.
@@ -157,7 +154,8 @@ MIDDLEWARE = [
 ]
 
 # CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = env.bool("CORS_ALLOW_ALL_ORIGINS", default=False)
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 CORS_ALLOW_CREDENTIALS = True
 
 from corsheaders.defaults import default_headers
@@ -181,10 +179,10 @@ AUDIT_LOG_SETTINGS = {
 }
 
 
-ROOT_URLCONF = "config.urls"
-PUBLIC_SCHEMA_URLCONF = "config.urls_public"
-WSGI_APPLICATION = "config.wsgi.application"
-ASGI_APPLICATION = "config.asgi.application"
+ROOT_URLCONF = "eduerp.urls"
+PUBLIC_SCHEMA_URLCONF = "eduerp.urls_public"
+WSGI_APPLICATION = "eduerp.wsgi.application"
+ASGI_APPLICATION = "eduerp.asgi.application"
 
 CHANNEL_LAYERS = {
     "default": {
@@ -223,11 +221,11 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django_tenants.postgresql_backend",
-        "NAME": env("DB_NAME", default="eduerp_v6"),
-        "USER": env("DB_USER", default="codefyn"),
-        "PASSWORD": env("DB_PASSWORD", default="Jaimaa@007"),
+        "NAME": env("DB_NAME", default="eduerp"),
+        "USER": env("DB_USER", default="eduerp_admin"),
+        "PASSWORD": env("DB_PASSWORD", default="EduERP@Secure!"),
         "HOST": env("DB_HOST", default="localhost"),
-        "PORT": env("DB_PORT", default="5433"),
+        "PORT": env("DB_PORT", default="5432"),
         "ATOMIC_REQUESTS": True,
     }
 }
@@ -378,8 +376,9 @@ X_FRAME_OPTIONS = "DENY"
 
 # Session settings
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=False)
-CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=False)
+SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=not DEBUG)
+CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=not DEBUG)
+CSRF_COOKIE_HTTPONLY = True
 
 # Email configuration
 EMAIL_BACKEND = env(
@@ -501,11 +500,7 @@ TENANT_LIMIT_SET_CACHE = True
 TENANT_CACHE_TIMEOUT = 300  # 5 minutes
 
 # Encryption key for encrypted model fields
-# Generate a secure key: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-# Encryption key for encrypted model fields
-FIELD_ENCRYPTION_KEY = env(
-    "FIELD_ENCRYPTION_KEY", default="Ahb-hHyI9jU96IHKmIlfuzkk0Okb1uMxaBOY-bMQL00="
-)
+FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY")
 # Default tenant configuration
 DEFAULT_TENANT_CONFIG = {
     "max_storage_mb": 1024,
